@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 const Navbar = () => {
   return (
-    <nav className="flex justify-between items-center p-3 bg-black text-white w-4/5 m-auto rounded-full ">
+    <nav className="flex justify-between items-center p-3 bg-black text-white w-3/5 m-auto rounded-full ">
       <div className="flex items-center">
         <Image src="/logo.png" alt="Collabnest Logo" width={50} height={50} />
         <span className="ml-2 font-bold">Collabnest</span>
