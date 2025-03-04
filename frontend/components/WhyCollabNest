@@ -1,0 +1,47 @@
+export default function WhyCollabNest() {
+  const features = [
+    {
+      title: "Gamified Learning",
+      description: "Earn XP, badges & level up as you progress",
+      icon: "🎮", // Replace with actual icon
+    },
+    {
+      title: "Structured Mentorship",
+      description: "Guidance from senior students and professors",
+      icon: "📖",
+    },
+    {
+      title: "Project Recommendation",
+      description: "AI-powered suggestions based on your skills",
+      icon: "🤖",
+    },
+    {
+      title: "Real Time Collaboration",
+      description: "Chat, video calls & notifications.",
+      icon: "💬",
+    },
+    {
+      title: "Portfolio And Certification",
+      description: "Showcase your work, get auto-generated certificates.",
+      icon: "📜",
+    },
+  ];
+
+  return (
+    <div className="flex flex-col items-center bg-[#0D1117] text-white py-16 px-6 rounded-2xl shadow-lg">
+      <h2 className="text-4xl font-bold mb-10">Why <span className="text-[#ffffff]">CollabNest?</span></h2>
+      <div className="grid grid-cols-3 gap-6 max-w-4xl">
+        {features.map((feature, index) => (
+          <div
+            key={index}
+            className="flex flex-col items-center text-center bg-[#141922] rounded-xl p-6 shadow-md border border-gray-700 w-64 h-40"
+          >
+            <div className="text-4xl mb-3">{feature.icon}</div>
+            <h3 className="text-lg font-semibold">{feature.title}</h3>
+            <p className="text-sm text-gray-400 mt-1">{feature.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
