@@ -42,7 +42,7 @@ const Navbar = () => {
           <Link href="#" onClick={() => setMenuOpen(false)}>About Us</Link>
           <Link href="#" onClick={() => setMenuOpen(false)}>Blogs</Link>
           <Link href="#" onClick={() => setMenuOpen(false)}>Cart (0)</Link>
-          <button className="px-4 py-2 bg-white text-black rounded-full" onClick={() => setMenuOpen(false)}>Login</button>
+          <a href="/signup" className="px-4 py-2 bg-white text-black rounded-full">Login</a>
         </div>
       )}
     </nav>
