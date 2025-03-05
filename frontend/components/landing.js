@@ -9,7 +9,8 @@ const CollabNestFeatures = () => {
                 </svg>
             ),
             title: 'Gamified Learning',
-            description: 'Earn XP, badges & level up as you progress'
+            description: 'Earn XP, badges & level up as you progress',
+            gridPosition: "md:col-start-2 md:col-span-3"
         },
         {
             icon: (
@@ -18,7 +19,8 @@ const CollabNestFeatures = () => {
                 </svg>
             ),
             title: 'Structured Mentorship',
-            description: 'Guidance from senior students and professors'
+            description: 'Guidance from senior students and professors',
+            gridPosition: "md:col-start-5 md:col-span-3"
         },
         {
             icon: (
@@ -27,7 +29,8 @@ const CollabNestFeatures = () => {
                 </svg>
             ),
             title: 'Project Recommendation',
-            description: 'AI-powered suggestions based on your skills'
+            description: 'AI-powered suggestions based on your skills',
+            gridPosition: "md:col-start-8 md:col-span-3"
         },
         {
             icon: (
@@ -36,7 +39,8 @@ const CollabNestFeatures = () => {
                 </svg>
             ),
             title: 'Real Time Collaboration',
-            description: 'Chat, video calls & notifications'
+            description: 'Chat, video calls & notifications',
+            gridPosition: "md:col-start-3 md:col-span-3"
         },
         {
             icon: (
@@ -45,34 +49,23 @@ const CollabNestFeatures = () => {
                 </svg>
             ),
             title: 'Portfolio And Certification',
-            description: 'Showcase your work, get auto-generated certificates'
+            description: 'Showcase your work, get auto-generated certificates',
+            gridPosition: "md:col-start-7 md:col-span-3"
         }
     ];
 
     return (
-        <div className="min-h-screen bg-[#0D1231] flex flex-col items-center justify-center p-4 relative overflow-hidden">
-            <div className="absolute inset-0 bg-grid-[#172150] z-10"></div>
-
-            <h1 className="text-2xl md:text-4xl font-bold text-white mb-8 md:mb-12 text-center z-20 relative">
+        <div className="min-h-screen bg-[#0D1231] flex flex-col items-center justify-center p-4 relative overflow-hidden" style={{ backgroundImage: 'url(/collabfeature.png)' }}>
+            <h1 className="text-2xl md:text-4xl font-bold text-white mb-8 md:mb-12 text-center relative">
                 Why CollabNest?
             </h1>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 w-full max-w-5xl z-20 relative">
+            <div className="grid grid-cols-1 md:grid-cols-10 gap-4 md:gap-6 w-full max-w-5xl relative">
                 {features.map((feature, index) => (
-                    <div
-                        key={index}
-                        className="bg-[#151C3B] rounded-2xl p-4 md:p-6 flex flex-col items-center text-center border border-white/10 
-                        transform transition-all duration-300 hover:scale-105 hover:shadow-lg"
-                    >
-                        <div className="mb-3 md:mb-4 text-blue-400">
-                            {feature.icon}
-                        </div>
-                        <h2 className="text-lg md:text-xl font-semibold text-white mb-2">
-                            {feature.title}
-                        </h2>
-                        <p className="text-sm md:text-base text-gray-400">
-                            {feature.description}
-                        </p>
+                    <div key={index} className={`bg-[#151C3B] rounded-2xl p-4 md:p-6 flex flex-col items-center text-center border border-white/10 transform transition-all duration-300 hover:scale-105 hover:shadow-lg ${feature.gridPosition}`}>
+                        <div className="mb-3 md:mb-4 text-blue-400">{feature.icon}</div>
+                        <h2 className="text-lg md:text-xl font-semibold text-white mb-2">{feature.title}</h2>
+                        <p className="text-sm md:text-base text-gray-400">{feature.description}</p>
                     </div>
                 ))}
             </div>
@@ -80,14 +73,16 @@ const CollabNestFeatures = () => {
     );
 };
 
+
+
 const CollabNestLandingPage = () => {
     return (
         <div className="min-h-screen flex flex-col bg-cover bg-center bg-no-repeat" style={{
-            backgroundImage: 'url(/landingpage_bg.png)'
+            backgroundImage: 'url(/landend.png)'
         }}>
             <div className="bg-black bg-opacity-50 min-h-screen flex flex-col">
                 <div className="text-center flex-grow flex flex-col justify-center items-center px-4 max-w-4xl mx-auto">
-                    <h1 className="text-3xl md:text-4xl font-semibold mb-4 text-white">
+                    <h1 className="text-3xl md:text-5xl font-semibold mb-4 text-white">
                         Ready to turn your learning into real-world projects?
                     </h1>
                     <button className="mt-6 px-6 py-3 text-lg font-semibold rounded-full bg-white text-black relative transition-all duration-300 hover:scale-105 shadow-lg">
