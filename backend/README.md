@@ -17,6 +17,7 @@ npm install -g @nestjs/cli
 nest g resource <resource_name>
 ```
 * Inside the newly created folder, create a schema for the resource.
+``<resource>.schema.ts``
 ```typescript
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
