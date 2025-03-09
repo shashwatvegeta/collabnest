@@ -6,7 +6,10 @@ import { ProjectSchema } from "./project/project.schema";
 import { ProjectModule } from "./project/project.module";
 import { ApplicationModule } from "./application/application.module";
 import { UserModule } from "./user/user.module";
-import { User } from "./user/user.schema";
+import { ApplicationSchema } from "./application/application.schema";
+import { AchievementSchema } from "./achievements/achievement.schema";
+import { AchievementModule } from "./achievements/achievement.module";
+// import { User } from "./user/user.schema";
 
 @Module({
   imports: [
@@ -15,9 +18,12 @@ import { User } from "./user/user.schema";
       `mongodb+srv://Random:NDZ3rKDH9gJDHy8b@collabnest.aut6a.mongodb.net/`,
     ),
     MongooseModule.forFeature([{ name: "Project", schema: ProjectSchema }]),
+    // MongooseModule.forFeature([{ name: "Achievement", schema: AchievementSchema }]),
+
     ProjectModule,
     ApplicationModule,
     UserModule,
+    AchievementModule,
   ],
   controllers: [AppController],
   providers: [AppService],
