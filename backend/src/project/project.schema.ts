@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { Document } from "mongoose";
+import { Document, Types } from "mongoose";
 @Schema()
 export class Project extends Document {
   @Prop({ required: true })
@@ -28,7 +28,7 @@ export class Project extends Document {
   students_enrolled: Object[];
   @Prop()
   tasks: Object[];
-  @Prop()
-  project_application: Object[];
+  @Prop([{ type: Types.ObjectId, ref: 'Application' }])
+  project_application: Types.ObjectId[];
 }
 export const ProjectSchema = SchemaFactory.createForClass(Project);
