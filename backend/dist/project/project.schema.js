@@ -14,77 +14,52 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 let Project = class Project extends mongoose_2.Document {
     project_name;
-    project_id;
     is_approved;
     description;
     is_completed;
     cap;
     start_date;
     end_date;
-    discussion_threads;
-    tags;
-    project_owner;
-    students_enrolled;
-    tasks;
-    project_application;
+    project_applications;
+    owner_id;
 };
 exports.Project = Project;
 __decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
 ], Project.prototype, "project_name", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", Number)
-], Project.prototype, "project_id", void 0);
-__decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", Boolean)
 ], Project.prototype, "is_approved", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
 ], Project.prototype, "description", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", Boolean)
 ], Project.prototype, "is_completed", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", Number)
 ], Project.prototype, "cap", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", Date)
 ], Project.prototype, "start_date", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", Date)
 ], Project.prototype, "end_date", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: 'Application' }] }),
     __metadata("design:type", Array)
-], Project.prototype, "discussion_threads", void 0);
+], Project.prototype, "project_applications", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", Array)
-], Project.prototype, "tags", void 0);
-__decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", Number)
-], Project.prototype, "project_owner", void 0);
-__decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", Array)
-], Project.prototype, "students_enrolled", void 0);
-__decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", Array)
-], Project.prototype, "tasks", void 0);
-__decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", Array)
-], Project.prototype, "project_application", void 0);
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'User' }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
+], Project.prototype, "owner_id", void 0);
 exports.Project = Project = __decorate([
     (0, mongoose_1.Schema)()
 ], Project);
