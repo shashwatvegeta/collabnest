@@ -14,16 +14,18 @@ const mongoose_1 = require("@nestjs/mongoose");
 const project_schema_1 = require("./project/project.schema");
 const project_module_1 = require("./project/project.module");
 const application_module_1 = require("./application/application.module");
+const user_module_1 = require("./user/user.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            mongoose_1.MongooseModule.forRoot(`mongodb://localhost:27017/collabnest`),
+            mongoose_1.MongooseModule.forRoot(`mongodb+srv://Random:NDZ3rKDH9gJDHy8b@collabnest.aut6a.mongodb.net/`),
             mongoose_1.MongooseModule.forFeature([{ name: "Project", schema: project_schema_1.ProjectSchema }]),
             project_module_1.ProjectModule,
             application_module_1.ApplicationModule,
+            user_module_1.UserModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
