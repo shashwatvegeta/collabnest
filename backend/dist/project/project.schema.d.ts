@@ -12,7 +12,7 @@ export declare class Project extends Document {
     tags: Object[];
     project_owner: number;
     students_enrolled: Object[];
-    tasks: Object[];
+    tasks: Types.ObjectId[];
     project_application: Types.ObjectId[];
 }
 export declare const ProjectSchema: import("mongoose").Schema<Project, import("mongoose").Model<Project, any, any, any, Document<unknown, any, Project> & Project & Required<{

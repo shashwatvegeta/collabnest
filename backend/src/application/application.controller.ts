@@ -56,6 +56,7 @@ export class ApplicationsController {
         if(!updateApplicationDto) {
             throw new BadRequestException( "Dto cannot be empty." );
         }
+        
         if ((updateApplicationDto.approval_notes && updateApplicationDto.rejection_reason) ||
             (!updateApplicationDto.approval_notes && !updateApplicationDto.rejection_reason)) {
             throw new BadRequestException("Either 'approval_notes' or 'rejection_reason' should be provided, but not both.");
