@@ -21,7 +21,7 @@ exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            mongoose_1.MongooseModule.forRoot(`mongodb+srv://Random:NDZ3rKDH9gJDHy8b@collabnest.aut6a.mongodb.net/`),
+            mongoose_1.MongooseModule.forRoot(`mongodb://localhost:27017/collabnest`),
             mongoose_1.MongooseModule.forFeature([{ name: "Project", schema: project_schema_1.ProjectSchema }]),
             project_module_1.ProjectModule,
             application_module_1.ApplicationModule,

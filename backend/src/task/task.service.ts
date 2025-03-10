@@ -30,13 +30,21 @@ export class TaskService {
 
     async findByProjectIdandTaskId(project_id: string, task_id: string): Promise<Task> {
 
-        const task = await this.taskModel.findOne({
-            _id: task_id,
-            project_id: new Types.ObjectId(project_id)
-        });
+        const project = await this.projectModel
+            .findById(project_id)
+            .populate<{ tasks: Task[] }>({
+                path: 'tasks',
+                model: 'Task'
+            });
+
+        if (!project) {
+            throw new NotFoundException(`Project with project ID ${project_id}  not found`);
+        }
+        
+        const task = project.tasks.find(task => (task._id as Types.ObjectId).toString() === task_id);
 
         if (!task) {
-            throw new NotFoundException(`task with project ID ${project_id} and task ID ${task_id} not found`);
+            throw new NotFoundException(`Task with ID ${task_id} not found in project ${project_id}`);
         }
 
         return task;
@@ -44,12 +52,23 @@ export class TaskService {
 
 
 
-    async createTask(project_id: string,createTaskDto: CreateTaskDto): Promise<Task> {
+    async createTask(project_id: string, createTaskDto: CreateTaskDto): Promise<Task> {
         const project = await this.projectModel.findById(project_id);
+        const deadlineDate = new Date(createTaskDto.deadline)
+
+        if (isNaN(deadlineDate.getTime())) {
+            throw new BadRequestException('Invalid date format');
+        }
+
         if (!project) {
             throw new NotFoundException(`Project with ID ${project_id} not found`);
         }
-        const createdTask = new this.taskModel(createTaskDto);
+
+        const createdTask = new this.taskModel({
+            ...createTaskDto,
+            deadline: deadlineDate,
+        });
+
         await this.projectModel.findByIdAndUpdate(
             project_id,
             { $push: { tasks: createdTask._id } }
@@ -59,13 +78,16 @@ export class TaskService {
 
     async updateTask(project_id: string, task_id: string, updateTaskDto: UpdateTaskDto): Promise<Task> {
 
-        const task = await this.taskModel.findOne({
-            _id: task_id,
-            project_id: new Types.ObjectId(project_id)
-        });
+        const project = await this.projectModel.findById(project_id);
+
+        if (!project) {
+            throw new NotFoundException(`Project with project ID ${project_id}  not found`);
+        }
+
+        const task = project.tasks.find(task => (task._id as Types.ObjectId).toString() === task_id);
 
         if (!task) {
-            throw new NotFoundException(`task with project ID ${project_id} and task ID ${task_id} not found`);
+            throw new NotFoundException(`Task with ID ${task_id} not found in project ${project_id}`);
         }
 
         const updatedTask = await this.taskModel.findByIdAndUpdate(

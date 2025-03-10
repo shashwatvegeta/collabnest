@@ -1,9 +1,8 @@
-import { IsNotEmpty, IsString, IsDate, IsEnum, IsArray, IsOptional } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsNotEmpty, IsString, IsDate, IsEnum, IsArray, IsOptional, IsISO8601 } from 'class-validator';
 import { Types } from 'mongoose';
 
 export class CreateTaskDto {
-    @IsOptional()
-    project_id: Types.ObjectId;
 
     @IsNotEmpty()
     @IsString()
@@ -14,10 +13,10 @@ export class CreateTaskDto {
     description: string;
 
     @IsNotEmpty()
-    @IsDate()
+    @IsString()
     deadline: Date;
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsEnum(['Pending', 'In Progress', 'Completed'], { message: 'Invalid status value' })
-    status: string = "pending";
+    status?: string = "Pending";
 }

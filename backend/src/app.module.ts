@@ -11,7 +11,7 @@ import { TaskModule } from './task/task.module';
   imports: [
     MongooseModule.forRoot(
       //`mongodb+srv://${process.env.MONGODB_USER}:${process.env.MONGODB_PASSWORD}@NDZ3rKDH9gJDHy8b@collabnest.aut6a.mongodb.net/`,
-      `mongodb+srv://Random:NDZ3rKDH9gJDHy8b@collabnest.aut6a.mongodb.net/`,
+      `mongodb://localhost:27017/collabnest`,
     ),
     MongooseModule.forFeature([{ name: "Project", schema: ProjectSchema }]),
     ProjectModule,

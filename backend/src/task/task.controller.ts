@@ -34,8 +34,6 @@ export class TaskController {
         if (!Types.ObjectId.isValid(project_id)) {
             throw new BadRequestException('Invalid project_id');
         }
-        
-        createTaskDto.project_id = new Types.ObjectId(project_id);
 
         return this.taskService.createTask(project_id, createTaskDto);
     }

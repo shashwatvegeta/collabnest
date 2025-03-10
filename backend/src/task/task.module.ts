@@ -19,4 +19,5 @@ import { Project, ProjectSchema } from 'src/project/project.schema';
   controllers: [TaskController],
   providers: [TaskService],
 })
+
 export class TaskModule {}
