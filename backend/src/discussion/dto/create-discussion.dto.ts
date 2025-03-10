@@ -1,7 +1,23 @@
-export class CreateDiscussionDto {
-    title: string;
-    description: string;
-    project_id: string;
-    created_by: Object[];
-}
+import { IsMongoId, IsNotEmpty, IsOptional, IsString, IsArray } from 'class-validator';
 
+export class CreateDiscussionDto {
+    @IsMongoId()
+    @IsNotEmpty()
+    discussion_id: string;
+    @IsString()
+    @IsNotEmpty()
+    title: string;
+
+    @IsString()
+    @IsOptional()
+    description?: string;
+
+    @IsMongoId()
+    @IsNotEmpty()
+    created_by: string;
+
+    @IsArray()
+    @IsMongoId({ each: true })
+    @IsOptional()
+    discussion_replies?: string[];
+}

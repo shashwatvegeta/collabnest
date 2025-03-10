@@ -20,7 +20,7 @@ exports.DiscussionModule = DiscussionModule = __decorate([
         imports: [
             mongoose_1.MongooseModule.forFeature([{ name: "Discussion", schema: discussion_schema_1.DiscussionSchema }]),
         ],
-        controllers: [discussion_controller_1.DiscussionController],
+        controllers: [discussion_controller_1.DiscussionPostController],
         providers: [discussion_service_1.DiscussionService],
     })
 ], DiscussionModule);
