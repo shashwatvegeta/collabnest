@@ -4,5 +4,5 @@ export class Discussion {
     title: string;
     description: string;
     created_by: Object[];
-    Discussion_Replies: Object[];
+    Discussion_Replies: Object[];  
 }
