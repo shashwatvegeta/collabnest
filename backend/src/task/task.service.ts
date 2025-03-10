@@ -44,14 +44,14 @@ export class TaskService {
 
 
 
-    async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
-        const project = await this.projectModel.findById(createTaskDto.project_id);
+    async createTask(project_id: string,createTaskDto: CreateTaskDto): Promise<Task> {
+        const project = await this.projectModel.findById(project_id);
         if (!project) {
-            throw new NotFoundException(`Project with ID ${createTaskDto.project_id} not found`);
+            throw new NotFoundException(`Project with ID ${project_id} not found`);
         }
         const createdTask = new this.taskModel(createTaskDto);
         await this.projectModel.findByIdAndUpdate(
-            createTaskDto.project_id,
+            project_id,
             { $push: { tasks: createdTask._id } }
         );
         return createdTask.save();

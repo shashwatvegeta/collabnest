@@ -6,9 +6,6 @@ export class CreateTaskDto {
     project_id: Types.ObjectId;
 
     @IsNotEmpty()
-    task_id: Types.ObjectId;
-
-    @IsNotEmpty()
     @IsString()
     title: string;
 
@@ -22,11 +19,5 @@ export class CreateTaskDto {
 
     @IsNotEmpty()
     @IsEnum(['Pending', 'In Progress', 'Completed'], { message: 'Invalid status value' })
-    status: string;
-
-    @IsArray()
-    submissions?: Types.ObjectId[];
-
-    @IsArray()
-    meetings?: Types.ObjectId[];
+    status: string = "pending";
 }
