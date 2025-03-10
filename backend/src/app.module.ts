@@ -9,6 +9,7 @@ import { UserModule } from "./user/user.module";
 import { ApplicationSchema } from "./application/application.schema";
 import { AchievementSchema } from "./achievements/achievement.schema";
 import { AchievementModule } from "./achievements/achievement.module";
+import { CertificateModule } from "./certificates/certificate.module";
 // import { User } from "./user/user.schema";
 
 @Module({
@@ -24,6 +25,7 @@ import { AchievementModule } from "./achievements/achievement.module";
     ApplicationModule,
     UserModule,
     AchievementModule,
+    CertificateModule,
   ],
   controllers: [AppController],
   providers: [AppService],
