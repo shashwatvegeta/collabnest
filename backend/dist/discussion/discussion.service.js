@@ -17,25 +17,60 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 let DiscussionService = class DiscussionService {
-    projectModel;
-    constructor(projectModel) {
-        this.projectModel = projectModel;
+    discussionModel;
+    constructor(discussionModel) {
+        this.discussionModel = discussionModel;
     }
-    create(createDiscussionDto) {
-        const createdDiscussion = new this.projectModel(createDiscussionDto);
-        return createdDiscussion.save();
+    async findAllPosts(discussion_id) {
+        const discussion = await this.discussionModel.findById(discussion_id).exec();
+        if (!discussion) {
+            throw new common_1.NotFoundException(`Discussion with ID ${discussion_id} not found`);
+        }
+        return this.discussionModel.find({ discussion_id }).exec();
     }
-    findAll() {
-        return this.projectModel.find().exec();
+    async createPost(discussion_id, createDiscussionDto) {
+        const discussion = await this.discussionModel.findById(discussion_id).exec();
+        if (!discussion) {
+            throw new common_1.NotFoundException(`Discussion with ID ${discussion_id} not found`);
+        }
+        const postData = {
+            ...createDiscussionDto,
+            discussion_id
+        };
+        const createdPost = new this.discussionModel(postData);
+        const savedPost = await createdPost.save();
+        await this.discussionModel.findByIdAndUpdate(discussion_id, { $push: { 'Discussion Replies': savedPost._id } }, { new: true }).exec();
+        return savedPost;
     }
-    findOne(id) {
-        return this.projectModel.findById(id).exec;
+    async updatePost(discussion_id, post_id, updateDiscussionDto) {
+        const discussion = await this.discussionModel.findById(discussion_id).exec();
+        if (!discussion) {
+            throw new common_1.NotFoundException(`Discussion with ID ${discussion_id} not found`);
+        }
+        const post = await this.discussionModel.findById(post_id).exec();
+        if (!post) {
+            throw new common_1.NotFoundException(`Discussion post with ID ${post_id} not found`);
+        }
+        if (post.discussion_id.toString() !== discussion_id) {
+            throw new common_1.NotFoundException(`Post doesn't belong to the specified discussion`);
+        }
+        return this.discussionModel.findByIdAndUpdate(post_id, updateDiscussionDto, { new: true }).exec();
     }
-    update(id, updateDiscussionDto) {
-        return this.projectModel.findByIdAndUpdate(id, updateDiscussionDto, { new: true }).exec();
-    }
-    remove(id) {
-        return this.projectModel.findByIdAndDelete(id).exec();
+    async deletePost(discussion_id, post_id) {
+        const discussion = await this.discussionModel.findById(discussion_id).exec();
+        if (!discussion) {
+            throw new common_1.NotFoundException(`Discussion with ID ${discussion_id} not found`);
+        }
+        const post = await this.discussionModel.findById(post_id).exec();
+        if (!post) {
+            throw new common_1.NotFoundException(`Discussion post with ID ${post_id} not found`);
+        }
+        if (post.discussion_id.toString() !== discussion_id) {
+            throw new common_1.NotFoundException(`Post doesn't belong to the specified discussion`);
+        }
+        const deletedPost = await this.discussionModel.findByIdAndDelete(post_id).exec();
+        await this.discussionModel.findByIdAndUpdate(discussion_id, { $pull: { 'Discussion Replies': post_id } }).exec();
+        return deletedPost;
     }
 };
 exports.DiscussionService = DiscussionService;

@@ -9,39 +9,34 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DiscussionSchema = exports.Discussion = void 0;
+exports.DiscussionPostSchema = exports.DiscussionPost = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
-let Discussion = class Discussion extends mongoose_2.Document {
+let DiscussionPost = class DiscussionPost extends mongoose_2.Document {
     discussion_id;
-    title;
-    description;
-    created_by;
-    'Discussion Replies';
+    content;
+    author;
+    created_at;
 };
-exports.Discussion = Discussion;
+exports.DiscussionPost = DiscussionPost;
 __decorate([
-    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, required: true }),
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Discussion', required: true }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
-], Discussion.prototype, "discussion_id", void 0);
+], DiscussionPost.prototype, "discussion_id", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
-], Discussion.prototype, "title", void 0);
-__decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", String)
-], Discussion.prototype, "description", void 0);
+], DiscussionPost.prototype, "content", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, required: true }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
-], Discussion.prototype, "created_by", void 0);
+], DiscussionPost.prototype, "author", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: 'DiscussionPost' }] }),
-    __metadata("design:type", Array)
-], Discussion.prototype, "Discussion Replies", void 0);
-exports.Discussion = Discussion = __decorate([
+    (0, mongoose_1.Prop)({ default: Date.now }),
+    __metadata("design:type", Date)
+], DiscussionPost.prototype, "created_at", void 0);
+exports.DiscussionPost = DiscussionPost = __decorate([
     (0, mongoose_1.Schema)()
-], Discussion);
-exports.DiscussionSchema = mongoose_1.SchemaFactory.createForClass(Discussion);
-//# sourceMappingURL=discussion.schema.js.map
+], DiscussionPost);
+exports.DiscussionPostSchema = mongoose_1.SchemaFactory.createForClass(DiscussionPost);
+//# sourceMappingURL=discussion-post.schema.js.map

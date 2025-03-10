@@ -12,70 +12,74 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DiscussionController = void 0;
+exports.DiscussionPostController = void 0;
 const common_1 = require("@nestjs/common");
 const discussion_service_1 = require("./discussion.service");
 const create_discussion_dto_1 = require("./dto/create-discussion.dto");
 const update_discussion_dto_1 = require("./dto/update-discussion.dto");
-let DiscussionController = class DiscussionController {
+const mongoose_1 = require("mongoose");
+class ValidateObjectId {
+    transform(value) {
+        const isValid = mongoose_1.Types.ObjectId.isValid(value);
+        if (!isValid) {
+            throw new common_1.BadRequestException('Invalid ObjectId');
+        }
+        return value;
+    }
+}
+let DiscussionPostController = class DiscussionPostController {
     discussionService;
     constructor(discussionService) {
         this.discussionService = discussionService;
     }
-    create(createDiscussionDto) {
-        return this.discussionService.create(createDiscussionDto);
+    findAllPosts(discussion_id) {
+        return this.discussionService.findAllPosts(discussion_id);
     }
-    findAll() {
-        return this.discussionService.findAll();
+    createPost(discussion_id, createDiscussionDto) {
+        return this.discussionService.createPost(discussion_id, createDiscussionDto);
     }
-    findOne(id) {
-        return this.discussionService.findOne(+id);
+    updatePost(discussion_id, post_id, updateDiscussionDto) {
+        return this.discussionService.updatePost(discussion_id, post_id, updateDiscussionDto);
     }
-    update(id, updateDiscussionDto) {
-        return this.discussionService.update(+id, updateDiscussionDto);
-    }
-    remove(id) {
-        return this.discussionService.remove(+id);
+    deletePost(discussion_id, post_id) {
+        return this.discussionService.deletePost(discussion_id, post_id);
     }
 };
-exports.DiscussionController = DiscussionController;
-__decorate([
-    (0, common_1.Post)(),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_discussion_dto_1.CreateDiscussionDto]),
-    __metadata("design:returntype", void 0)
-], DiscussionController.prototype, "create", null);
+exports.DiscussionPostController = DiscussionPostController;
 __decorate([
     (0, common_1.Get)(),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
-], DiscussionController.prototype, "findAll", null);
-__decorate([
-    (0, common_1.Get)(':id'),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, common_1.Param)('discussion_id', ValidateObjectId)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
-], DiscussionController.prototype, "findOne", null);
+], DiscussionPostController.prototype, "findAllPosts", null);
 __decorate([
-    (0, common_1.Patch)(':id'),
-    __param(0, (0, common_1.Param)('id')),
+    (0, common_1.Post)(),
+    __param(0, (0, common_1.Param)('discussion_id', ValidateObjectId)),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_discussion_dto_1.UpdateDiscussionDto]),
+    __metadata("design:paramtypes", [String, create_discussion_dto_1.CreateDiscussionDto]),
     __metadata("design:returntype", void 0)
-], DiscussionController.prototype, "update", null);
+], DiscussionPostController.prototype, "createPost", null);
 __decorate([
-    (0, common_1.Delete)(':id'),
-    __param(0, (0, common_1.Param)('id')),
+    (0, common_1.Put)(':post_id'),
+    __param(0, (0, common_1.Param)('discussion_id', ValidateObjectId)),
+    __param(1, (0, common_1.Param)('post_id', ValidateObjectId)),
+    __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String, update_discussion_dto_1.UpdateDiscussionDto]),
     __metadata("design:returntype", void 0)
-], DiscussionController.prototype, "remove", null);
-exports.DiscussionController = DiscussionController = __decorate([
-    (0, common_1.Controller)('discussion'),
+], DiscussionPostController.prototype, "updatePost", null);
+__decorate([
+    (0, common_1.Delete)(':post_id'),
+    __param(0, (0, common_1.Param)('discussion_id', ValidateObjectId)),
+    __param(1, (0, common_1.Param)('post_id', ValidateObjectId)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], DiscussionPostController.prototype, "deletePost", null);
+exports.DiscussionPostController = DiscussionPostController = __decorate([
+    (0, common_1.Controller)('discussions/:discussion_id/discussion_post'),
     __metadata("design:paramtypes", [discussion_service_1.DiscussionService])
-], DiscussionController);
+], DiscussionPostController);
 //# sourceMappingURL=discussion.controller.js.map

@@ -1,34 +1,52 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, BadRequestException } from '@nestjs/common';
 import { DiscussionService } from './discussion.service';
 import { CreateDiscussionDto } from './dto/create-discussion.dto';
 import { UpdateDiscussionDto } from './dto/update-discussion.dto';
+import { Types } from 'mongoose';
 
-@Controller('discussion')
-export class DiscussionController {
-  constructor(private readonly discussionService: DiscussionService) {}
-
-  @Post()
-  create(@Body() createDiscussionDto: CreateDiscussionDto) {
-    return this.discussionService.create(createDiscussionDto);
+// Custom pipe for ObjectId validation
+class ValidateObjectId {
+  transform(value: string): string {
+    const isValid = Types.ObjectId.isValid(value);
+    if (!isValid) {
+      throw new BadRequestException('Invalid ObjectId');
+    }
+    return value;
   }
+}
+
+
+@Controller('discussions/:discussion_id/discussion_post')
+export class DiscussionPostController {
+  constructor(private readonly discussionService: DiscussionService) { }
 
   @Get()
-  findAll() {
-    return this.discussionService.findAll();
+  findAllPosts(@Param('discussion_id', ValidateObjectId) discussion_id: string) {
+    return this.discussionService.findAllPosts(discussion_id);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.discussionService.findOne(+id);
+  @Post()
+  createPost(
+    @Param('discussion_id', ValidateObjectId) discussion_id: string,
+    @Body() createDiscussionDto: CreateDiscussionDto,
+  ) {
+    return this.discussionService.createPost(discussion_id, createDiscussionDto);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDiscussionDto: UpdateDiscussionDto) {
-    return this.discussionService.update(+id, updateDiscussionDto);
+  @Put(':post_id')
+  updatePost(
+    @Param('discussion_id', ValidateObjectId) discussion_id: string,
+    @Param('post_id', ValidateObjectId) post_id: string,
+    @Body() updateDiscussionDto: UpdateDiscussionDto,
+  ) {
+    return this.discussionService.updatePost(discussion_id, post_id, updateDiscussionDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.discussionService.remove(+id);
+  @Delete(':post_id')
+  deletePost(
+    @Param('discussion_id', ValidateObjectId) discussion_id: string,
+    @Param('post_id', ValidateObjectId) post_id: string,
+  ) {
+    return this.discussionService.deletePost(discussion_id, post_id);
   }
 }

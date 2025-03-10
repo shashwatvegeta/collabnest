@@ -1,31 +1,26 @@
+import { Model } from 'mongoose';
+import { Discussion } from './discussion.schema';
 import { CreateDiscussionDto } from './dto/create-discussion.dto';
 import { UpdateDiscussionDto } from './dto/update-discussion.dto';
-import { Discussion } from './discussion.schema';
-import { Model } from 'mongoose';
 export declare class DiscussionService {
-    private projectModel;
-    constructor(projectModel: Model<Discussion>);
-    create(createDiscussionDto: CreateDiscussionDto): Promise<import("mongoose").Document<unknown, {}, Discussion> & Discussion & Required<{
-        _id: unknown;
-    }> & {
-        __v: number;
-    }>;
-    findAll(): Promise<(import("mongoose").Document<unknown, {}, Discussion> & Discussion & Required<{
+    private discussionModel;
+    constructor(discussionModel: Model<Discussion>);
+    findAllPosts(discussion_id: string): Promise<(import("mongoose").Document<unknown, {}, Discussion> & Discussion & Required<{
         _id: unknown;
     }> & {
         __v: number;
     })[]>;
-    findOne(id: number): () => Promise<(import("mongoose").Document<unknown, {}, Discussion> & Discussion & Required<{
+    createPost(discussion_id: string, createDiscussionDto: CreateDiscussionDto): Promise<import("mongoose").Document<unknown, {}, Discussion> & Discussion & Required<{
+        _id: unknown;
+    }> & {
+        __v: number;
+    }>;
+    updatePost(discussion_id: string, post_id: string, updateDiscussionDto: UpdateDiscussionDto): Promise<(import("mongoose").Document<unknown, {}, Discussion> & Discussion & Required<{
         _id: unknown;
     }> & {
         __v: number;
     }) | null>;
-    update(id: number, updateDiscussionDto: UpdateDiscussionDto): Promise<(import("mongoose").Document<unknown, {}, Discussion> & Discussion & Required<{
-        _id: unknown;
-    }> & {
-        __v: number;
-    }) | null>;
-    remove(id: number): Promise<(import("mongoose").Document<unknown, {}, Discussion> & Discussion & Required<{
+    deletePost(discussion_id: string, post_id: string): Promise<(import("mongoose").Document<unknown, {}, Discussion> & Discussion & Required<{
         _id: unknown;
     }> & {
         __v: number;

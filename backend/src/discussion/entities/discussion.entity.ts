@@ -1,8 +1,15 @@
+import { Types } from 'mongoose';
+
 export class Discussion {
-    discussion_id: Object[];
-    Projects: Object[];
+
     title: string;
+
+
     description: string;
-    created_by: Object[];
-    Discussion_Replies: Object[];  
+
+
+    topic: string; // Using string type instead of enum
+
+
+    project_id: string;
 }
