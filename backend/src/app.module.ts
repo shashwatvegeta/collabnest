@@ -9,6 +9,8 @@ import { UserModule } from "./user/user.module";
 import { ApplicationSchema } from "./application/application.schema";
 import { AchievementSchema } from "./achievements/achievement.schema";
 import { AchievementModule } from "./achievements/achievement.module";
+import { SubmissionsModule } from './submissions/submissions.module';
+import { SubmissionSchema } from "./submissions/submissions.schema";
 // import { User } from "./user/user.schema";
 
 @Module({
@@ -18,12 +20,14 @@ import { AchievementModule } from "./achievements/achievement.module";
       `mongodb+srv://Random:NDZ3rKDH9gJDHy8b@collabnest.aut6a.mongodb.net/`,
     ),
     MongooseModule.forFeature([{ name: "Project", schema: ProjectSchema }]),
+    MongooseModule.forFeature([{ name: "Submissions", schema : SubmissionSchema}]),
     // MongooseModule.forFeature([{ name: "Achievement", schema: AchievementSchema }]),
 
     ProjectModule,
     ApplicationModule,
     UserModule,
     AchievementModule,
+    SubmissionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
