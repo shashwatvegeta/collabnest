@@ -14,22 +14,30 @@ const mongoose_1 = require("@nestjs/mongoose");
 const project_schema_1 = require("./project/project.schema");
 const project_module_1 = require("./project/project.module");
 const application_module_1 = require("./application/application.module");
+const task_module_1 = require("./task/task.module");
 const user_module_1 = require("./user/user.module");
 const achievement_module_1 = require("./achievements/achievement.module");
 const certificate_module_1 = require("./certificates/certificate.module");
+const submissions_module_1 = require("./submissions/submissions.module");
+const submissions_schema_1 = require("./submissions/submissions.schema");
+const discussion_module_1 = require("./discussion/discussion.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            mongoose_1.MongooseModule.forRoot(`mongodb+srv://Random:NDZ3rKDH9gJDHy8b@collabnest.aut6a.mongodb.net/`),
+            mongoose_1.MongooseModule.forRoot(`mongodb://localhost:27017/collabnest`),
             mongoose_1.MongooseModule.forFeature([{ name: "Project", schema: project_schema_1.ProjectSchema }]),
+            mongoose_1.MongooseModule.forFeature([{ name: "Submissions", schema: submissions_schema_1.SubmissionSchema }]),
             project_module_1.ProjectModule,
+            discussion_module_1.DiscussionModule,
             application_module_1.ApplicationModule,
+            task_module_1.TaskModule,
             user_module_1.UserModule,
             achievement_module_1.AchievementModule,
             certificate_module_1.CertificateModule,
+            submissions_module_1.SubmissionsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

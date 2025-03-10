@@ -78,7 +78,7 @@ __decorate([
     __metadata("design:type", Array)
 ], Project.prototype, "students_enrolled", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)([{ type: mongoose_2.Types.ObjectId, ref: 'Task' }]),
     __metadata("design:type", Array)
 ], Project.prototype, "tasks", void 0);
 __decorate([
