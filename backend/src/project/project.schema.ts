@@ -26,8 +26,8 @@ export class Project extends Document {
   project_owner: number;
   @Prop()
   students_enrolled: Object[];
-  @Prop()
-  tasks: Object[];
+  @Prop([{ type: Types.ObjectId, ref: 'Task' }])
+  tasks: Types.ObjectId[];
   @Prop([{ type: Types.ObjectId, ref: 'Application' }])
   project_application: Types.ObjectId[];
 }
