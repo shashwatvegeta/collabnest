@@ -9,15 +9,19 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UpdateDiscussionPostDto = void 0;
-const class_validator_1 = require("class-validator");
-class UpdateDiscussionPostDto {
-    content;
-}
-exports.UpdateDiscussionPostDto = UpdateDiscussionPostDto;
+exports.SkillSchema = exports.Skill = void 0;
+const mongoose_1 = require("@nestjs/mongoose");
+const mongoose_2 = require("mongoose");
+let Skill = class Skill extends mongoose_2.Document {
+    name;
+};
+exports.Skill = Skill;
 __decorate([
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, mongoose_1.Prop)({ required: true, unique: true }),
     __metadata("design:type", String)
-], UpdateDiscussionPostDto.prototype, "content", void 0);
-//# sourceMappingURL=update-discussion-post.dto.js.map
+], Skill.prototype, "name", void 0);
+exports.Skill = Skill = __decorate([
+    (0, mongoose_1.Schema)()
+], Skill);
+exports.SkillSchema = mongoose_1.SchemaFactory.createForClass(Skill);
+//# sourceMappingURL=skill.schema.js.map

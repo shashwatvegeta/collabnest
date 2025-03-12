@@ -9,21 +9,29 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateDiscussionPostDto = void 0;
-const class_validator_1 = require("class-validator");
-const mongoose_1 = require("mongoose");
-class CreateDiscussionPostDto {
-    content;
-    author;
-}
-exports.CreateDiscussionPostDto = CreateDiscussionPostDto;
+exports.UserSkillSchema = exports.UserSkill = void 0;
+const mongoose_1 = require("@nestjs/mongoose");
+const mongoose_2 = require("mongoose");
+let UserSkill = class UserSkill extends mongoose_2.Document {
+    userId;
+    skillId;
+    verified;
+};
+exports.UserSkill = UserSkill;
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
-    (0, class_validator_1.IsString)(),
+    (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
-], CreateDiscussionPostDto.prototype, "content", void 0);
+], UserSkill.prototype, "userId", void 0);
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", mongoose_1.Types.ObjectId)
-], CreateDiscussionPostDto.prototype, "author", void 0);
-//# sourceMappingURL=create-discussion-post.dto.js.map
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", String)
+], UserSkill.prototype, "skillId", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: false }),
+    __metadata("design:type", Boolean)
+], UserSkill.prototype, "verified", void 0);
+exports.UserSkill = UserSkill = __decorate([
+    (0, mongoose_1.Schema)()
+], UserSkill);
+exports.UserSkillSchema = mongoose_1.SchemaFactory.createForClass(UserSkill);
+//# sourceMappingURL=user-skill.schema.js.map
