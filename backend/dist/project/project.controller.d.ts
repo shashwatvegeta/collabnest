@@ -29,4 +29,15 @@ export declare class ProjectController {
     }> & {
         __v: number;
     }) | null>;
+    getStudents(projectId: string): Promise<string[] | null>;
+    addStudent(projectId: string, studentId: string): Promise<(import("mongoose").Document<unknown, {}, import("./project.schema").Project> & import("./project.schema").Project & Required<{
+        _id: unknown;
+    }> & {
+        __v: number;
+    }) | null>;
+    removeStudent(projectId: string, studentId: string): Promise<(import("mongoose").Document<unknown, {}, import("./project.schema").Project> & import("./project.schema").Project & Required<{
+        _id: unknown;
+    }> & {
+        __v: number;
+    }) | null>;
 }

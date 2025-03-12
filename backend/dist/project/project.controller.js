@@ -37,6 +37,15 @@ let ProjectController = class ProjectController {
     remove(id) {
         return this.projectService.remove(+id);
     }
+    getStudents(projectId) {
+        return this.projectService.getStudents(+projectId);
+    }
+    addStudent(projectId, studentId) {
+        return this.projectService.addStudent(+projectId, studentId);
+    }
+    removeStudent(projectId, studentId) {
+        return this.projectService.removeStudent(+projectId, studentId);
+    }
 };
 exports.ProjectController = ProjectController;
 __decorate([
@@ -74,6 +83,29 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], ProjectController.prototype, "remove", null);
+__decorate([
+    (0, common_1.Get)(':pid/students'),
+    __param(0, (0, common_1.Param)('pid')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], ProjectController.prototype, "getStudents", null);
+__decorate([
+    (0, common_1.Post)(':pid/students/:sid'),
+    __param(0, (0, common_1.Param)('pid')),
+    __param(1, (0, common_1.Param)('sid')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], ProjectController.prototype, "addStudent", null);
+__decorate([
+    (0, common_1.Delete)(':pid/students/:sid'),
+    __param(0, (0, common_1.Param)('pid')),
+    __param(1, (0, common_1.Param)('sid')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], ProjectController.prototype, "removeStudent", null);
 exports.ProjectController = ProjectController = __decorate([
     (0, common_1.Controller)('project'),
     __metadata("design:paramtypes", [project_service_1.ProjectService])

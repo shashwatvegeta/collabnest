@@ -31,4 +31,21 @@ export class ProjectController {
   remove(@Param('id') id: string) {
     return this.projectService.remove(+id);
   }
+   // Get students of a project
+   @Get(':pid/students')
+   getStudents(@Param('pid') projectId: string) {
+     return this.projectService.getStudents(+projectId);
+   }
+ 
+   // Add a student to a project
+   @Post(':pid/students/:sid')
+   addStudent(@Param('pid') projectId: string, @Param('sid') studentId: string) {
+     return this.projectService.addStudent(+projectId, studentId);
+   }
+ 
+   // Remove a student from a project
+   @Delete(':pid/students/:sid')
+   removeStudent(@Param('pid') projectId: string, @Param('sid') studentId: string) {
+     return this.projectService.removeStudent(+projectId, studentId);
+   }
 }

@@ -10,8 +10,8 @@ export declare class Project extends Document {
     end_date: Date;
     discussion_threads: Object[];
     tags: Object[];
-    project_owner: number;
-    students_enrolled: Object[];
+    project_owner: Types.ObjectId;
+    students_enrolled: Types.ObjectId[];
     tasks: Types.ObjectId[];
     project_application: Types.ObjectId[];
 }

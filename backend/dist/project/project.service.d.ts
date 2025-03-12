@@ -30,4 +30,15 @@ export declare class ProjectService {
     }> & {
         __v: number;
     }) | null>;
+    getStudents(projectId: number): Promise<string[] | null>;
+    addStudent(projectId: number, studentId: string): Promise<(import("mongoose").Document<unknown, {}, Project> & Project & Required<{
+        _id: unknown;
+    }> & {
+        __v: number;
+    }) | null>;
+    removeStudent(projectId: number, studentId: string): Promise<(import("mongoose").Document<unknown, {}, Project> & Project & Required<{
+        _id: unknown;
+    }> & {
+        __v: number;
+    }) | null>;
 }

@@ -1,10 +1,12 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document, Types } from "mongoose";
+import { User } from "../user/user.schema"; // Import the User schema
 @Schema()
 export class Project extends Document {
   @Prop({ required: true })
   project_name: string;
-  @Prop({ _id: true })
+
+  @Prop({ unique: true })  // remove _id: true, as it assigns `_id` by default
   project_id: number;
   @Prop()
   is_approved: boolean;
@@ -22,13 +24,16 @@ export class Project extends Document {
   discussion_threads: Object[];
   @Prop()
   tags: Object[];
-  @Prop()
-  project_owner: number;
-  @Prop()
-  students_enrolled: Object[];
-  @Prop([{ type: Types.ObjectId, ref: 'Task' }])
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  project_owner: Types.ObjectId;
+
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }] })  // refrencing user for getting enrolled students
+  students_enrolled: Types.ObjectId[];
+
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Task' }] })
   tasks: Types.ObjectId[];
-  @Prop([{ type: Types.ObjectId, ref: 'Application' }])
+
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Application' }] })
   project_application: Types.ObjectId[];
 }
 export const ProjectSchema = SchemaFactory.createForClass(Project);

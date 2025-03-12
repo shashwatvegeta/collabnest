@@ -34,7 +34,7 @@ __decorate([
     __metadata("design:type", String)
 ], Project.prototype, "project_name", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ _id: true }),
+    (0, mongoose_1.Prop)({ unique: true }),
     __metadata("design:type", Number)
 ], Project.prototype, "project_id", void 0);
 __decorate([
@@ -70,19 +70,19 @@ __decorate([
     __metadata("design:type", Array)
 ], Project.prototype, "tags", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", Number)
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'User', required: true }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
 ], Project.prototype, "project_owner", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: 'User' }] }),
     __metadata("design:type", Array)
 ], Project.prototype, "students_enrolled", void 0);
 __decorate([
-    (0, mongoose_1.Prop)([{ type: mongoose_2.Types.ObjectId, ref: 'Task' }]),
+    (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: 'Task' }] }),
     __metadata("design:type", Array)
 ], Project.prototype, "tasks", void 0);
 __decorate([
-    (0, mongoose_1.Prop)([{ type: mongoose_2.Types.ObjectId, ref: 'Application' }]),
+    (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: 'Application' }] }),
     __metadata("design:type", Array)
 ], Project.prototype, "project_application", void 0);
 exports.Project = Project = __decorate([
