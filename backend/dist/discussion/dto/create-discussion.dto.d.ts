@@ -1,7 +1,7 @@
 export declare class CreateDiscussionDto {
+    Reply_Id: string;
     discussion_id: string;
-    title: string;
-    description?: string;
-    created_by: string;
-    discussion_replies?: string[];
+    posted_by: string;
+    reply_message: string;
+    posted_at?: Date;
 }

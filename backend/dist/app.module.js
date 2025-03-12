@@ -21,6 +21,7 @@ const certificate_module_1 = require("./certificates/certificate.module");
 const submissions_module_1 = require("./submissions/submissions.module");
 const submissions_schema_1 = require("./submissions/submissions.schema");
 const discussion_module_1 = require("./discussion/discussion.module");
+const discussionthread_module_1 = require("./discussionthread/discussionthread.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -38,6 +39,7 @@ exports.AppModule = AppModule = __decorate([
             achievement_module_1.AchievementModule,
             certificate_module_1.CertificateModule,
             submissions_module_1.SubmissionsModule,
+            discussionthread_module_1.DiscussionThreadModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
