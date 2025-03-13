@@ -1,10 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Trophy } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ProjectCard } from "@/components/ui/project_card";
+import Link from "next/link";
 
 const sdashboard = () => {
     const [user, setUser] = useState({});
+    const [recommendedProjects, setRecommendedProjects] = useState([]);
     useEffect(() => {
         setUser({
             name: "John Doe",
@@ -14,20 +17,40 @@ const sdashboard = () => {
             pfp_src: "/user_placeholder.png",
             level: 5,
             level_progression: 0.72,
+            badges: ["First Badge", "Quick Learner", "Team Player"],
         });
     }, []);
+    useEffect(() => {
+        setRecommendedProjects([
+            {
+                name: "Web Development Portfolio",
+                desc: "Create a personal portfolio showcasing your projects",
+                level: "Intermediate",
+                logo: "PanelTop",
+            },
+            {
+                name: "API Integration Project",
+                desc: "Build an Application that integrates external APIs",
+                level: "Advanced",
+                logo: "PanelTop",
+            },
+            {
+                name: "API Integration Project",
+                desc: "Build an Application that integrates external APIs",
+                level: "Advanced",
+                logo: "PanelTop",
+            },
+        ]);
+    }, [user]);
     return (
-        <div className="p-8 my-16 ">
-            <div className="text-2xl text-purple-500 p-4 font-semibold">
+        <div className="p-8 my-4">
+            <div className="text-2xl text-violet-400 p-4 font-semibold">
                 Dashboard
             </div>
             <div className="text-2xl text-white font-bold p-4">
                 Welcome Back, {user.name}!
             </div>
-            <div
-                className="grid grid-rows-5 grid-cols-2 gap-8"
-                style={{ width: "85vw" }}
-            >
+            <div className="grid grid-cols-2 gap-8" style={{ width: "85vw" }}>
                 <div className="flex col-span-2">
                     {user.pfp_src ? (
                         <Image
@@ -46,7 +69,7 @@ const sdashboard = () => {
                             height={75}
                         />
                     )}
-                    <div className="grid gap-4">
+                    <div className="place-content-center">
                         <div className="font-semibold text-xl text-white">
                             {user.name} ·{" "}
                             <p className="inline uppercase text-teal-400">{user.type}</p>
@@ -57,7 +80,7 @@ const sdashboard = () => {
                     </div>
                 </div>
                 <div className="row-span-4 col-span-1 ">
-                    <div className="border-2 p-4 rounded-lg border-violet-300 text-white bg-[#2a2a38]">
+                    <div className="border-2 p-4 rounded-lg border-violet-300 text-white bg-gradient-to-r from-[#2a2a38] to-[#222131]">
                         <div className="text-2xl font-semibold">Your Progress</div>
                         <div className="text-xs text-violet-300 py-2">
                             Track your Achievements and Level
@@ -88,21 +111,28 @@ const sdashboard = () => {
                                 </span>
                             </div>
                         </div>
-
                         <div className="text-lg font-semibold py-2">Badges Earned</div>
-                        <div className="justify-around">
-                            <div className="bg-violet-400 p-4 rounded-lg content-center text-center w-24">
-                                <Trophy />
-                                <div className="font-semibold text-xs">First badge</div>
-                            </div>
+                        <div className="grid grid-cols-5 gap-4">
+                            {user.badges
+                                ? user.badges.map((b) => <Badge key={b}>{b}</Badge>)
+                                : ""}
                         </div>
                     </div>
                 </div>
-                <div className="border-2 rounded-lg border-violet-300 text-white bg-[#2a2a38]">
-                    <div className="text-2xl font-semibold bg-violet-400 p-4">
-                        Recommended Projects
+                <div className="border-2 rounded-lg border-violet-300 text-white bg-[#2a2a38] row-span-2">
+                    <div className="font-semibold bg-violet-400 p-4 flex">
+                        <div className="flex-1 text-2xl">Recommended Projects</div>
+                        <Link href="/student_dashboard/find_projects">
+                            <button className="px-4 py-2 bg-indigo-950 text-sm rounded-lg">
+                                View All
+                            </button>
+                        </Link>
                     </div>
-                    <div className="p-4">hi</div>
+                    <div className="grid gap-2 p-2">
+                        {recommendedProjects
+                            ? recommendedProjects.map((p) => <ProjectCard {...p} />)
+                            : ""}
+                    </div>
                 </div>
             </div>
         </div>
