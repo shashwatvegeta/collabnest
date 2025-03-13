@@ -29,13 +29,29 @@ let ProjectService = class ProjectService {
         return this.projectModel.find().exec();
     }
     findOne(id) {
-        return this.projectModel.findById(id).exec();
+        return this.projectModel.findOne({ project_id: id }).exec();
     }
     update(id, updateProjectDto) {
-        return this.projectModel.findByIdAndUpdate(id, updateProjectDto, { new: true }).exec();
+        return this.projectModel
+            .findOneAndUpdate({ project_id: id }, updateProjectDto, { new: true })
+            .exec();
     }
     remove(id) {
-        return this.projectModel.findByIdAndDelete(id).exec();
+        return this.projectModel.findOneAndDelete({ project_id: id }).exec();
+    }
+    async getStudents(projectId) {
+        const project = await this.projectModel.findOne({ project_id: projectId }).exec();
+        return project ? project.students_enrolled : null;
+    }
+    async addStudent(projectId, studentId) {
+        return this.projectModel
+            .findOneAndUpdate({ project_id: projectId }, { $addToSet: { students_enrolled: studentId } }, { new: true })
+            .exec();
+    }
+    async removeStudent(projectId, studentId) {
+        return this.projectModel
+            .findOneAndUpdate({ project_id: projectId }, { $pull: { students_enrolled: studentId } }, { new: true })
+            .exec();
     }
 };
 exports.ProjectService = ProjectService;
