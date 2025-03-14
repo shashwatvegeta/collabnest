@@ -1,4 +1,4 @@
-import { msalInstance } from "@/app/page";
+import { msalInstance } from "@/app/layout";
 
 function getBatch(rollnum) {
   const year = rollnum[0] + rollnum[1];

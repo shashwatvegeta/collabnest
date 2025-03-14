@@ -5,13 +5,22 @@ import { Badge } from "@/components/ui/badge";
 import { ProjectCard } from "@/components/ui/project_card";
 import Link from "next/link";
 import { getEmail, getName, getBatch, getRollNumber } from "@/lib/auth_utility";
+import { useIsAuthenticated } from "@azure/msal-react";
+import { redirect } from "next/dist/server/api-utils";
 
-const sdashboard = () => {
+const SDashboard = () => {
   const [user, setUser] = useState({});
   const [name, setName] = useState("Loading...");
   const [email, setEmail] = useState("Loading...");
 
   const [recommendedProjects, setRecommendedProjects] = useState([]);
+  const isAuthenticated = useIsAuthenticated();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      //   redirect("/");
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     setName(getName());
@@ -141,7 +150,9 @@ const sdashboard = () => {
           </div>
           <div className="grid gap-2 p-2">
             {recommendedProjects
-              ? recommendedProjects.map((p) => <ProjectCard {...p} />)
+              ? recommendedProjects.map((p, index) => (
+                  <ProjectCard key={index} {...p} />
+                ))
               : ""}
           </div>
         </div>
@@ -150,4 +161,4 @@ const sdashboard = () => {
   );
 };
 
-export default sdashboard;
+export default SDashboard;
