@@ -9,39 +9,46 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateDiscussionDto = void 0;
+exports.CreateDiscussionthreadDto = void 0;
 const class_validator_1 = require("class-validator");
-class CreateDiscussionDto {
-    Reply_Id;
+const class_validator_2 = require("class-validator");
+class CreateDiscussionthreadDto {
     discussion_id;
-    posted_by;
-    reply_message;
-    posted_at;
+    title;
+    description;
+    created_by;
+    project_id;
+    discussion_replies;
 }
-exports.CreateDiscussionDto = CreateDiscussionDto;
+exports.CreateDiscussionthreadDto = CreateDiscussionthreadDto;
 __decorate([
-    (0, class_validator_1.IsMongoId)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
-], CreateDiscussionDto.prototype, "Reply_Id", void 0);
-__decorate([
-    (0, class_validator_1.IsMongoId)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
-], CreateDiscussionDto.prototype, "discussion_id", void 0);
-__decorate([
-    (0, class_validator_1.IsMongoId)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
-], CreateDiscussionDto.prototype, "posted_by", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
-], CreateDiscussionDto.prototype, "reply_message", void 0);
-__decorate([
-    (0, class_validator_1.IsDate)(),
     (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", Date)
-], CreateDiscussionDto.prototype, "posted_at", void 0);
-//# sourceMappingURL=create-discussion.dto.js.map
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateDiscussionthreadDto.prototype, "discussion_id", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateDiscussionthreadDto.prototype, "title", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateDiscussionthreadDto.prototype, "description", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateDiscussionthreadDto.prototype, "created_by", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateDiscussionthreadDto.prototype, "project_id", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_2.IsArray)(),
+    __metadata("design:type", Array)
+], CreateDiscussionthreadDto.prototype, "discussion_replies", void 0);
+//# sourceMappingURL=create-discussionthread.dto.js.map

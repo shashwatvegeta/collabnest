@@ -16,6 +16,8 @@ import { SubmissionSchema } from "./submissions/submissions.schema";
 import { DiscussionModule } from "./discussion/discussion.module";
 import { DiscussionSchema } from "./discussion/discussion.schema";
 // import { User } from "./user/user.schema";
+import { DiscussionThreadModule } from './discussionthread/discussionthread.module';
+
 
 @Module({
   imports: [
@@ -35,6 +37,8 @@ import { DiscussionSchema } from "./discussion/discussion.schema";
     AchievementModule,
     CertificateModule,
     SubmissionsModule,
+    DiscussionThreadModule,
+
   ],
   controllers: [AppController],
   providers: [AppService],

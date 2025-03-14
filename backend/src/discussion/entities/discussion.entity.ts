@@ -1,15 +1,13 @@
 import { Types } from 'mongoose';
 
-export class Discussion {
-
-    title: string;
-
-
-    description: string;
-
-
-    topic: string; // Using string type instead of enum
-
-
-    project_id: string;
+export class DiscussionReply {
+    Post_Id: Types.ObjectId;
+    
+    discussion_id: Types.ObjectId;
+    
+    posted_by: Types.ObjectId;
+    
+    reply_message: string;
+    
+    posted_at: Date;
 }

@@ -1,23 +1,23 @@
-import { IsMongoId, IsOptional, IsString, IsArray } from 'class-validator';
+import { IsMongoId, IsNotEmpty, IsString, IsDate, IsOptional } from 'class-validator';
 
 export class UpdateDiscussionDto {
     @IsMongoId()
     @IsOptional()
-    discussion_id?: string;
-    @IsString()
-    @IsOptional()
-    title?: string;
-
-    @IsString()
-    @IsOptional()
-    description?: string;
+    Reply_Id?: string;
 
     @IsMongoId()
     @IsOptional()
-    created_by?: string;
+    discussion_id?: string;
 
-    @IsArray()
-    @IsMongoId({ each: true })
+    @IsMongoId()
     @IsOptional()
-    discussion_replies?: string[];
+    posted_by?: string;
+
+    @IsString()
+    @IsOptional()
+    reply_message?: string;
+
+    @IsDate()
+    @IsOptional()
+    posted_at?: Date;
 }

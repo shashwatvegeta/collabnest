@@ -1,1 +1,1 @@
-{"version":3,"file":"discussion.entity.js","sourceRoot":"","sources":["../../../src/discussion/entities/discussion.entity.ts"],"names":[],"mappings":";;;AAEA,MAAa,UAAU;IAEnB,KAAK,CAAS;IAGd,WAAW,CAAS;IAGpB,KAAK,CAAS;IAGd,UAAU,CAAS;CACtB;AAZD,gCAYC"}
+{"version":3,"file":"discussion.entity.js","sourceRoot":"","sources":["../../../src/discussion/entities/discussion.entity.ts"],"names":[],"mappings":";;;AAEA,MAAa,eAAe;IACxB,OAAO,CAAiB;IAExB,aAAa,CAAiB;IAE9B,SAAS,CAAiB;IAE1B,aAAa,CAAS;IAEtB,SAAS,CAAO;CACnB;AAVD,0CAUC"}

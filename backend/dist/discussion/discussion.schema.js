@@ -13,33 +13,33 @@ exports.DiscussionSchema = exports.Discussion = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 let Discussion = class Discussion extends mongoose_2.Document {
+    Post_Id;
     discussion_id;
-    title;
-    description;
-    created_by;
-    'Discussion Replies';
+    posted_by;
+    reply_message;
+    posted_at;
 };
 exports.Discussion = Discussion;
 __decorate([
     (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, required: true }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
+], Discussion.prototype, "Post_Id", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, required: true, ref: 'Discussion' }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
 ], Discussion.prototype, "discussion_id", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], Discussion.prototype, "title", void 0);
-__decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", String)
-], Discussion.prototype, "description", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, required: true }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
-], Discussion.prototype, "created_by", void 0);
+], Discussion.prototype, "posted_by", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: 'DiscussionPost' }] }),
-    __metadata("design:type", Array)
-], Discussion.prototype, "Discussion Replies", void 0);
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", String)
+], Discussion.prototype, "reply_message", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: Date, default: Date.now }),
+    __metadata("design:type", Date)
+], Discussion.prototype, "posted_at", void 0);
 exports.Discussion = Discussion = __decorate([
     (0, mongoose_1.Schema)()
 ], Discussion);

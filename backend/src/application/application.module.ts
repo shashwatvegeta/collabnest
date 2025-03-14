@@ -7,16 +7,16 @@ import { ApplicationsController } from './application.controller';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ 
-      name: Application.name, 
+    MongooseModule.forFeature([{
+      name: Application.name,
       schema: ApplicationSchema
-      }]),
-    MongooseModule.forFeature([{ 
-            name: Project.name, 
-            schema: ProjectSchema
-          }])
+    }]),
+    MongooseModule.forFeature([{
+      name: Project.name,
+      schema: ProjectSchema
+    }])
   ],
   providers: [ApplicationsService],
   controllers: [ApplicationsController]
 })
-export class ApplicationModule {}
+export class ApplicationModule { }

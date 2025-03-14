@@ -12,37 +12,36 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdateDiscussionDto = void 0;
 const class_validator_1 = require("class-validator");
 class UpdateDiscussionDto {
+    Reply_Id;
     discussion_id;
-    title;
-    description;
-    created_by;
-    discussion_replies;
+    posted_by;
+    reply_message;
+    posted_at;
 }
 exports.UpdateDiscussionDto = UpdateDiscussionDto;
 __decorate([
     (0, class_validator_1.IsMongoId)(),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
-], UpdateDiscussionDto.prototype, "discussion_id", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], UpdateDiscussionDto.prototype, "title", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], UpdateDiscussionDto.prototype, "description", void 0);
+], UpdateDiscussionDto.prototype, "Reply_Id", void 0);
 __decorate([
     (0, class_validator_1.IsMongoId)(),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
-], UpdateDiscussionDto.prototype, "created_by", void 0);
+], UpdateDiscussionDto.prototype, "discussion_id", void 0);
 __decorate([
-    (0, class_validator_1.IsArray)(),
-    (0, class_validator_1.IsMongoId)({ each: true }),
+    (0, class_validator_1.IsMongoId)(),
     (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", Array)
-], UpdateDiscussionDto.prototype, "discussion_replies", void 0);
+    __metadata("design:type", String)
+], UpdateDiscussionDto.prototype, "posted_by", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], UpdateDiscussionDto.prototype, "reply_message", void 0);
+__decorate([
+    (0, class_validator_1.IsDate)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Date)
+], UpdateDiscussionDto.prototype, "posted_at", void 0);
 //# sourceMappingURL=update-discussion.dto.js.map
