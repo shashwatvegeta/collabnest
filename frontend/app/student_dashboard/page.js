@@ -6,7 +6,7 @@ import { ProjectCard } from "@/components/ui/project_card";
 import Link from "next/link";
 import { getEmail, getName, getBatch, getRollNumber } from "@/lib/auth_utility";
 import { useIsAuthenticated } from "@azure/msal-react";
-import { redirect } from "next/dist/server/api-utils";
+import { redirect } from "next/navigation";
 
 const SDashboard = () => {
   const [user, setUser] = useState({});
@@ -18,7 +18,7 @@ const SDashboard = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      //   redirect("/");
+      redirect("/");
     }
   }, [isAuthenticated]);
 
