@@ -1,3 +1,4 @@
+"use client";
 import {
   Bell,
   LayoutDashboard,
@@ -8,8 +9,14 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useMsal } from "@azure/msal-react";
+import { redirect } from "next/dist/server/api-utils";
 
 const Sidebar = () => {
+  const { instance, accounts } = useMsal();
+  const logout = () => {
+    instance.logoutRedirect();
+    };
   return (
     <div className="h-screen p-6 grid grid-cols-1 place-items-center">
       <div className="flex flex-col justify-center items-center relative transition-all duration-[450ms] ease-in-out ">
@@ -29,9 +36,13 @@ const Sidebar = () => {
           <MessageCircle size={25} />
           <User size={25} />
           <div className="row-span-2"></div>
-          <Link href="/">
+          <button
+            onClick={() => {
+              logout();
+            }}
+          >
             <LogOut size={25} />
-          </Link>
+          </button>
         </article>
       </div>
     </div>
