@@ -7,6 +7,7 @@ import {
   User,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 const Sidebar = () => {
   return (
@@ -28,7 +29,9 @@ const Sidebar = () => {
           <MessageCircle size={25} />
           <User size={25} />
           <div className="row-span-2"></div>
-          <LogOut size={25} />
+          <Link href="/">
+            <LogOut size={25} />
+          </Link>
         </article>
       </div>
     </div>

@@ -17,12 +17,10 @@ const Navbar = () => {
 
       {/* Desktop Menu */}
       <div className="hidden lg:flex space-x-6">
-        <Link href="#">Product</Link>
-        <Link href="#">Solution</Link>
-        <Link href="#">Pricing</Link>
-        <Link href="#">About Us</Link>
-        <Link href="#">Blogs</Link>
-        <Link href="#">Cart (0)</Link>
+        <Link href="/">Home</Link>
+        <Link href="/projects">Explore Projects</Link>
+        <Link href="/mentors">Mentorship</Link>
+        <Link href="/about">About Us</Link>
       </div>
 
       {/* Login Button for Desktop */}
