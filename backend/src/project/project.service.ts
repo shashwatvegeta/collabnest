@@ -29,7 +29,7 @@ export class ProjectService {
   }
 
   // for students
-  async getStudents(projectId: number): Promise<string[] | null> {
+  async getStudents(projectId: number): Promise<Object[] | null> {
     const project = await this.projectModel.findOne({ project_id: projectId }).exec(); 
     return project ? project.students_enrolled : null;
   }
