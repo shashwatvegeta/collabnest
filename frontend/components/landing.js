@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
 const CollabNestFeatures = () => {
     const features = [
@@ -54,74 +55,275 @@ const CollabNestFeatures = () => {
         }
     ];
 
-    return (
-        <div className="min-h-screen bg-[#0D1231] flex flex-col items-center justify-center p-4 relative overflow-hidden" style={{ backgroundImage: 'url(/collabfeature.png)' }}>
-            <h1 className="text-2xl md:text-4xl font-bold text-white mb-8 md:mb-12 text-center relative">
-                Why CollabNest?
-            </h1>
+    // Animation variants
+    const titleVariants = {
+        hidden: { opacity: 0, y: -20 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.6 }
+        }
+    };
 
-            <div className="grid grid-cols-1 md:grid-cols-10 gap-4 md:gap-6 w-full max-w-5xl relative">
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.2,
+                delayChildren: 0.3
+            }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.5 }
+        }
+    };
+
+    const iconVariants = {
+        hidden: { scale: 0.8, opacity: 0 },
+        visible: {
+            scale: 1,
+            opacity: 1,
+            transition: { duration: 0.5 }
+        },
+        hover: {
+            scale: 1.1,
+            rotate: [0, 5, -5, 0],
+            transition: { duration: 0.3 }
+        }
+    };
+
+    return (
+        <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true, amount: 0.2 }}
+            className="min-h-screen bg-[#0D1231] flex flex-col items-center justify-center p-4 relative overflow-hidden"
+            style={{ backgroundImage: 'url(/collabfeature.png)' }}
+        >
+            <motion.h1
+                variants={titleVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                className="text-2xl md:text-4xl font-bold text-white mb-8 md:mb-12 text-center relative"
+            >
+                Why CollabNest?
+            </motion.h1>
+
+            <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.2 }}
+                className="grid grid-cols-1 md:grid-cols-10 gap-4 md:gap-6 w-full max-w-5xl relative"
+            >
                 {features.map((feature, index) => (
-                    <div key={index} className={`bg-[#151C3B] rounded-2xl p-4 md:p-6 flex flex-col items-center text-center border border-white/10 transform transition-all duration-300 hover:scale-105 hover:shadow-lg ${feature.gridPosition}`}>
-                        <div className="mb-3 md:mb-4 text-blue-400">{feature.icon}</div>
-                        <h2 className="text-lg md:text-xl font-semibold text-white mb-2">{feature.title}</h2>
-                        <p className="text-sm md:text-base text-gray-400">{feature.description}</p>
-                    </div>
+                    <motion.div
+                        key={index}
+                        variants={itemVariants}
+                        whileHover={{
+                            scale: 1.05,
+                            boxShadow: "0px 10px 25px rgba(0, 0, 0, 0.2)",
+                            backgroundColor: "#1a2452"
+                        }}
+                        className={`bg-[#151C3B] rounded-2xl p-4 md:p-6 flex flex-col items-center text-center border border-white/10 transform transition-all duration-300 ${feature.gridPosition}`}
+                    >
+                        <motion.div
+                            variants={iconVariants}
+                            whileHover="hover"
+                            className="mb-3 md:mb-4 text-blue-400"
+                        >
+                            {feature.icon}
+                        </motion.div>
+                        <motion.h2
+                            className="text-lg md:text-xl font-semibold text-white mb-2"
+                        >
+                            {feature.title}
+                        </motion.h2>
+                        <motion.p
+                            className="text-sm md:text-base text-gray-400"
+                        >
+                            {feature.description}
+                        </motion.p>
+                    </motion.div>
                 ))}
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 };
-
-
-
 const CollabNestLandingPage = () => {
+    // Animation variants
+    const fadeInUp = {
+        hidden: { opacity: 0, y: 60 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.8, ease: "easeOut" }
+        }
+    };
+
+    const buttonVariants = {
+        hidden: { opacity: 0, scale: 0.8 },
+        visible: {
+            opacity: 1,
+            scale: 1,
+            transition: {
+                duration: 0.5,
+                delay: 0.4,
+                ease: "easeOut"
+            }
+        },
+        hover: {
+            scale: 1.05,
+            boxShadow: "0 0 15px 5px rgba(168, 85, 247, 0.4)",
+            transition: {
+                duration: 0.3,
+                ease: "easeInOut"
+            }
+        }
+    };
+
+    const footerVariants = {
+        hidden: { opacity: 0, y: 50 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: {
+                duration: 0.8,
+                ease: "easeOut",
+                when: "beforeChildren",
+                staggerChildren: 0.1
+            }
+        }
+    };
+
+    const footerItemVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.5 }
+        }
+    };
+
     return (
         <div className="min-h-screen flex flex-col bg-cover bg-center bg-no-repeat" style={{
             backgroundImage: 'url(/landend.png)'
         }}>
-            <div className="bg-black bg-opacity-50 min-h-screen flex flex-col">
-                <div className="text-center flex-grow flex flex-col justify-center items-center px-4 max-w-4xl mx-auto">
-                    <h1 className="text-3xl md:text-5xl font-semibold mb-4 text-white">
+            <motion.div
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ duration: 1 }}
+                viewport={{ once: true }}
+                className="bg-black bg-opacity-50 min-h-screen flex flex-col"
+            >
+                <motion.div
+                    variants={fadeInUp}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.3 }}
+                    className="text-center flex-grow flex flex-col justify-center items-center px-4 max-w-4xl mx-auto"
+                >
+                    <motion.h1
+                        className="text-2xl md:text-5xl font-semibold mb-6 text-white leading-tight py-2"
+                    >
                         Ready to turn your learning into real-world projects?
-                    </h1>
-                    <button className="mt-6 px-6 py-3 text-lg font-semibold rounded-full bg-white text-black relative transition-all duration-300 hover:scale-105 shadow-lg">
+                    </motion.h1>
+
+                    <motion.button
+                        variants={buttonVariants}
+                        whileHover="hover"
+                        className="mt-6 px-8 py-3 text-lg font-semibold rounded-full bg-white text-black relative transition-all duration-300"
+                    >
                         Get Started
-                        <span className="absolute inset-0 rounded-full border-4 border-purple-500 opacity-0.3 blur-md"></span>
-                    </button>
-                </div>
+                        <motion.span
+                            animate={{
+                                scale: [1, 1.2, 1],
+                                opacity: [0.7, 0.2, 0.7]
+                            }}
+                            transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                            }}
+                            className="absolute inset-0 rounded-full border-4 border-purple-500 opacity-30 blur-md"
+                        ></motion.span>
+                    </motion.button>
+                </motion.div>
 
-                <footer className="bg-white w-full p-6 md:p-10 rounded-t-2xl shadow-lg flex justify-center items-center h-auto md:h-60">
-                    <div className="flex items-center justify-between w-full max-w-screen-xl px-4">
-                        <div className="flex flex-col">
-                            <h2 className="text-2xl font-bold mb-2">COLLABNEST</h2>
-                            <p className="text-gray-600">Pegasus</p>
-                            <div className="flex gap-4 mt-4">
-                                <img src="/iitp.png" alt="Logo 1" className="w-12 h-12" />
-                                <img src="/stc.png" alt="Logo 2" className="w-12 h-12" />
+                <motion.footer
+                    variants={footerVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.3 }}
+                    className="bg-white w-full p-6 md:p-10 rounded-t-2xl shadow-lg flex justify-center items-center h-auto"
+                >
+                    {/* Improved mobile layout with better spacing */}
+                    <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between w-full max-w-screen-xl">
+                        <motion.div
+                            variants={footerItemVariants}
+                            className="flex flex-col items-center sm:items-start mb-10 sm:mb-0 w-full sm:w-auto"
+                        >
+                            <h2 className="text-2xl font-bold mb-1">COLLABNEST</h2>
+                            <p className="text-gray-600 mb-4">Pegasus</p>
+                            <div className="flex gap-4 mt-2">
+                                <motion.img
+                                    whileHover={{ scale: 1.1 }}
+                                    src="/iitp.png"
+                                    alt="Logo 1"
+                                    className="w-12 h-12"
+                                />
+                                <motion.img
+                                    whileHover={{ scale: 1.1 }}
+                                    src="/stc.png"
+                                    alt="Logo 2"
+                                    className="w-12 h-12"
+                                />
                             </div>
-                        </div>
+                        </motion.div>
 
-                        <div className="text-left mx-12">
-                            <h2 className="font-bold mb-3 text-lg">Important Links</h2>
-                            <ul className="text-gray-600 space-y-2">
-                                <li>Gymkhana</li>
-                                <li>STC</li>
-                                <li>NJACK</li>
+                        <motion.div
+                            variants={footerItemVariants}
+                            className="text-center sm:text-left mb-10 sm:mb-0 sm:mx-4 md:mx-12 w-full sm:w-auto"
+                        >
+                            <h2 className="font-bold mb-4 text-lg">Important Links</h2>
+                            <ul className="text-gray-600 space-y-3">
+                                <motion.li whileHover={{ x: 5, color: "#4F46E5" }} className="cursor-pointer">Gymkhana</motion.li>
+                                <motion.li whileHover={{ x: 5, color: "#4F46E5" }} className="cursor-pointer">STC</motion.li>
+                                <motion.li whileHover={{ x: 5, color: "#4F46E5" }} className="cursor-pointer">NJACK</motion.li>
                             </ul>
-                        </div>
+                        </motion.div>
 
-                        <div className="flex flex-col gap-4">
-                            <button className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition">
+                        <motion.div
+                            variants={footerItemVariants}
+                            className="flex flex-col gap-4 w-full sm:w-auto"
+                        >
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="bg-black text-white px-8 py-3 rounded-lg hover:bg-gray-800 transition w-full sm:w-auto text-center"
+                            >
                                 Login
-                            </button>
-                            <button className="border border-black px-6 py-2 rounded-lg hover:bg-gray-100 transition">
+                            </motion.button>
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="border border-black px-8 py-3 rounded-lg hover:bg-gray-100 transition w-full sm:w-auto text-center"
+                            >
                                 Contact Us
-                            </button>
-                        </div>
+                            </motion.button>
+                        </motion.div>
                     </div>
-                </footer>
-            </div>
+                </motion.footer>
+            </motion.div>
         </div>
     );
 };
@@ -131,7 +333,14 @@ const CollabNestApp = () => {
         <div>
 
             <CollabNestFeatures />
-            <div className="h-16 md:h-24 bg-white"></div>
+            <motion.div
+                initial={{ scaleY: 0 }}
+                whileInView={{ scaleY: 1 }}
+                transition={{ duration: 0.5 }}
+                viewport={{ once: true }}
+                style={{ transformOrigin: "top" }}
+                className="h-16 md:h-24 bg-white"
+            />
             <CollabNestLandingPage />
         </div>
     );

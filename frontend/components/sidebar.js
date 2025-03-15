@@ -16,7 +16,7 @@ const Sidebar = () => {
   const { instance, accounts } = useMsal();
   const logout = () => {
     instance.logoutRedirect();
-    };
+  };
   return (
     <div className="h-screen p-6 grid grid-cols-1 place-items-center">
       <div className="flex flex-col justify-center items-center relative transition-all duration-[450ms] ease-in-out ">
