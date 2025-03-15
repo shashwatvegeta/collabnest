@@ -19,6 +19,7 @@ let Task = class Task extends mongoose_2.Document {
     status;
     submissions;
     meetings;
+    assigned_to;
 };
 exports.Task = Task;
 __decorate([
@@ -48,6 +49,10 @@ __decorate([
     (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: 'Meeting' }], default: [] }),
     __metadata("design:type", Array)
 ], Task.prototype, "meetings", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: 'User' }], default: [] }),
+    __metadata("design:type", Array)
+], Task.prototype, "assigned_to", void 0);
 exports.Task = Task = __decorate([
     (0, mongoose_1.Schema)()
 ], Task);

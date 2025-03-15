@@ -16,6 +16,8 @@ class UpdateTaskDto {
     description;
     deadline;
     status;
+    assigned_to;
+    action = 'add';
 }
 exports.UpdateTaskDto = UpdateTaskDto;
 __decorate([
@@ -38,4 +40,16 @@ __decorate([
     (0, class_validator_1.IsEnum)(['Pending', 'In Progress', 'Completed'], { message: 'Invalid status value' }),
     __metadata("design:type", String)
 ], UpdateTaskDto.prototype, "status", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ArrayNotEmpty)({ message: 'Assigned users array cannot be empty' }),
+    (0, class_validator_1.IsMongoId)({ each: true, message: 'Each assigned user must be a valid MongoDB ObjectId' }),
+    __metadata("design:type", Array)
+], UpdateTaskDto.prototype, "assigned_to", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsEnum)(['add', 'remove'], { message: 'Invalid update action' }),
+    __metadata("design:type", String)
+], UpdateTaskDto.prototype, "action", void 0);
 //# sourceMappingURL=update-task.dto.js.map

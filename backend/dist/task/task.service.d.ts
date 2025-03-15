@@ -11,4 +11,9 @@ export declare class TaskService {
     findByProjectIdandTaskId(project_id: string, task_id: string): Promise<Task>;
     createTask(project_id: string, createTaskDto: CreateTaskDto): Promise<Task>;
     updateTask(project_id: string, task_id: string, updateTaskDto: UpdateTaskDto): Promise<Task>;
+    findOne(task_id: string): Promise<(import("mongoose").Document<unknown, {}, Task> & Task & Required<{
+        _id: unknown;
+    }> & {
+        __v: number;
+    }) | null>;
 }

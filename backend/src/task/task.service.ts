@@ -29,7 +29,7 @@ export class TaskService {
     }
 
     async findByProjectIdandTaskId(project_id: string, task_id: string): Promise<Task> {
-
+        
         const project = await this.projectModel
             .findById(project_id)
             .populate<{ tasks: Task[] }>({
@@ -40,7 +40,7 @@ export class TaskService {
         if (!project) {
             throw new NotFoundException(`Project with project ID ${project_id}  not found`);
         }
-        
+
         const task = project.tasks.find(task => (task._id as Types.ObjectId).toString() === task_id);
 
         if (!task) {
@@ -69,6 +69,12 @@ export class TaskService {
             deadline: deadlineDate,
         });
 
+        const currentDate = new Date();
+        const projectEndDate = new Date(project.end_date);
+        if (deadlineDate < currentDate || deadlineDate > projectEndDate) {
+            throw new BadRequestException('Deadline has already passed');
+        }
+
         await this.projectModel.findByIdAndUpdate(
             project_id,
             { $push: { tasks: createdTask._id } }
@@ -76,23 +82,47 @@ export class TaskService {
         return createdTask.save();
     }
 
-    async updateTask(project_id: string, task_id: string, updateTaskDto: UpdateTaskDto): Promise<Task> {
-
+    async updateTask(
+        project_id: string,
+        task_id: string,
+        updateTaskDto: UpdateTaskDto
+    ): Promise<Task> {
+        // Check if project exists
         const project = await this.projectModel.findById(project_id);
-
         if (!project) {
-            throw new NotFoundException(`Project with project ID ${project_id}  not found`);
+            throw new NotFoundException(`Project with project ID ${project_id} not found`);
         }
 
+        // Check if task exists within project
         const task = project.tasks.find(task => (task._id as Types.ObjectId).toString() === task_id);
-
         if (!task) {
             throw new NotFoundException(`Task with ID ${task_id} not found in project ${project_id}`);
         }
 
+        // Convert assigned_to string IDs to ObjectIds
+        if (updateTaskDto.assigned_to) {
+            updateTaskDto.assigned_to = updateTaskDto.assigned_to.map(id => new Types.ObjectId(id));
+        }
+
+        // Prepare update object
+        const updateFields: any = { ...updateTaskDto }; // Copy all fields
+
+        // Handle assigned_to updates separately
+        if (updateTaskDto.assigned_to) {
+            if (updateTaskDto.action === 'add') {
+                updateFields.$addToSet = { assigned_to: { $each: updateTaskDto.assigned_to } };
+            } else if (updateTaskDto.action === 'remove') {
+                updateFields.$pull = { assigned_to: { $in: updateTaskDto.assigned_to } };
+            }
+            // Prevent overriding assigned_to if action is specified
+            delete updateFields.assigned_to;
+            delete updateFields.action;
+        }
+
+        // Update the task
         const updatedTask = await this.taskModel.findByIdAndUpdate(
             task_id,
-            { $set: updateTaskDto },
+            updateFields,
             { new: true, runValidators: true }
         ).exec();
 
@@ -102,4 +132,8 @@ export class TaskService {
 
         return updatedTask;
     }
+
+    async findOne(task_id: string) { //used in submission guard
+        return this.taskModel.findById(task_id).populate('submissions').exec();
+    }    
 }

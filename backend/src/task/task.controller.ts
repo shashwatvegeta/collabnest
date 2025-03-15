@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Param, Body, NotFoundException, ValidationPipe, UsePipes, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Put, Param, Body, NotFoundException, ValidationPipe, UsePipes, BadRequestException, UseGuards } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
