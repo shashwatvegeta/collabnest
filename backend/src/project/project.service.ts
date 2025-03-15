@@ -3,7 +3,7 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { Project } from './project.schema';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 @Injectable()
 export class ProjectService {
@@ -51,9 +51,9 @@ export class ProjectService {
   }
 
   // for students
-  async getStudents(projectId: number): Promise<any[] | null> {
-    const project = await this.findOne(projectId);
-    return project.students_enrolled;
+  async getStudents(projectId: number): Promise<Types.ObjectId[] | null> {
+    const project = await this.projectModel.findOne({ project_id: projectId }).exec(); 
+    return project ? project.students_enrolled : null;
   }
   async addStudent(projectId: number, studentId: string) {
     const project = await this.findOne(projectId);
@@ -85,4 +85,8 @@ export class ProjectService {
       )
       .exec();
   }
+
+  async findByTaskId(task_id: string) { // used in submission service
+    return this.projectModel.findOne({ tasks: task_id }).populate('owner').exec();
+  }  
 }

@@ -66,23 +66,45 @@ let TaskService = class TaskService {
             ...createTaskDto,
             deadline: deadlineDate,
         });
+        const currentDate = new Date();
+        const projectEndDate = new Date(project.end_date);
+        if (deadlineDate < currentDate || deadlineDate > projectEndDate) {
+            throw new common_1.BadRequestException('Deadline has already passed');
+        }
         await this.projectModel.findByIdAndUpdate(project_id, { $push: { tasks: createdTask._id } });
         return createdTask.save();
     }
     async updateTask(project_id, task_id, updateTaskDto) {
         const project = await this.projectModel.findById(project_id);
         if (!project) {
-            throw new common_1.NotFoundException(`Project with project ID ${project_id}  not found`);
+            throw new common_1.NotFoundException(`Project with project ID ${project_id} not found`);
         }
         const task = project.tasks.find(task => task._id.toString() === task_id);
         if (!task) {
             throw new common_1.NotFoundException(`Task with ID ${task_id} not found in project ${project_id}`);
         }
-        const updatedTask = await this.taskModel.findByIdAndUpdate(task_id, { $set: updateTaskDto }, { new: true, runValidators: true }).exec();
+        if (updateTaskDto.assigned_to) {
+            updateTaskDto.assigned_to = updateTaskDto.assigned_to.map(id => new mongoose_2.Types.ObjectId(id));
+        }
+        const updateFields = { ...updateTaskDto };
+        if (updateTaskDto.assigned_to) {
+            if (updateTaskDto.action === 'add') {
+                updateFields.$addToSet = { assigned_to: { $each: updateTaskDto.assigned_to } };
+            }
+            else if (updateTaskDto.action === 'remove') {
+                updateFields.$pull = { assigned_to: { $in: updateTaskDto.assigned_to } };
+            }
+            delete updateFields.assigned_to;
+            delete updateFields.action;
+        }
+        const updatedTask = await this.taskModel.findByIdAndUpdate(task_id, updateFields, { new: true, runValidators: true }).exec();
         if (!updatedTask) {
             throw new common_1.NotFoundException(`Failed to update: task with ID ${task_id} not found`);
         }
         return updatedTask;
+    }
+    async findOne(task_id) {
+        return this.taskModel.findById(task_id).populate('submissions').exec();
     }
 };
 exports.TaskService = TaskService;

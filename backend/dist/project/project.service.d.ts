@@ -1,7 +1,7 @@
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { Project } from './project.schema';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 export declare class ProjectService {
     private projectModel;
     constructor(projectModel: Model<Project>);
@@ -30,13 +30,20 @@ export declare class ProjectService {
     }> & {
         __v: number;
     }) | null>;
-    getStudents(projectId: number): Promise<Object[] | null>;
+
+    getStudents(projectId: number): Promise<Types.ObjectId[] | null>;
+    
     addStudent(projectId: number, studentId: string): Promise<(import("mongoose").Document<unknown, {}, Project> & Project & Required<{
         _id: unknown;
     }> & {
         __v: number;
     }) | null>;
     removeStudent(projectId: number, studentId: string): Promise<(import("mongoose").Document<unknown, {}, Project> & Project & Required<{
+        _id: unknown;
+    }> & {
+        __v: number;
+    }) | null>;
+    findByTaskId(task_id: string): Promise<(import("mongoose").Document<unknown, {}, Project> & Project & Required<{
         _id: unknown;
     }> & {
         __v: number;

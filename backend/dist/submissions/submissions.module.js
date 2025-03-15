@@ -12,6 +12,7 @@ const submissions_service_1 = require("./submissions.service");
 const submissions_controller_1 = require("./submissions.controller");
 const mongoose_1 = require("@nestjs/mongoose");
 const submissions_schema_1 = require("./submissions.schema");
+const task_schema_1 = require("../task/task.schema");
 let SubmissionsModule = class SubmissionsModule {
 };
 exports.SubmissionsModule = SubmissionsModule;
@@ -19,6 +20,7 @@ exports.SubmissionsModule = SubmissionsModule = __decorate([
     (0, common_1.Module)({
         imports: [
             mongoose_1.MongooseModule.forFeature([{ name: 'Submission', schema: submissions_schema_1.SubmissionSchema }]),
+            mongoose_1.MongooseModule.forFeature([{ name: 'Task', schema: task_schema_1.TaskSchema }])
         ],
         controllers: [submissions_controller_1.SubmissionsController],
         providers: [submissions_service_1.SubmissionsService],
