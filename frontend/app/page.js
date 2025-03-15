@@ -89,8 +89,7 @@ const Home = () => {
       <div className="mt-20 flex justify-center">
         <HowItWorks />
       </div>
-
-      <div className="mt-20">
+      <div className="mt-20 ">
         <CollabNestApp />
       </div>
     </div>
