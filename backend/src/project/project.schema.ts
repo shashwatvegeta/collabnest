@@ -3,22 +3,19 @@ import { Document, Types } from "mongoose";
 import { User } from "../user/user.schema"; // Import the User schema
 @Schema()
 export class Project extends Document {
-  @Prop({ required: true })
+  @Prop({ required: true , minlength: 3, maxlength:100})
   project_name: string;
-
-  @Prop({ unique: true })  // remove _id: true, as it assigns `_id` by default
-  project_id: number;
-  @Prop()
+  @Prop({ default: false})
   is_approved: boolean;
-  @Prop()
+  @Prop({ required:true , minlength:10 , maxlength:1000})
   description: string;
-  @Prop()
+  @Prop({ default:false})
   is_completed: boolean;
-  @Prop()
+  @Prop({ required:true , min:1 })
   cap: number;
-  @Prop()
+  @Prop({ required: true})
   start_date: Date;
-  @Prop()
+  @Prop({ required: true})
   end_date: Date;
   @Prop()
   discussion_threads: Object[];
