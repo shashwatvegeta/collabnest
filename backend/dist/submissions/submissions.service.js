@@ -18,27 +18,65 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 let SubmissionsService = class SubmissionsService {
     submissionModel;
-    constructor(submissionModel) {
+    taskModel;
+    constructor(submissionModel, taskModel) {
         this.submissionModel = submissionModel;
+        this.taskModel = taskModel;
     }
-    create(createSubmissionDto) {
+    async create(createSubmissionDto, taskId) {
+        const task = await this.taskModel.findById(taskId);
+        if (!task) {
+            throw new common_1.NotFoundException('Task not found');
+        }
+        if (new Date(createSubmissionDto.submission_date) > new Date(task.deadline)) {
+            throw new Error('Submission date cannot be after the task deadline');
+        }
         const createdSubmission = new this.submissionModel(createSubmissionDto);
-        return createdSubmission.save();
+        const savedSubmission = await createdSubmission.save();
+        await this.taskModel.findByIdAndUpdate(taskId, {
+            $push: { submissions: savedSubmission._id }
+        });
+        return savedSubmission;
     }
-    findAll() {
-        return this.submissionModel.find().exec();
+    async findAll(task_id) {
+        const filter = {};
+        if (task_id)
+            filter._id = new mongoose_2.Types.ObjectId(task_id);
+        return this.submissionModel.find(filter).populate('user_id files feedback').exec();
     }
-    findOne(id) {
-        return this.submissionModel.findById(id).exec();
+    async findOne(task_id, submission_id) {
+        const submission = await this.submissionModel
+            .findOne({ _id: submission_id })
+            .populate('user_id files feedback')
+            .exec();
+        if (!submission)
+            throw new common_1.NotFoundException('Submission not found');
+        const task = await this.taskModel.findById(task_id);
+        if (!task || !task.submissions.includes(new mongoose_2.Types.ObjectId(submission_id))) {
+            throw new common_1.NotFoundException('Submission does not belong to the provided task');
+        }
+        return submission;
     }
-    remove(id) {
-        return this.submissionModel.findByIdAndDelete(id).exec();
+    async remove(task_id, submission_id) {
+        const submission = await this.submissionModel.findById(submission_id);
+        if (!submission)
+            throw new common_1.NotFoundException('Submission not found');
+        const task = await this.taskModel.findById(task_id);
+        if (!task || !task.submissions.includes(new mongoose_2.Types.ObjectId(submission_id))) {
+            throw new common_1.NotFoundException('Submission does not belong to the provided task');
+        }
+        await this.taskModel.findByIdAndUpdate(task_id, {
+            $pull: { submissions: submission_id }
+        });
+        return this.submissionModel.findByIdAndDelete(submission_id);
     }
 };
 exports.SubmissionsService = SubmissionsService;
 exports.SubmissionsService = SubmissionsService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)('Submission')),
-    __metadata("design:paramtypes", [mongoose_2.Model])
+    __param(1, (0, mongoose_1.InjectModel)('Task')),
+    __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model])
 ], SubmissionsService);
 //# sourceMappingURL=submissions.service.js.map

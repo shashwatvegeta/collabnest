@@ -21,49 +21,53 @@ let SubmissionsController = class SubmissionsController {
     constructor(submissionsService) {
         this.submissionsService = submissionsService;
     }
-    create(createSubmissionDto) {
-        return this.submissionsService.create(createSubmissionDto);
+    create(createSubmissionDto, task_id) {
+        return this.submissionsService.create(createSubmissionDto, task_id);
     }
-    findAll() {
-        return this.submissionsService.findAll();
+    findAll(task_id) {
+        return this.submissionsService.findAll(task_id);
     }
-    findOne(id) {
-        return this.submissionsService.findOne(id);
+    findOne(submission_id, task_id) {
+        return this.submissionsService.findOne(submission_id, task_id);
     }
-    remove(id) {
-        return this.submissionsService.remove(id);
+    remove(submission_id, task_id) {
+        return this.submissionsService.remove(submission_id, task_id);
     }
 };
 exports.SubmissionsController = SubmissionsController;
 __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Param)('task_id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_submission_dto_1.CreateSubmissionDto]),
+    __metadata("design:paramtypes", [create_submission_dto_1.CreateSubmissionDto, String]),
     __metadata("design:returntype", void 0)
 ], SubmissionsController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
+    __param(0, (0, common_1.Param)('task_id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], SubmissionsController.prototype, "findAll", null);
 __decorate([
-    (0, common_1.Get)(':id'),
-    __param(0, (0, common_1.Param)('id')),
+    (0, common_1.Get)(':submission_id'),
+    __param(0, (0, common_1.Param)('submission_id')),
+    __param(1, (0, common_1.Param)('task_id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], SubmissionsController.prototype, "findOne", null);
 __decorate([
-    (0, common_1.Delete)(':id'),
-    __param(0, (0, common_1.Param)('id')),
+    (0, common_1.Delete)(':submission_id'),
+    __param(0, (0, common_1.Param)('submission_id')),
+    __param(1, (0, common_1.Param)('task_id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], SubmissionsController.prototype, "remove", null);
 exports.SubmissionsController = SubmissionsController = __decorate([
-    (0, common_1.Controller)('submissions'),
+    (0, common_1.Controller)('tasks/:task_id/submissions'),
     __metadata("design:paramtypes", [submissions_service_1.SubmissionsService])
 ], SubmissionsController);
 //# sourceMappingURL=submissions.controller.js.map

@@ -6,6 +6,7 @@ export declare class Task extends Document {
     status: string;
     submissions: Types.ObjectId[];
     meetings: Types.ObjectId[];
+    assigned_to: Types.ObjectId[];
 }
 export declare const TaskSchema: import("mongoose").Schema<Task, import("mongoose").Model<Task, any, any, any, Document<unknown, any, Task> & Task & Required<{
     _id: unknown;

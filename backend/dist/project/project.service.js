@@ -53,6 +53,9 @@ let ProjectService = class ProjectService {
             .findOneAndUpdate({ project_id: projectId }, { $pull: { students_enrolled: studentId } }, { new: true })
             .exec();
     }
+    async findByTaskId(task_id) {
+        return this.projectModel.findOne({ tasks: task_id }).populate('owner').exec();
+    }
 };
 exports.ProjectService = ProjectService;
 exports.ProjectService = ProjectService = __decorate([
