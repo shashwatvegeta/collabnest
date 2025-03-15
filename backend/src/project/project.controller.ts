@@ -2,9 +2,9 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@n
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
-import { ProjectGuard } from 'src/guards/project.guard';
-import { ProjectOwnerGuard } from 'src/guards/project-owner.guard';
-import { ProjectMemberGuard } from 'src/guards/project-member';
+import { ProjectGuard } from 'src/guard/project.guard';
+import { ProjectOwnerGuard } from 'src/guard/project-owner.guard';
+import { ProjectMemberGuard } from 'src/guard/project-member';
 
 @Controller('project')
 export class ProjectController {

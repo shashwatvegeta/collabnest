@@ -3,7 +3,7 @@ import { Types } from 'mongoose';
 import { ApplicationsService } from './application.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
-import { ProjectOwnerGuard } from 'src/guards/project-owner.guard';
+import { ProjectOwnerGuard } from 'src/guard/project-owner.guard';
 
 @Controller('projects')
 export class ApplicationsController {

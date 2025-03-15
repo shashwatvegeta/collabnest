@@ -2,8 +2,8 @@ import { Controller, Get, Post, Body, Put, Param, Delete, UseGuards } from '@nes
 import { UserProjectsService } from './user-projects.service';
 import { CreateProjectDto } from '../project/dto/create-project.dto';
 import { UpdateProjectDto } from '../project/dto/update-project.dto';
-import { ProjectGuard } from 'src/guards/project.guard';
-import { ProjectOwnerGuard } from 'src/guards/project-owner.guard';
+import { ProjectGuard } from 'src/guard/project.guard';
+import { ProjectOwnerGuard } from 'src/guard/project-owner.guard';
 
 @Controller('users/:user_id/projects')
 export class UserProjectsController {
