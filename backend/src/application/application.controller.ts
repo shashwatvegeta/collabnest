@@ -1,8 +1,9 @@
-import { BadRequestException, Body, Controller, Get, Param, Post, Put, UsePipes, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Param, Post, Put, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { ApplicationsService } from './application.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
+import { ProjectOwnerGuard } from 'src/guards/project-owner.guard';
 
 @Controller('projects')
 export class ApplicationsController {
@@ -43,6 +44,8 @@ export class ApplicationsController {
         return this.applicationsService.findApplication(project_id, application_id);
     }
 
+    @UseGuards(ProjectOwnerGuard) 
+    // Only project owner can review the applications
     @UsePipes(new ValidationPipe({ whitelist: true }))
     @Put('/:project_id/applications/:application_id')
     updateApplication(
