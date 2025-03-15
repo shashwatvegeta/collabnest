@@ -44,7 +44,8 @@ export class ApplicationsController {
         return this.applicationsService.findApplication(project_id, application_id);
     }
 
-    // @UseGuards(ProjectOwnerGuard) 
+    @UseGuards(ProjectOwnerGuard) 
+
     // Only project owner can review the applications
     @UsePipes(new ValidationPipe({ whitelist: true }))
     @Put('/:project_id/applications/:application_id')

@@ -8,10 +8,19 @@ export class ProjectMemberGuard implements CanActivate {
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
         const user = request.user; // Assumes authentication is implemented
-        const { task_id } = request.params;
-
-        // Fetch the project containing the task
-        const project = await this.projectService.findByTaskId(task_id);
+        
+        // Handle both direct project endpoints and task-related endpoints
+        const projectId = request.params.id || request.params.project_id || request.params.pid;
+        const taskId = request.params.task_id;
+        let project;
+        if (taskId) {
+            project = await this.projectService.findByTaskId(taskId);
+        } else if (projectId) {
+            project = await this.projectService.findOne(+projectId);
+        } else {
+            throw new NotFoundException('Project ID or Task ID not found in request parameters');
+        }
+        
         if (!project) throw new NotFoundException('Project not found');
 
         // Check if the user is the project owner or a member

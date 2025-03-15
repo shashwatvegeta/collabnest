@@ -3,6 +3,8 @@ import { Document, Types } from "mongoose";
 import { User } from "../user/user.schema"; // Import the User schema
 @Schema()
 export class Project extends Document {
+  @Prop({ unique: true, default: () => new Types.ObjectId() }) 
+  project_id: Types.ObjectId;
   @Prop({ required: true , minlength: 3, maxlength:100})
   project_name: string;
   @Prop({ default: false})
