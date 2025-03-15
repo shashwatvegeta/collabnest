@@ -29,7 +29,8 @@ export declare class ProjectController {
     }> & {
         __v: number;
     }) | null>;
-    getStudents(projectId: string): Promise<Object[] | null>;
+    getStudents(projectId: string): Promise<import("mongoose").Types.ObjectId[] | null>;
+    
     addStudent(projectId: string, studentId: string): Promise<(import("mongoose").Document<unknown, {}, import("./project.schema").Project> & import("./project.schema").Project & Required<{
         _id: unknown;
     }> & {

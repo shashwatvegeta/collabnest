@@ -45,6 +45,7 @@ export class ApplicationsController {
     }
 
     @UseGuards(ProjectOwnerGuard) 
+
     // Only project owner can review the applications
     @UsePipes(new ValidationPipe({ whitelist: true }))
     @Put('/:project_id/applications/:application_id')
