@@ -23,15 +23,13 @@ let DiscussionThreadsService = class DiscussionThreadsService {
         this.discussionThreadModel = discussionThreadModel;
     }
     async findAllByProject(projectId) {
-        const objectIdProjectId = new mongoose_2.Types.ObjectId(projectId);
         return this.discussionThreadModel.find({
-            project_id: objectIdProjectId
+            project_id: new mongoose_2.Types.ObjectId(projectId)
         }).exec();
     }
     async findOne(projectId, discussionId) {
-        const objectIdProjectId = new mongoose_2.Types.ObjectId(projectId);
         const thread = await this.discussionThreadModel.findOne({
-            projects: objectIdProjectId,
+            project_id: new mongoose_2.Types.ObjectId(projectId),
             _id: new mongoose_2.Types.ObjectId(discussionId)
         }).exec();
         if (!thread) {

@@ -14,19 +14,16 @@ export class DiscussionThreadsService {
 
   async findAllByProject(projectId: string): Promise<DiscussionThread[]> {
     // Convert string to ObjectId
-    const objectIdProjectId = new Types.ObjectId(projectId);
 
     return this.discussionThreadModel.find({
-      project_id: objectIdProjectId
+      project_id: new Types.ObjectId(projectId)
     }).exec();
   }
 
   async findOne(projectId: string, discussionId: string): Promise<DiscussionThread> {
     // Convert string to ObjectId
-    const objectIdProjectId = new Types.ObjectId(projectId);
-
     const thread = await this.discussionThreadModel.findOne({
-      projects: objectIdProjectId,
+      project_id: new Types.ObjectId(projectId),
       _id: new Types.ObjectId(discussionId)
     }).exec();
 
