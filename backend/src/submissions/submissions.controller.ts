@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { SubmissionsService } from './submissions.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
-import { SubmissionGuard } from 'src/guards/submission.guard';
-import { TaskAssignedGuard } from 'src/guards/task-assigned.guard';
+import { SubmissionGuard } from 'src/guard/submission.guard';
+import { TaskAssignedGuard } from 'src/guard/task-assigned.guard';
 
 @Controller('tasks/:task_id/submissions')
 export class SubmissionsController {
