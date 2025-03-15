@@ -41,9 +41,9 @@ const find_projects = () => {
             style={{ width: "40vw" }}
           />
         </div>
-        {recommendedProjects
-          ? recommendedProjects.map((p) => <ProjectDisplayCard {...p} />)
-          : ""}
+        {
+          recommendedProjects.map((p) => <ProjectDisplayCard {...p} />)
+        }
       </div>
     </div>
   );
