@@ -14,28 +14,28 @@ export declare class ProjectController {
     }> & {
         __v: number;
     })[]>;
-    findOne(id: string): Promise<import("mongoose").Document<unknown, {}, import("./project.schema").Project> & import("./project.schema").Project & Required<{
+    findOne(project_id: string): Promise<import("mongoose").Document<unknown, {}, import("./project.schema").Project> & import("./project.schema").Project & Required<{
         _id: unknown;
     }> & {
         __v: number;
     }>;
-    update(id: string, updateProjectDto: UpdateProjectDto): Promise<(import("mongoose").Document<unknown, {}, import("./project.schema").Project> & import("./project.schema").Project & Required<{
+    update(project_id: string, updateProjectDto: UpdateProjectDto): Promise<(import("mongoose").Document<unknown, {}, import("./project.schema").Project> & import("./project.schema").Project & Required<{
         _id: unknown;
     }> & {
         __v: number;
     }) | null>;
-    remove(id: string): Promise<(import("mongoose").Document<unknown, {}, import("./project.schema").Project> & import("./project.schema").Project & Required<{
+    remove(project_id: string): Promise<(import("mongoose").Document<unknown, {}, import("./project.schema").Project> & import("./project.schema").Project & Required<{
         _id: unknown;
     }> & {
         __v: number;
     }) | null>;
-    getStudents(projectId: string): Promise<import("mongoose").Types.ObjectId[] | null>;
-    addStudent(projectId: string, studentId: string): Promise<(import("mongoose").Document<unknown, {}, import("./project.schema").Project> & import("./project.schema").Project & Required<{
+    getStudents(project_id: string): Promise<import("mongoose").Types.ObjectId[] | null>;
+    addStudent(project_id: string, student_id: string): Promise<(import("mongoose").Document<unknown, {}, import("./project.schema").Project> & import("./project.schema").Project & Required<{
         _id: unknown;
     }> & {
         __v: number;
     }) | null>;
-    removeStudent(projectId: string, studentId: string): Promise<(import("mongoose").Document<unknown, {}, import("./project.schema").Project> & import("./project.schema").Project & Required<{
+    removeStudent(project_id: string, student_id: string): Promise<(import("mongoose").Document<unknown, {}, import("./project.schema").Project> & import("./project.schema").Project & Required<{
         _id: unknown;
     }> & {
         __v: number;

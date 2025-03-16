@@ -16,7 +16,7 @@ export class ProjectMemberGuard implements CanActivate {
         if (taskId) {
             project = await this.projectService.findByTaskId(taskId);
         } else if (projectId) {
-            project = await this.projectService.findOne(+projectId);
+            project = await this.projectService.findOne(projectId);
         } else {
             throw new NotFoundException('Project ID or Task ID not found in request parameters');
         }

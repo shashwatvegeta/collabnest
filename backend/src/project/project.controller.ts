@@ -8,7 +8,7 @@ import { ProjectMemberGuard } from 'src/guard/project-member';
 
 @Controller('project')
 export class ProjectController {
-  constructor(private readonly projectService: ProjectService) {}
+  constructor(private readonly projectService: ProjectService) { }
 
   @Post()
   create(@Body() createProjectDto: CreateProjectDto) {
@@ -20,41 +20,41 @@ export class ProjectController {
     return this.projectService.findAll();
   }
 
-  @Get(':id')
-  @UseGuards(ProjectGuard)
-  findOne(@Param('id') id: string) {
-    return this.projectService.findOne(+id);
+  // @UseGuards(ProjectGuard)
+  @Get(':project_id')
+  findOne(@Param('project_id') project_id: string) {
+    return this.projectService.findOne(project_id);
   }
 
-  @Patch(':id')
-  @UseGuards(ProjectOwnerGuard)
-  update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
-    return this.projectService.update(+id, updateProjectDto);
+  // @UseGuards(ProjectOwnerGuard)
+  @Patch(':project_id')
+  update(@Param('project_id') project_id: string, @Body() updateProjectDto: UpdateProjectDto) {
+    return this.projectService.update(project_id, updateProjectDto);
   }
 
-  @Delete(':id')
-  @UseGuards(ProjectOwnerGuard)
-  remove(@Param('id') id: string) {
-    return this.projectService.remove(+id);
+  // @UseGuards(ProjectOwnerGuard)
+  @Delete(':project_id')
+  remove(@Param('project_id') project_id: string) {
+    return this.projectService.remove(project_id);
   }
-   // Get students of a project
-   @Get(':pid/students')
-   @UseGuards(ProjectMemberGuard)
-   getStudents(@Param('pid') projectId: string) {
-     return this.projectService.getStudents(+projectId);
-   }
- 
-   // Add a student to a project
-   @Post(':pid/students/:sid')
-   @UseGuards(ProjectOwnerGuard)
-   addStudent(@Param('pid') projectId: string, @Param('sid') studentId: string) {
-     return this.projectService.addStudent(+projectId, studentId);
-   }
- 
-   // Remove a student from a project
-   @Delete(':pid/students/:sid')
-   @UseGuards(ProjectOwnerGuard)
-   removeStudent(@Param('pid') projectId: string, @Param('sid') studentId: string) {
-     return this.projectService.removeStudent(+projectId, studentId);
-   }
+  // Get students of a project
+  // @UseGuards(ProjectMemberGuard)
+  @Get(':pid/students')
+  getStudents(@Param('pid') project_id: string) {
+    return this.projectService.getStudents(project_id);
+  }
+
+  // Add a student to a project
+  // @UseGuards(ProjectOwnerGuard)
+  @Post(':pid/students/:sid')
+  addStudent(@Param('pid') project_id: string, @Param('sid') student_id: string) {
+    return this.projectService.addStudent(project_id, student_id);
+  }
+
+  // Remove a student from a project
+  // @UseGuards(ProjectOwnerGuard)
+  @Delete(':pid/students/:sid')
+  removeStudent(@Param('pid') project_id: string, @Param('sid') student_id: string) {
+    return this.projectService.removeStudent(project_id, student_id);
+  }
 }

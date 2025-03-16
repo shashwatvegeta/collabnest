@@ -17,9 +17,6 @@ const common_1 = require("@nestjs/common");
 const project_service_1 = require("./project.service");
 const create_project_dto_1 = require("./dto/create-project.dto");
 const update_project_dto_1 = require("./dto/update-project.dto");
-const project_guard_1 = require("../guard/project.guard");
-const project_owner_guard_1 = require("../guard/project-owner.guard");
-const project_member_1 = require("../guard/project-member");
 let ProjectController = class ProjectController {
     projectService;
     constructor(projectService) {
@@ -31,23 +28,23 @@ let ProjectController = class ProjectController {
     findAll() {
         return this.projectService.findAll();
     }
-    findOne(id) {
-        return this.projectService.findOne(+id);
+    findOne(project_id) {
+        return this.projectService.findOne(project_id);
     }
-    update(id, updateProjectDto) {
-        return this.projectService.update(+id, updateProjectDto);
+    update(project_id, updateProjectDto) {
+        return this.projectService.update(project_id, updateProjectDto);
     }
-    remove(id) {
-        return this.projectService.remove(+id);
+    remove(project_id) {
+        return this.projectService.remove(project_id);
     }
-    getStudents(projectId) {
-        return this.projectService.getStudents(+projectId);
+    getStudents(project_id) {
+        return this.projectService.getStudents(project_id);
     }
-    addStudent(projectId, studentId) {
-        return this.projectService.addStudent(+projectId, studentId);
+    addStudent(project_id, student_id) {
+        return this.projectService.addStudent(project_id, student_id);
     }
-    removeStudent(projectId, studentId) {
-        return this.projectService.removeStudent(+projectId, studentId);
+    removeStudent(project_id, student_id) {
+        return this.projectService.removeStudent(project_id, student_id);
     }
 };
 exports.ProjectController = ProjectController;
@@ -65,33 +62,29 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ProjectController.prototype, "findAll", null);
 __decorate([
-    (0, common_1.Get)(':id'),
-    (0, common_1.UseGuards)(project_guard_1.ProjectGuard),
-    __param(0, (0, common_1.Param)('id')),
+    (0, common_1.Get)(':project_id'),
+    __param(0, (0, common_1.Param)('project_id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], ProjectController.prototype, "findOne", null);
 __decorate([
-    (0, common_1.Patch)(':id'),
-    (0, common_1.UseGuards)(project_owner_guard_1.ProjectOwnerGuard),
-    __param(0, (0, common_1.Param)('id')),
+    (0, common_1.Patch)(':project_id'),
+    __param(0, (0, common_1.Param)('project_id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, update_project_dto_1.UpdateProjectDto]),
     __metadata("design:returntype", void 0)
 ], ProjectController.prototype, "update", null);
 __decorate([
-    (0, common_1.Delete)(':id'),
-    (0, common_1.UseGuards)(project_owner_guard_1.ProjectOwnerGuard),
-    __param(0, (0, common_1.Param)('id')),
+    (0, common_1.Delete)(':project_id'),
+    __param(0, (0, common_1.Param)('project_id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], ProjectController.prototype, "remove", null);
 __decorate([
     (0, common_1.Get)(':pid/students'),
-    (0, common_1.UseGuards)(project_member_1.ProjectMemberGuard),
     __param(0, (0, common_1.Param)('pid')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -99,7 +92,6 @@ __decorate([
 ], ProjectController.prototype, "getStudents", null);
 __decorate([
     (0, common_1.Post)(':pid/students/:sid'),
-    (0, common_1.UseGuards)(project_owner_guard_1.ProjectOwnerGuard),
     __param(0, (0, common_1.Param)('pid')),
     __param(1, (0, common_1.Param)('sid')),
     __metadata("design:type", Function),
@@ -108,7 +100,6 @@ __decorate([
 ], ProjectController.prototype, "addStudent", null);
 __decorate([
     (0, common_1.Delete)(':pid/students/:sid'),
-    (0, common_1.UseGuards)(project_owner_guard_1.ProjectOwnerGuard),
     __param(0, (0, common_1.Param)('pid')),
     __param(1, (0, common_1.Param)('sid')),
     __metadata("design:type", Function),

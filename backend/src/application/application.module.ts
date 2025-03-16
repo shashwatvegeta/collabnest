@@ -6,6 +6,7 @@ import { ApplicationsService } from './application.service';
 import { ApplicationsController } from './application.controller';
 import { ProjectService } from 'src/project/project.service';
 import { ProjectModule } from 'src/project/project.module';
+import { User, UserSchema } from 'src/user/user.schema';
 
 @Module({
   imports: [
@@ -16,6 +17,10 @@ import { ProjectModule } from 'src/project/project.module';
     MongooseModule.forFeature([{
       name: Project.name,
       schema: ProjectSchema
+    }]),
+    MongooseModule.forFeature([{
+      name: User.name,
+      schema: UserSchema
     }]),
     ProjectModule
   ],

@@ -38,50 +38,53 @@ let ProjectService = class ProjectService {
     async findAll() {
         return this.projectModel.find().exec();
     }
-    async findOne(id) {
-        const project = await this.projectModel.findOne({ project_id: id }).exec();
+    async findOne(project_id) {
+        const project = await this.projectModel.findOne({ _id: new mongoose_2.Types.ObjectId(project_id) }).exec();
         if (!project) {
-            throw new common_1.NotFoundException(`Project with ID ${id} not found`);
+            throw new common_1.NotFoundException(`Project with ID ${project_id} not found`);
         }
         return project;
     }
-    update(id, updateProjectDto) {
+    update(project_id, updateProjectDto) {
         return this.projectModel
-            .findOneAndUpdate({ project_id: id }, updateProjectDto, { new: true })
+            .findOneAndUpdate({ _id: new mongoose_2.Types.ObjectId(project_id) }, updateProjectDto, { new: true })
             .exec();
     }
-    async remove(id) {
-        const project = await this.projectModel.findOne({ project_id: id }).exec();
+    async remove(project_id) {
+        const project = await this.projectModel.findOne({ _id: new mongoose_2.Types.ObjectId(project_id) }).exec();
         if (!project) {
-            throw new common_1.NotFoundException(`Project with ID ${id} not found`);
+            throw new common_1.NotFoundException(`Project with ID ${project_id} not found`);
         }
         if (project.students_enrolled && project.students_enrolled.length > 0) {
             throw new common_1.BadRequestException('Cannot delete project with enrolled students');
         }
-        return this.projectModel.findOneAndDelete({ project_id: id }).exec();
+        return this.projectModel.findOneAndDelete({ _id: new mongoose_2.Types.ObjectId(project_id) }).exec();
     }
-    async getStudents(projectId) {
-        const project = await this.projectModel.findOne({ project_id: projectId }).exec();
+    async getStudents(project_id) {
+        const project = await this.projectModel.findById(project_id).populate({
+            path: 'students_enrolled',
+            model: 'User',
+        }).exec();
         return project ? project.students_enrolled : null;
     }
-    async addStudent(projectId, studentId) {
-        const project = await this.findOne(projectId);
+    async addStudent(project_id, student_id) {
+        const project = await this.findOne(project_id);
         if (project.is_completed) {
             throw new common_1.BadRequestException('Cannot join a completed project');
         }
         if (project.students_enrolled && project.students_enrolled.length >= project.cap) {
             throw new common_1.BadRequestException('Project has reached maximum capacity');
         }
-        if (project.students_enrolled && project.students_enrolled.some(student => student._id.toString() === studentId || student.toString() === studentId)) {
+        if (Array.isArray(project.students_enrolled) && project.students_enrolled.some(student => student?._id?.toString() === student_id?.toString() || student?.toString() === student_id)) {
             throw new common_1.ConflictException('Student is already enrolled in this project');
         }
         return this.projectModel
-            .findOneAndUpdate({ project_id: projectId }, { $addToSet: { students_enrolled: studentId } }, { new: true })
+            .findOneAndUpdate({ _id: new mongoose_2.Types.ObjectId(project_id) }, { $addToSet: { students_enrolled: student_id } }, { new: true })
             .exec();
     }
-    async removeStudent(projectId, studentId) {
+    async removeStudent(project_id, student_id) {
         return this.projectModel
-            .findOneAndUpdate({ project_id: projectId }, { $pull: { students_enrolled: studentId } }, { new: true })
+            .findByIdAndUpdate(project_id, { $pull: { students_enrolled: student_id } }, { new: true })
             .exec();
     }
     async findByTaskId(task_id) {

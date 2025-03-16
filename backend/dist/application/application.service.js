@@ -18,21 +18,45 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const project_schema_1 = require("../project/project.schema");
 const application_schema_1 = require("./application.schema");
+const user_schema_1 = require("../user/user.schema");
 let ApplicationsService = class ApplicationsService {
     applicationModel;
     projectModel;
-    constructor(applicationModel, projectModel) {
+    userModel;
+    constructor(applicationModel, projectModel, userModel) {
         this.applicationModel = applicationModel;
         this.projectModel = projectModel;
+        this.userModel = userModel;
+    }
+    getHardcodedUserId() {
+        return '67cbd709f08fb1b143c0b7db';
     }
     async create(createApplicationDto) {
+        const user_id = this.getHardcodedUserId();
         const project = await this.projectModel.findById(createApplicationDto.project_id);
         if (!project) {
             throw new common_1.NotFoundException(`Project with ID ${createApplicationDto.project_id} not found`);
         }
+        if (new Date(Date.now()) > new Date(project.end_date)) {
+            throw new Error(`Project end date has already passed`);
+        }
+        const user = await this.userModel.findById(user_id);
+        if (!user) {
+            throw new common_1.NotFoundException(`User with ID ${user_id} not found`);
+        }
+        const hasApplied = user.project_application.some(appId => project.project_application.includes(appId));
+        if (hasApplied) {
+            throw new Error(`User has already applied for this project`);
+        }
         const createdApplication = new this.applicationModel(createApplicationDto);
-        await this.projectModel.findByIdAndUpdate(createApplicationDto.project_id, { $push: { project_applications: createdApplication._id } });
-        return createdApplication.save();
+        await createdApplication.save();
+        await this.userModel.findByIdAndUpdate(user_id, {
+            $push: { project_application: createdApplication._id },
+        });
+        await this.projectModel.findByIdAndUpdate(createApplicationDto.project_id, {
+            $push: { project_application: createdApplication._id },
+        });
+        return createdApplication;
     }
     async findAll(project_id) {
         const project = await this.projectModel
@@ -77,7 +101,9 @@ exports.ApplicationsService = ApplicationsService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(application_schema_1.Application.name)),
     __param(1, (0, mongoose_1.InjectModel)(project_schema_1.Project.name)),
+    __param(2, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model,
         mongoose_2.Model])
 ], ApplicationsService);
 //# sourceMappingURL=application.service.js.map
