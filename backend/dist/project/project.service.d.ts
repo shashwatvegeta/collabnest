@@ -15,11 +15,11 @@ export declare class ProjectService {
     }> & {
         __v: number;
     })[]>;
-    findOne(id: number): Promise<(import("mongoose").Document<unknown, {}, Project> & Project & Required<{
+    findOne(id: number): Promise<import("mongoose").Document<unknown, {}, Project> & Project & Required<{
         _id: unknown;
     }> & {
         __v: number;
-    }) | null>;
+    }>;
     update(id: number, updateProjectDto: UpdateProjectDto): Promise<(import("mongoose").Document<unknown, {}, Project> & Project & Required<{
         _id: unknown;
     }> & {
@@ -30,9 +30,7 @@ export declare class ProjectService {
     }> & {
         __v: number;
     }) | null>;
-
     getStudents(projectId: number): Promise<Types.ObjectId[] | null>;
-    
     addStudent(projectId: number, studentId: string): Promise<(import("mongoose").Document<unknown, {}, Project> & Project & Required<{
         _id: unknown;
     }> & {

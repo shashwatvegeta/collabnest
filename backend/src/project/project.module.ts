@@ -10,6 +10,6 @@ import { ProjectSchema } from "./project.schema";
   ],
   controllers: [ProjectController],
   providers: [ProjectService],
-  exports: [MongooseModule]
+  exports: [MongooseModule, ProjectService]
 })
 export class ProjectModule { }

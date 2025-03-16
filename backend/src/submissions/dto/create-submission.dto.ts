@@ -16,7 +16,7 @@ export class CreateSubmissionDto {
 
   @IsDate()
   @Type(() => Date)
-  @Transform(({ value }) => value || new Date()) // Default to current date if not provided
+  @Transform(() => new Date()) // Always set to current date
   @IsNotEmpty()
   submission_date: Date;
 

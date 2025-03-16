@@ -28,7 +28,7 @@ let SubmissionsService = class SubmissionsService {
         if (!task) {
             throw new common_1.NotFoundException('Task not found');
         }
-        if (new Date(createSubmissionDto.submission_date) > new Date(task.deadline)) {
+        if (new Date(Date.now()) > new Date(task.deadline)) {
             throw new Error('Submission date cannot be after the task deadline');
         }
         const createdSubmission = new this.submissionModel(createSubmissionDto);
@@ -39,15 +39,23 @@ let SubmissionsService = class SubmissionsService {
         return savedSubmission;
     }
     async findAll(task_id) {
-        const filter = {};
-        if (task_id)
-            filter._id = new mongoose_2.Types.ObjectId(task_id);
-        return this.submissionModel.find(filter).populate('user_id files feedback').exec();
+        const taskWithSubmissions = await this.taskModel.findById(task_id).populate({
+            path: 'submissions',
+            model: 'Submission',
+            populate: [{
+                    path: 'user_id',
+                    model: 'User'
+                }]
+        }).exec();
+        if (!taskWithSubmissions) {
+            throw new common_1.NotFoundException('Task not found');
+        }
+        return taskWithSubmissions.submissions;
     }
     async findOne(task_id, submission_id) {
         const submission = await this.submissionModel
             .findOne({ _id: submission_id })
-            .populate('user_id files feedback')
+            .populate('user_id feedback')
             .exec();
         if (!submission)
             throw new common_1.NotFoundException('Submission not found');

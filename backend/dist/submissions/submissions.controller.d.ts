@@ -8,11 +8,7 @@ export declare class SubmissionsController {
     }> & {
         __v: number;
     }>;
-    findAll(task_id: string): Promise<(import("mongoose").Document<unknown, {}, import("./submissions.schema").Submissions> & import("./submissions.schema").Submissions & Required<{
-        _id: unknown;
-    }> & {
-        __v: number;
-    })[]>;
+    findAll(task_id: string): Promise<import("mongoose").Types.ObjectId[]>;
     findOne(submission_id: string, task_id: string): Promise<import("mongoose").Document<unknown, {}, import("./submissions.schema").Submissions> & import("./submissions.schema").Submissions & Required<{
         _id: unknown;
     }> & {

@@ -56,18 +56,21 @@ let TaskService = class TaskService {
     async createTask(project_id, createTaskDto) {
         const project = await this.projectModel.findById(project_id);
         const deadlineDate = new Date(createTaskDto.deadline);
+        const currentDate = new Date();
         if (isNaN(deadlineDate.getTime())) {
             throw new common_1.BadRequestException('Invalid date format');
         }
         if (!project) {
             throw new common_1.NotFoundException(`Project with ID ${project_id} not found`);
         }
+        const projectEndDate = new Date(project.end_date);
+        if (deadlineDate < currentDate || deadlineDate > project.end_date) {
+            throw new common_1.BadRequestException('Deadline has already passed');
+        }
         const createdTask = new this.taskModel({
             ...createTaskDto,
             deadline: deadlineDate,
         });
-        const currentDate = new Date();
-        const projectEndDate = new Date(project.end_date);
         if (deadlineDate < currentDate || deadlineDate > projectEndDate) {
             throw new common_1.BadRequestException('Deadline has already passed');
         }

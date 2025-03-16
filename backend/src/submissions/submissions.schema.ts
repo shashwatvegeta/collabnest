@@ -6,7 +6,7 @@ export class Submissions extends Document {
   @Prop({ ref: 'User', required: true })
   user_id: Types.ObjectId;
 
-  @Prop({required: true })
+  @Prop({required: true, default: Date.now })
   submission_date: Date;
 
   @Prop({required: true })

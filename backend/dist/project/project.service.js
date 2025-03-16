@@ -21,22 +21,43 @@ let ProjectService = class ProjectService {
     constructor(projectModel) {
         this.projectModel = projectModel;
     }
-    create(createProjectDto) {
+    async create(createProjectDto) {
+        if (new Date(createProjectDto.start_date) >= new Date(createProjectDto.end_date)) {
+            throw new common_1.BadRequestException('End date must be after start date');
+        }
+        const startDate = new Date(createProjectDto.start_date);
+        startDate.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (startDate < today) {
+            throw new common_1.BadRequestException('Start date must be today or in the future');
+        }
         const createdProject = new this.projectModel(createProjectDto);
         return createdProject.save();
     }
-    findAll() {
+    async findAll() {
         return this.projectModel.find().exec();
     }
-    findOne(id) {
-        return this.projectModel.findOne({ project_id: id }).exec();
+    async findOne(id) {
+        const project = await this.projectModel.findOne({ project_id: id }).exec();
+        if (!project) {
+            throw new common_1.NotFoundException(`Project with ID ${id} not found`);
+        }
+        return project;
     }
     update(id, updateProjectDto) {
         return this.projectModel
             .findOneAndUpdate({ project_id: id }, updateProjectDto, { new: true })
             .exec();
     }
-    remove(id) {
+    async remove(id) {
+        const project = await this.projectModel.findOne({ project_id: id }).exec();
+        if (!project) {
+            throw new common_1.NotFoundException(`Project with ID ${id} not found`);
+        }
+        if (project.students_enrolled && project.students_enrolled.length > 0) {
+            throw new common_1.BadRequestException('Cannot delete project with enrolled students');
+        }
         return this.projectModel.findOneAndDelete({ project_id: id }).exec();
     }
     async getStudents(projectId) {
@@ -44,6 +65,16 @@ let ProjectService = class ProjectService {
         return project ? project.students_enrolled : null;
     }
     async addStudent(projectId, studentId) {
+        const project = await this.findOne(projectId);
+        if (project.is_completed) {
+            throw new common_1.BadRequestException('Cannot join a completed project');
+        }
+        if (project.students_enrolled && project.students_enrolled.length >= project.cap) {
+            throw new common_1.BadRequestException('Project has reached maximum capacity');
+        }
+        if (project.students_enrolled && project.students_enrolled.some(student => student._id.toString() === studentId || student.toString() === studentId)) {
+            throw new common_1.ConflictException('Student is already enrolled in this project');
+        }
         return this.projectModel
             .findOneAndUpdate({ project_id: projectId }, { $addToSet: { students_enrolled: studentId } }, { new: true })
             .exec();

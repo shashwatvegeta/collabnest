@@ -13,6 +13,7 @@ const application_schema_1 = require("./application.schema");
 const project_schema_1 = require("../project/project.schema");
 const application_service_1 = require("./application.service");
 const application_controller_1 = require("./application.controller");
+const project_module_1 = require("../project/project.module");
 let ApplicationModule = class ApplicationModule {
 };
 exports.ApplicationModule = ApplicationModule;
@@ -26,7 +27,8 @@ exports.ApplicationModule = ApplicationModule = __decorate([
             mongoose_1.MongooseModule.forFeature([{
                     name: project_schema_1.Project.name,
                     schema: project_schema_1.ProjectSchema
-                }])
+                }]),
+            project_module_1.ProjectModule
         ],
         providers: [application_service_1.ApplicationsService],
         controllers: [application_controller_1.ApplicationsController]
