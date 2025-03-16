@@ -13,8 +13,8 @@ exports.ProjectSchema = exports.Project = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 let Project = class Project extends mongoose_2.Document {
-    project_name;
     project_id;
+    project_name;
     is_approved;
     description;
     is_completed;
@@ -30,35 +30,35 @@ let Project = class Project extends mongoose_2.Document {
 };
 exports.Project = Project;
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
+    (0, mongoose_1.Prop)({ unique: true, default: () => new mongoose_2.Types.ObjectId() }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
+], Project.prototype, "project_id", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, minlength: 3, maxlength: 100 }),
     __metadata("design:type", String)
 ], Project.prototype, "project_name", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ unique: true }),
-    __metadata("design:type", Number)
-], Project.prototype, "project_id", void 0);
-__decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({ default: false }),
     __metadata("design:type", Boolean)
 ], Project.prototype, "is_approved", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({ required: true, minlength: 10, maxlength: 1000 }),
     __metadata("design:type", String)
 ], Project.prototype, "description", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({ default: false }),
     __metadata("design:type", Boolean)
 ], Project.prototype, "is_completed", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({ required: true, min: 1 }),
     __metadata("design:type", Number)
 ], Project.prototype, "cap", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", Date)
 ], Project.prototype, "start_date", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", Date)
 ], Project.prototype, "end_date", void 0);
 __decorate([

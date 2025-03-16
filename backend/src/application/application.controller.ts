@@ -25,6 +25,7 @@ export class ApplicationsController {
         return this.applicationsService.create(createApplicationDto);
     }
 
+    // @UseGuards(ProjectOwnerGuard) 
     @Get('/:project_id/applications')
     getApplications(@Param('project_id') project_id: string) {
 
@@ -44,9 +45,8 @@ export class ApplicationsController {
         return this.applicationsService.findApplication(project_id, application_id);
     }
 
-    @UseGuards(ProjectOwnerGuard) 
-
     // Only project owner can review the applications
+    // @UseGuards(ProjectOwnerGuard) 
     @UsePipes(new ValidationPipe({ whitelist: true }))
     @Put('/:project_id/applications/:application_id')
     updateApplication(

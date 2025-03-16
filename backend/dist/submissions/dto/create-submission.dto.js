@@ -28,7 +28,7 @@ __decorate([
 __decorate([
     (0, class_validator_1.IsDate)(),
     (0, class_transformer_1.Type)(() => Date),
-    (0, class_transformer_1.Transform)(({ value }) => value || new Date()),
+    (0, class_transformer_1.Transform)(() => new Date()),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Date)
 ], CreateSubmissionDto.prototype, "submission_date", void 0);

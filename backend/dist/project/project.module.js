@@ -22,7 +22,7 @@ exports.ProjectModule = ProjectModule = __decorate([
         ],
         controllers: [project_controller_1.ProjectController],
         providers: [project_service_1.ProjectService],
-        exports: [mongoose_1.MongooseModule]
+        exports: [mongoose_1.MongooseModule, project_service_1.ProjectService]
     })
 ], ProjectModule);
 //# sourceMappingURL=project.module.js.map

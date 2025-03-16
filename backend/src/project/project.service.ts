@@ -34,11 +34,13 @@ export class ProjectService {
     }
     return project;
   }
+
   update(id: number, updateProjectDto: UpdateProjectDto) {
     return this.projectModel
       .findOneAndUpdate({ project_id: id }, updateProjectDto, { new: true })
       .exec();
   }
+  
   async remove(id: number) {
     const project = await this.projectModel.findOne({ project_id: id }).exec();
     if (!project) {

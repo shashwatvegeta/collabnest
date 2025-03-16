@@ -72,8 +72,6 @@ export class TaskService {
             deadline: deadlineDate,
         });
 
-        const currentDate = new Date();
-        const projectEndDate = new Date(project.end_date);
         if (deadlineDate < currentDate || deadlineDate > projectEndDate) {
             throw new BadRequestException('Deadline has already passed');
         }

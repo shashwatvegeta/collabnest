@@ -25,7 +25,7 @@ __decorate([
     __metadata("design:type", mongoose_2.Types.ObjectId)
 ], Submissions.prototype, "user_id", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
+    (0, mongoose_1.Prop)({ required: true, default: Date.now }),
     __metadata("design:type", Date)
 ], Submissions.prototype, "submission_date", void 0);
 __decorate([

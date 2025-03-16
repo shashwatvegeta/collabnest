@@ -20,7 +20,7 @@ export class SubmissionsService {
     }
 
     // Ensure submission date is not after the task deadline
-    if (new Date(createSubmissionDto.submission_date) > new Date(task.deadline)) {
+    if (new Date(Date.now()) > new Date(task.deadline)) {
       throw new Error('Submission date cannot be after the task deadline');
     }
 
@@ -38,20 +38,29 @@ export class SubmissionsService {
 
 
   async findAll(task_id: string) {
-    const filter: any = {};
-    if (task_id) filter._id = new Types.ObjectId(task_id);
+    const taskWithSubmissions = await this.taskModel.findById(task_id).populate({
+      path: 'submissions',
+      model: 'Submission',
+      populate: [{
+        path: 'user_id',
+        model: 'User'
+      }]
+    }).exec();
 
-    return this.submissionModel.find(filter).populate('user_id files feedback').exec();
+    if(!taskWithSubmissions){
+      throw new NotFoundException('Task not found');
+    }
+    return taskWithSubmissions.submissions;
   }
 
   async findOne(task_id: string, submission_id: string) {
     const submission = await this.submissionModel
       .findOne({ _id: submission_id })
-      .populate('user_id files feedback')
+      .populate('user_id feedback')
       .exec();
   
     if (!submission) throw new NotFoundException('Submission not found');
-  
+    
     // Ensure the submission belongs to the given task
     const task = await this.taskModel.findById(task_id);
     if (!task || !task.submissions.includes(new Types.ObjectId(submission_id))) {

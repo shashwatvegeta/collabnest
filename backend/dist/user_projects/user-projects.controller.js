@@ -17,6 +17,8 @@ const common_1 = require("@nestjs/common");
 const user_projects_service_1 = require("./user-projects.service");
 const create_project_dto_1 = require("../project/dto/create-project.dto");
 const update_project_dto_1 = require("../project/dto/update-project.dto");
+const project_guard_1 = require("../guard/project.guard");
+const project_owner_guard_1 = require("../guard/project-owner.guard");
 let UserProjectsController = class UserProjectsController {
     userProjectsService;
     constructor(userProjectsService) {
@@ -48,6 +50,7 @@ __decorate([
 ], UserProjectsController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':project_id'),
+    (0, common_1.UseGuards)(project_guard_1.ProjectGuard),
     __param(0, (0, common_1.Param)('user_id')),
     __param(1, (0, common_1.Param)('project_id')),
     __metadata("design:type", Function),
@@ -64,6 +67,7 @@ __decorate([
 ], UserProjectsController.prototype, "create", null);
 __decorate([
     (0, common_1.Delete)(':pid'),
+    (0, common_1.UseGuards)(project_owner_guard_1.ProjectOwnerGuard),
     __param(0, (0, common_1.Param)('user_id')),
     __param(1, (0, common_1.Param)('pid')),
     __metadata("design:type", Function),
@@ -72,6 +76,7 @@ __decorate([
 ], UserProjectsController.prototype, "remove", null);
 __decorate([
     (0, common_1.Put)(':pid'),
+    (0, common_1.UseGuards)(project_owner_guard_1.ProjectOwnerGuard),
     __param(0, (0, common_1.Param)('user_id')),
     __param(1, (0, common_1.Param)('pid')),
     __param(2, (0, common_1.Body)()),

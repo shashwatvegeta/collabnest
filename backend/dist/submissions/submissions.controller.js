@@ -28,10 +28,10 @@ let SubmissionsController = class SubmissionsController {
         return this.submissionsService.findAll(task_id);
     }
     findOne(submission_id, task_id) {
-        return this.submissionsService.findOne(submission_id, task_id);
+        return this.submissionsService.findOne(task_id, submission_id);
     }
     remove(submission_id, task_id) {
-        return this.submissionsService.remove(submission_id, task_id);
+        return this.submissionsService.remove(task_id, submission_id);
     }
 };
 exports.SubmissionsController = SubmissionsController;

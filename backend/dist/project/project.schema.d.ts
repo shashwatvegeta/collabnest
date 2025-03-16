@@ -1,7 +1,7 @@
 import { Document, Types } from "mongoose";
 export declare class Project extends Document {
+    project_id: Types.ObjectId;
     project_name: string;
-    project_id: number;
     is_approved: boolean;
     description: string;
     is_completed: boolean;

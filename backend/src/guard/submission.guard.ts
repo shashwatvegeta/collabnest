@@ -41,7 +41,7 @@ export class SubmissionGuard implements CanActivate {
         const project = await this.projectsService.findByTaskId(task_id);
         if (!project) throw new NotFoundException('Project not found');
 
-        // Allow access if the user is:
+        //  Allow access if the user is:
         // - The student who made the submission
         // - The professor/project owner who owns the project
         if (submission.user_id.toString() === user.id || project.project_owner.toString() === user.id) {
