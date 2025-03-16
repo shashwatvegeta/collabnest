@@ -15,14 +15,18 @@ import { SubmissionsModule } from './submissions/submissions.module';
 import { SubmissionSchema } from "./submissions/submissions.schema";
 import { DiscussionModule } from "./discussion/discussion.module";
 import { DiscussionSchema } from "./discussion/discussion.schema";
-import { NotificationsModule } from "./notifications/notifications.module";
 // import { User } from "./user/user.schema";
+import { DiscussionThreadModule } from './discussionthread/discussionthread.module';
+import { FeedbackModule } from './feedback/feedback.module';
+import { NotificationsModule } from "./notifications/notifications.module";
+
 
 @Module({
   imports: [
     MongooseModule.forRoot(
       //`mongodb+srv://${process.env.MONGODB_USER}:${process.env.MONGODB_PASSWORD}@NDZ3rKDH9gJDHy8b@collabnest.aut6a.mongodb.net/`,
-      `mongodb+srv://Random:NDZ3rKDH9gJDHy8b@collabnest.aut6a.mongodb.net/`,
+      // `mongodb+srv://Random:NDZ3rKDH9gJDHy8b@collabnest.aut6a.mongodb.net/`,
+      `mongodb://localhost:27017/collabnest`
     ),
     MongooseModule.forFeature([{ name: "Project", schema: ProjectSchema }]),
     MongooseModule.forFeature([{ name: "Submissions", schema: SubmissionSchema }]),
@@ -36,6 +40,8 @@ import { NotificationsModule } from "./notifications/notifications.module";
     AchievementModule,
     CertificateModule,
     SubmissionsModule,
+    DiscussionThreadModule,
+    FeedbackModule,
     NotificationsModule
   ],
   controllers: [AppController],
