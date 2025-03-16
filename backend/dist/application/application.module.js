@@ -14,6 +14,7 @@ const project_schema_1 = require("../project/project.schema");
 const application_service_1 = require("./application.service");
 const application_controller_1 = require("./application.controller");
 const project_module_1 = require("../project/project.module");
+const user_schema_1 = require("../user/user.schema");
 let ApplicationModule = class ApplicationModule {
 };
 exports.ApplicationModule = ApplicationModule;
@@ -27,6 +28,10 @@ exports.ApplicationModule = ApplicationModule = __decorate([
             mongoose_1.MongooseModule.forFeature([{
                     name: project_schema_1.Project.name,
                     schema: project_schema_1.ProjectSchema
+                }]),
+            mongoose_1.MongooseModule.forFeature([{
+                    name: user_schema_1.User.name,
+                    schema: user_schema_1.UserSchema
                 }]),
             project_module_1.ProjectModule
         ],

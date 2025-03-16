@@ -22,7 +22,7 @@ export class ProjectOwnerGuard implements CanActivate {
             project = await this.projectsService.findByTaskId(taskId);
         } else if (projectId) {
             // If project_id is provided, fetch project directly
-            project = await this.projectsService.findOne(+projectId);
+            project = await this.projectsService.findOne(projectId);
         } else {
             throw new NotFoundException('Project ID or Task ID not found in request parameters');
         }

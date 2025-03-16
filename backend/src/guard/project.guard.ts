@@ -19,7 +19,7 @@ export class ProjectGuard implements CanActivate {
             throw new NotFoundException('Project ID not found in request parameters');
         }
         // Fetch the project
-        const project = await this.projectsService.findOne(+projectId);
+        const project = await this.projectsService.findOne(projectId);
         if (!project) {
             throw new NotFoundException('Project not found');
         }
