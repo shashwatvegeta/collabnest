@@ -64,68 +64,85 @@ const MDashboard = () => {
     }, [email, name]);
 
     useEffect(() => {
-        // Sample data for ongoing projects
-        setOngoingProjects([
-            {
-                name: "Web Development Portfolio",
-                desc: "Create a personal portfolio showcasing your projects",
-                level: "Intermediate",
-                logo: "PanelTop",
-            },
-            {
-                name: "API Integration Project",
-                desc: "Build An Application That Integrates External APIs",
-                level: "Advanced",
-                logo: "PanelTop",
-            },
-            {
-                name: "Mobile App Development",
-                desc: "Build An Application That Integrates External APIs",
-                level: "Beginner",
-                logo: "PanelTop",
-            },
-            {
-                name: "Mobile App Development",
-                desc: "Build An Application That Integrates External APIs",
-                level: "Beginner",
-                logo: "PanelTop",
+        const fetchProjectsTasksAndApplications = async () => {
+            try {
+                // Fetch projects
+                const projectResponse = await fetch('http://localhost:3001/project');
+                if (!projectResponse.ok) {
+                    throw new Error('Failed to fetch projects');
+                }
+                const projects = await projectResponse.json();
+                console.log("Fetched Projects:", projects);
+                setOngoingProjects(projects);
+    
+                // Fetch tasks for each project
+                const taskPromises = projects.map(async (project) => {
+                    const taskResponse = await fetch(`http://localhost:3001/projects/${project._id}/tasks`);
+                    if (!taskResponse.ok) {
+                        throw new Error(`Failed to fetch tasks for project ${project._id}`);
+                    }
+                    return taskResponse.json();
+                });
+    
+                const tasksArray = await Promise.all(taskPromises);
+                const allTasks = tasksArray.flat(); // Flatten array of task arrays
+    
+                // Map tasks into notifications
+                const taskNotifications = allTasks.map((task) => ({
+                    title: `Task: ${task.title}`,
+                    message: task.description || "No description provided",
+                    isImportant: task.status === "urgent", // Example condition
+                }));
+    
+                // Fetch applications for each project
+                const applicationPromises = projects.map(async (project) => {
+                    const appResponse = await fetch(`http://localhost:3001/projects/${project_id}/applications`);
+                    if (!appResponse.ok) {
+                        throw new Error(`Failed to fetch applications for project ${project._id}`);
+                    }
+                    return appResponse.json();
+                });
+    
+                const applicationsArray = await Promise.all(applicationPromises);
+                const allApplications = applicationsArray.flat(); // Flatten array of applications
+    
+                // Map applications into requests
+                const applicationRequests = allApplications.map((app) => ({
+                    name: app.applicantName|| "Unknown Applicant", // Assuming applicant name is available in response
+                    projectName: app.projectName || "Unknown Project",
+                    projectType: app.projectType || "General",
+                }));
+    
+                setNotifications([
+                    ...taskNotifications,
+                    {
+                        title: "Project Progress Update",
+                        message: "The Project progress has been updated as per the...",
+                        isImportant: true
+                    },
+                    {
+                        title: "Request for Access",
+                        message: "Hello sir, this is to inform you...",
+                        isImportant: false
+                    }
+                ]);
+    
+                setRequests(applicationRequests); // Set requests based on fetched applications
+            } catch (error) {
+                console.error("Error fetching data:", error);
             }
-        ]);
-
-        // Sample notifications
-        setNotifications([
-            {
-                title: "Project Progress Update",
-                message: "The Project progress has been updated as per the...",
-                isImportant: true
-            },
-            {
-                title: "Request for Access",
-                message: "Hello sir, this is to inform you...",
-                isImportant: false
-            }
-        ]);
-
-        // Sample requests
-        setRequests([
-            {
-                name: "Maganjot Singh",
-                projectName: "Website Development",
-                projectType: "Website Development"
-            },
-            {
-                name: "Maganjot Singh",
-                projectName: "Website Development",
-                projectType: "Website Development"
-            }
-        ]);
-
+        };
+    
+        fetchProjectsTasksAndApplications();
+    
         // Add a small delay to simulate loading and then trigger animations
         setTimeout(() => {
             setIsLoaded(true);
         }, 300);
     }, [user]);
-
+    
+    
+    
     return (
         <div className="p-8 my-4">
             <div className={`text-2xl text-violet-400 p-4 font-semibold transform ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'} transition-all duration-500`}>
@@ -168,7 +185,7 @@ const MDashboard = () => {
                 <div className={`border-2 rounded-lg border-violet-300 text-white bg-[#2a2a38] row-span-2 shadow-md hover:shadow-lg hover:shadow-violet-500/20 transition-all duration-500 transform ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'} delay-300`}>
                     <div className="font-semibold bg-violet-400 p-4 flex rounded-t-lg">
                         <div className="flex-1 text-2xl">Ongoing Projects</div>
-                        <Link href="/mentor_dashboard/projects">
+                        <Link href="/mentor/find_projects">
                             <button className="px-4 py-2 bg-indigo-950 text-sm rounded-lg hover:bg-indigo-800 transition-colors duration-300 transform hover:scale-105">
                                 View All
                             </button>
