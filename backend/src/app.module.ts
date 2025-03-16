@@ -17,6 +17,7 @@ import { DiscussionModule } from "./discussion/discussion.module";
 import { DiscussionSchema } from "./discussion/discussion.schema";
 // import { User } from "./user/user.schema";
 import { DiscussionThreadModule } from './discussionthread/discussionthread.module';
+import { FeedbackModule } from './feedback/feedback.module';
 
 
 @Module({
@@ -39,6 +40,7 @@ import { DiscussionThreadModule } from './discussionthread/discussionthread.modu
     CertificateModule,
     SubmissionsModule,
     DiscussionThreadModule,
+    FeedbackModule,
 
   ],
   controllers: [AppController],
