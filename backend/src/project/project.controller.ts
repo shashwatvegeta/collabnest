@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete,Put, UseGuards } from '@nestjs/common';
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
@@ -19,7 +19,10 @@ export class ProjectController {
   findAll() {
     return this.projectService.findAll();
   }
-
+  @Get('pending')
+  findPendingApprovals() {
+    return this.projectService.findPendingApprovals();
+  }
   // @UseGuards(ProjectGuard)
   @Get(':project_id')
   findOne(@Param('project_id') project_id: string) {
@@ -31,7 +34,10 @@ export class ProjectController {
   update(@Param('project_id') project_id: string, @Body() updateProjectDto: UpdateProjectDto) {
     return this.projectService.update(project_id, updateProjectDto);
   }
-
+  @Put(':project_id/approve')
+  approveProject(@Param('id') id: string) {
+    return this.projectService.approveProject(id);
+  }
   // @UseGuards(ProjectOwnerGuard)
   @Delete(':project_id')
   remove(@Param('project_id') project_id: string) {

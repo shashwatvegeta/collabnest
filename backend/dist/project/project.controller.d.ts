@@ -14,12 +14,22 @@ export declare class ProjectController {
     }> & {
         __v: number;
     })[]>;
+    findPendingApprovals(): Promise<(import("mongoose").Document<unknown, {}, import("./project.schema").Project> & import("./project.schema").Project & Required<{
+        _id: unknown;
+    }> & {
+        __v: number;
+    })[]>;
     findOne(project_id: string): Promise<import("mongoose").Document<unknown, {}, import("./project.schema").Project> & import("./project.schema").Project & Required<{
         _id: unknown;
     }> & {
         __v: number;
     }>;
     update(project_id: string, updateProjectDto: UpdateProjectDto): Promise<(import("mongoose").Document<unknown, {}, import("./project.schema").Project> & import("./project.schema").Project & Required<{
+        _id: unknown;
+    }> & {
+        __v: number;
+    }) | null>;
+    approveProject(id: string): Promise<(import("mongoose").Document<unknown, {}, import("./project.schema").Project> & import("./project.schema").Project & Required<{
         _id: unknown;
     }> & {
         __v: number;

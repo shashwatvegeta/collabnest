@@ -28,11 +28,17 @@ let ProjectController = class ProjectController {
     findAll() {
         return this.projectService.findAll();
     }
+    findPendingApprovals() {
+        return this.projectService.findPendingApprovals();
+    }
     findOne(project_id) {
         return this.projectService.findOne(project_id);
     }
     update(project_id, updateProjectDto) {
         return this.projectService.update(project_id, updateProjectDto);
+    }
+    approveProject(id) {
+        return this.projectService.approveProject(id);
     }
     remove(project_id) {
         return this.projectService.remove(project_id);
@@ -62,6 +68,12 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ProjectController.prototype, "findAll", null);
 __decorate([
+    (0, common_1.Get)('pending'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], ProjectController.prototype, "findPendingApprovals", null);
+__decorate([
     (0, common_1.Get)(':project_id'),
     __param(0, (0, common_1.Param)('project_id')),
     __metadata("design:type", Function),
@@ -76,6 +88,13 @@ __decorate([
     __metadata("design:paramtypes", [String, update_project_dto_1.UpdateProjectDto]),
     __metadata("design:returntype", void 0)
 ], ProjectController.prototype, "update", null);
+__decorate([
+    (0, common_1.Put)(':project_id/approve'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], ProjectController.prototype, "approveProject", null);
 __decorate([
     (0, common_1.Delete)(':project_id'),
     __param(0, (0, common_1.Param)('project_id')),

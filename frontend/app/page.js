@@ -1,9 +1,9 @@
 "use client";
-import CollabNestApp from "@/components/landing";
+import CollabNestApp from "../components/landing";
 import React, { ReactNode, useEffect, useState } from "react";
 import Image from "next/image";
-import Navbar from "@/components/navbar";
-import HowItWorks from "@/components/HowItWorks";
+import Navbar from "../components/navbar";
+import HowItWorks from "../components/HowItWorks";
 import { useIsAuthenticated, useMsal } from "@azure/msal-react";
 import { redirect } from "next/navigation";
 
