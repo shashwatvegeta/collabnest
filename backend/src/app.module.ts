@@ -18,6 +18,7 @@ import { DiscussionSchema } from "./discussion/discussion.schema";
 // import { User } from "./user/user.schema";
 import { DiscussionThreadModule } from './discussionthread/discussionthread.module';
 import { FeedbackModule } from './feedback/feedback.module';
+import { MeetingModule } from './meeting/meeting.module';
 
 
 @Module({
@@ -41,7 +42,7 @@ import { FeedbackModule } from './feedback/feedback.module';
     SubmissionsModule,
     DiscussionThreadModule,
     FeedbackModule,
-
+    MeetingModule
   ],
   controllers: [AppController],
   providers: [AppService],

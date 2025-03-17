@@ -109,6 +109,11 @@ let TaskService = class TaskService {
     async findOne(task_id) {
         return this.taskModel.findById(task_id).populate('submissions').exec();
     }
+    async addMeetingToTask(task_id, meeting_id) {
+        return this.taskModel.findByIdAndUpdate(task_id, {
+            $push: { meetings: new mongoose_2.Types.ObjectId(meeting_id) }
+        });
+    }
 };
 exports.TaskService = TaskService;
 exports.TaskService = TaskService = __decorate([
