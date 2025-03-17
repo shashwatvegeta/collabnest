@@ -18,7 +18,8 @@ import { DiscussionSchema } from "./discussion/discussion.schema";
 // import { User } from "./user/user.schema";
 import { DiscussionThreadModule } from './discussionthread/discussionthread.module';
 import { FeedbackModule } from './feedback/feedback.module';
-import { MeetingModule } from './meeting/meeting.module';
+import { NotificationsModule } from "./notifications/notifications.module";
+import { MeetingModule } from "./meeting/meeting.module";
 
 
 @Module({
@@ -42,6 +43,7 @@ import { MeetingModule } from './meeting/meeting.module';
     SubmissionsModule,
     DiscussionThreadModule,
     FeedbackModule,
+    NotificationsModule,
     MeetingModule
   ],
   controllers: [AppController],
