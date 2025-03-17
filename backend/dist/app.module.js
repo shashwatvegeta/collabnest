@@ -23,8 +23,8 @@ const submissions_schema_1 = require("./submissions/submissions.schema");
 const discussion_module_1 = require("./discussion/discussion.module");
 const discussionthread_module_1 = require("./discussionthread/discussionthread.module");
 const feedback_module_1 = require("./feedback/feedback.module");
-const meeting_module_1 = require("./meeting/meeting.module");
 const notifications_module_1 = require("./notifications/notifications.module");
+const meeting_module_1 = require("./meeting/meeting.module");
 const admin_notification_module_1 = require("./admin_notification/admin_notification.module");
 let AppModule = class AppModule {
 };
@@ -32,7 +32,7 @@ exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            mongoose_1.MongooseModule.forRoot(`mongodb://localhost:27017/collabnest`),
+            mongoose_1.MongooseModule.forRoot(`mongodb+srv://Random:NDZ3rKDH9gJDHy8b@collabnest.aut6a.mongodb.net/`),
             mongoose_1.MongooseModule.forFeature([{ name: "Project", schema: project_schema_1.ProjectSchema }]),
             mongoose_1.MongooseModule.forFeature([{ name: "Submissions", schema: submissions_schema_1.SubmissionSchema }]),
             project_module_1.ProjectModule,
@@ -45,8 +45,8 @@ exports.AppModule = AppModule = __decorate([
             submissions_module_1.SubmissionsModule,
             discussionthread_module_1.DiscussionThreadModule,
             feedback_module_1.FeedbackModule,
-            meeting_module_1.MeetingModule
             notifications_module_1.NotificationsModule,
+            meeting_module_1.MeetingModule,
             admin_notification_module_1.NotificationModule
         ],
         controllers: [app_controller_1.AppController],

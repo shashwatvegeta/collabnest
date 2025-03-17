@@ -8,7 +8,7 @@ import NotificationCard from '../components/NotificationCard';
 import ProjectStatistics from '../components/ProjectStatistics';
 
 // Hardcoded admin ID for demo purposes
-const ADMIN_ID = 1;
+const ADMIN_ID = 12345678;
 
 interface Notification {
   _id: string;
@@ -39,29 +39,45 @@ export default function AdminNotifications() {
 
   const fetchNotifications = async () => {
     try {
-      const response = await axios.get(`/api/notifications/admin/${ADMIN_ID}`);
+      const response = await axios.get('http://localhost:3001/notification/admin/12345678');
+      console.log('Fetched notifications:', response.data);
       setNotifications(response.data);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     }
   };
-
+//only projects whose isApproved is false will be displayed
+  // const fetchPendingProjects = async () => {
+  //   try {
+  //     const response = await axios.get('http://localhost:3001/project');
+  //     console.log('Fetched pending projects:', response.data);
+  //     setPendingProjects(response.data);
+  //   } catch (error) {
+  //     console.error('Error fetching pending projects:', error);
+  //   }
+  // };
   const fetchPendingProjects = async () => {
     try {
-      const response = await axios.get('/api/project/pending');
-      setPendingProjects(response.data);
-    } catch (error) {
+      const response = await axios.get('http://localhost:3001/project');
+      console.log('Fetched pending projects:', response.data);
+      const pendingProjects = response.data.filter((project: Project) => !project.is_approved);
+
+      // setPendingProjects(response.data);
+      setPendingProjects(pendingProjects);
+    }
+    catch (error) {
       console.error('Error fetching pending projects:', error);
     }
   };
 
+
   const handleApprove = async (notificationId: string, projectId: string) => {
     try {
       // Approve the notification
-      await axios.put(`/api/notifications/${notificationId}/approve/${ADMIN_ID}`);
+      await axios.put(`http://localhost:3001/notification/${notificationId}/approve/12345678`);
       
       // Approve the project
-      await axios.put(`/api/project/${projectId}/approve`);
+      await axios.put(`http://localhost:3001/project/${projectId}/approve`);
       
       // Refresh data
       fetchNotifications();
@@ -74,7 +90,7 @@ export default function AdminNotifications() {
   const handleDelete = async (notificationId: string) => {
     try {
       // Just mark the notification as seen/removed
-      await axios.put(`/api/notifications/${notificationId}/approve/${ADMIN_ID}`);
+      await axios.put(`http://localhost:3001/notification/${notificationId}/approve/12345678`);
       
       // Refresh notifications
       fetchNotifications();
@@ -116,6 +132,11 @@ export default function AdminNotifications() {
                         const notification = notifications.find(n => n.project_id === project._id);
                         if (notification) {
                           handleApprove(notification._id, project._id);
+                        }
+                        else {
+                          console.error(`No notification found for project ${project._id}`);
+                          // You might want to handle this case, perhaps by creating a notification
+                          // or by directly approving the project without a notification
                         }
                       }}
                       onDelete={() => {

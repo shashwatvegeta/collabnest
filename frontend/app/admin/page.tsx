@@ -38,7 +38,7 @@ export default function AdminDashboard() {
 
   const fetchProjects = async () => {
     try {
-      const response = await axios.get('/api/project');
+      const response = await axios.get('http://localhost:3001/project');
       setProjects(response.data);
       
       // Count pending approvals
@@ -54,7 +54,7 @@ export default function AdminDashboard() {
   const fetchNotifications = async () => {
     try {
       // Assuming admin ID is 1 for demo
-      const response = await axios.get('/api/notifications/admin/1');
+      const response = await axios.get('http://localhost:3001/notifications/admin/12345678');
       setNotifications(response.data);
     } catch (error) {
       console.error('Error fetching notifications:', error);
