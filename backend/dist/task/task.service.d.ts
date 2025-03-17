@@ -16,4 +16,9 @@ export declare class TaskService {
     }> & {
         __v: number;
     }) | null>;
+    addMeetingToTask(task_id: string, meeting_id: string): Promise<(import("mongoose").Document<unknown, {}, Task> & Task & Required<{
+        _id: unknown;
+    }> & {
+        __v: number;
+    }) | null>;
 }

@@ -30,6 +30,7 @@ exports.TaskModule = TaskModule = __decorate([
         ],
         controllers: [task_controller_1.TaskController],
         providers: [task_service_1.TaskService],
+        exports: [task_service_1.TaskService]
     })
 ], TaskModule);
 //# sourceMappingURL=task.module.js.map

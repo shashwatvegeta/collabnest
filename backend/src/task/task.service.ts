@@ -29,7 +29,7 @@ export class TaskService {
     }
 
     async findByProjectIdandTaskId(project_id: string, task_id: string): Promise<Task> {
-        
+
         const project = await this.projectModel
             .findById(project_id)
             .populate<{ tasks: Task[] }>({
@@ -55,7 +55,7 @@ export class TaskService {
     async createTask(project_id: string, createTaskDto: CreateTaskDto): Promise<Task> {
         const project = await this.projectModel.findById(project_id);
         const deadlineDate = new Date(createTaskDto.deadline)
-        const currentDate = new Date(); 
+        const currentDate = new Date();
         if (isNaN(deadlineDate.getTime())) {
             throw new BadRequestException('Invalid date format');
         }
@@ -64,7 +64,7 @@ export class TaskService {
             throw new NotFoundException(`Project with ID ${project_id} not found`);
         }
         const projectEndDate = new Date(project.end_date);
-        if (deadlineDate < currentDate || deadlineDate> project.end_date) {
+        if (deadlineDate < currentDate || deadlineDate > project.end_date) {
             throw new BadRequestException('Deadline has already passed');
         }
         const createdTask = new this.taskModel({
@@ -136,5 +136,12 @@ export class TaskService {
 
     async findOne(task_id: string) { //used in submission guard
         return this.taskModel.findById(task_id).populate('submissions').exec();
-    }    
+    }
+
+    async addMeetingToTask(task_id: string, meeting_id: string) {
+        
+        return this.taskModel.findByIdAndUpdate(task_id, {
+            $push: { meetings: new Types.ObjectId(meeting_id) }
+        });
+    }
 }
