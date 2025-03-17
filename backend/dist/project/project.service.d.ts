@@ -46,4 +46,14 @@ export declare class ProjectService {
     }> & {
         __v: number;
     }) | null>;
+    approveProject(id: string): Promise<(import("mongoose").Document<unknown, {}, Project> & Project & Required<{
+        _id: unknown;
+    }> & {
+        __v: number;
+    }) | null>;
+    findPendingApprovals(): Promise<(import("mongoose").Document<unknown, {}, Project> & Project & Required<{
+        _id: unknown;
+    }> & {
+        __v: number;
+    })[]>;
 }

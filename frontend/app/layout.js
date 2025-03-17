@@ -1,7 +1,6 @@
 "use client";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/navbar";
 import { MsalProvider } from "@azure/msal-react";
 import { PublicClientApplication } from "@azure/msal-browser";
 import { msalConfig } from "./authConfig";

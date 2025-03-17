@@ -20,7 +20,11 @@ export class ProjectService {
     if (startDate < today) {
       throw new BadRequestException('Start date must be today or in the future');
     }
-    const createdProject = new this.projectModel(createProjectDto);
+    const createdProject = new this.projectModel({
+      ...createProjectDto,
+      is_approved: false,
+      is_completed: false,
+    });
     return createdProject.save();
   }
 
@@ -94,5 +98,15 @@ export class ProjectService {
 
   async findByTaskId(task_id: string) { // used in submission service
     return this.projectModel.findOne({ tasks: task_id }).populate('owner').exec();
+  }
+  approveProject(id: string) {
+    return this.projectModel.findByIdAndUpdate(
+      id,
+      { is_approved: true },
+      { new: true }
+    ).exec();
+  }
+  findPendingApprovals() {
+    return this.projectModel.find({ is_approved: false }).exec();
   }
 }

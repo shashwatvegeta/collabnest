@@ -32,7 +32,11 @@ let ProjectService = class ProjectService {
         if (startDate < today) {
             throw new common_1.BadRequestException('Start date must be today or in the future');
         }
-        const createdProject = new this.projectModel(createProjectDto);
+        const createdProject = new this.projectModel({
+            ...createProjectDto,
+            is_approved: false,
+            is_completed: false,
+        });
         return createdProject.save();
     }
     async findAll() {
@@ -89,6 +93,12 @@ let ProjectService = class ProjectService {
     }
     async findByTaskId(task_id) {
         return this.projectModel.findOne({ tasks: task_id }).populate('owner').exec();
+    }
+    approveProject(id) {
+        return this.projectModel.findByIdAndUpdate(id, { is_approved: true }, { new: true }).exec();
+    }
+    findPendingApprovals() {
+        return this.projectModel.find({ is_approved: false }).exec();
     }
 };
 exports.ProjectService = ProjectService;
