@@ -34,7 +34,7 @@ let ProjectService = class ProjectService {
         }
         const createdProject = new this.projectModel({
             ...createProjectDto,
-            is_approved: false,
+            is_approved: 'pending',
             is_completed: false,
         });
         return createdProject.save();
@@ -94,11 +94,14 @@ let ProjectService = class ProjectService {
     async findByTaskId(task_id) {
         return this.projectModel.findOne({ tasks: task_id }).populate('owner').exec();
     }
-    approveProject(id) {
-        return this.projectModel.findByIdAndUpdate(id, { is_approved: true }, { new: true }).exec();
+    async updateApprovalStatus(id, status) {
+        return this.projectModel.findByIdAndUpdate(id, { is_approved: status }, { new: true }).exec();
     }
-    findPendingApprovals() {
-        return this.projectModel.find({ is_approved: false }).exec();
+    async findPendingApprovals() {
+        return this.projectModel.find({ is_approved: 'pending' }).exec();
+    }
+    async findApprovedProjects() {
+        return this.projectModel.find({ is_approved: 'approved' }).exec();
     }
 };
 exports.ProjectService = ProjectService;

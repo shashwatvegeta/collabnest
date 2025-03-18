@@ -31,14 +31,20 @@ let ProjectController = class ProjectController {
     findPendingApprovals() {
         return this.projectService.findPendingApprovals();
     }
+    findApprovedProjects() {
+        return this.projectService.findApprovedProjects();
+    }
     findOne(project_id) {
         return this.projectService.findOne(project_id);
     }
     update(project_id, updateProjectDto) {
         return this.projectService.update(project_id, updateProjectDto);
     }
-    approveProject(id) {
-        return this.projectService.approveProject(id);
+    approveProject(project_id) {
+        return this.projectService.updateApprovalStatus(project_id, 'approved');
+    }
+    rejectProject(project_id) {
+        return this.projectService.updateApprovalStatus(project_id, 'rejected');
     }
     remove(project_id) {
         return this.projectService.remove(project_id);
@@ -74,6 +80,12 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ProjectController.prototype, "findPendingApprovals", null);
 __decorate([
+    (0, common_1.Get)('approved'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], ProjectController.prototype, "findApprovedProjects", null);
+__decorate([
     (0, common_1.Get)(':project_id'),
     __param(0, (0, common_1.Param)('project_id')),
     __metadata("design:type", Function),
@@ -90,11 +102,18 @@ __decorate([
 ], ProjectController.prototype, "update", null);
 __decorate([
     (0, common_1.Put)(':project_id/approve'),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, common_1.Param)('project_id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], ProjectController.prototype, "approveProject", null);
+__decorate([
+    (0, common_1.Put)(':project_id/reject'),
+    __param(0, (0, common_1.Param)('project_id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], ProjectController.prototype, "rejectProject", null);
 __decorate([
     (0, common_1.Delete)(':project_id'),
     __param(0, (0, common_1.Param)('project_id')),

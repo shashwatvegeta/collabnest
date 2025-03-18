@@ -25,7 +25,6 @@ const discussionthread_module_1 = require("./discussionthread/discussionthread.m
 const feedback_module_1 = require("./feedback/feedback.module");
 const notifications_module_1 = require("./notifications/notifications.module");
 const meeting_module_1 = require("./meeting/meeting.module");
-const admin_notification_module_1 = require("./admin_notification/admin_notification.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -47,7 +46,6 @@ exports.AppModule = AppModule = __decorate([
             feedback_module_1.FeedbackModule,
             notifications_module_1.NotificationsModule,
             meeting_module_1.MeetingModule,
-            admin_notification_module_1.NotificationModule
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

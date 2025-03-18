@@ -4,6 +4,7 @@ exports.CreateProjectDto = void 0;
 class CreateProjectDto {
     project_name;
     project_id;
+    is_approved;
     description;
     cap;
     start_date;

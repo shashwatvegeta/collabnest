@@ -1,7 +1,7 @@
 export class CreateProjectDto {
   project_name: string;
   project_id: number;
-  //is_approved: boolean;
+  is_approved: string;
   description: string;
   //is_completed: boolean;
   cap: number;

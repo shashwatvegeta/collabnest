@@ -1,6 +1,7 @@
 export declare class CreateProjectDto {
     project_name: string;
     project_id: number;
+    is_approved: string;
     description: string;
     cap: number;
     start_date: Date;

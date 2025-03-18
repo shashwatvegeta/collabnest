@@ -1,115 +1,104 @@
 'use client';
 
-import React from 'react';
-
-interface StatProps {
-  percentage: number;
-  label: string;
-}
-
-const CircularProgressBar = ({ percentage }: { percentage: number }) => {
-  const radius = 40;
-  const circumference = 2 * Math.PI * radius;
-  const dashoffset = circumference * (1 - percentage / 100);
-  
-  return (
-    <div className="relative h-32 w-32 mx-auto">
-      <svg className="h-full w-full" viewBox="0 0 100 100">
-        <circle
-          className="stroke-gray-700 fill-none"
-          strokeWidth="8"
-          cx="50"
-          cy="50"
-          r={radius}
-        />
-        <circle
-          className="stroke-purple-500 fill-none"
-          strokeWidth="8"
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={dashoffset}
-          cx="50"
-          cy="50"
-          r={radius}
-          style={{
-            transition: 'stroke-dashoffset 0.5s ease-in-out',
-            transform: 'rotate(-90deg)',
-            transformOrigin: '50% 50%',
-          }}
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-2xl font-bold">{percentage}%</span>
-      </div>
-    </div>
-  );
-};
-
-const BarChart = () => {
-  const data = [70, 85, 60, 90, 55, 75, 65, 80, 50, 70];
-  
-  return (
-    <div className="h-32 flex items-end justify-between">
-      {data.map((value, index) => (
-        <div key={index} className="h-full flex flex-col justify-end items-center">
-          <div 
-            className="w-2 bg-purple-500 rounded-t-sm"
-            style={{ height: `${value}%` }}
-          />
-        </div>
-      ))}
-    </div>
-  );
-};
-
-const StatItem = ({ percentage, label }: StatProps) => {
-  return (
-    <div className="flex items-center justify-between">
-      <span className="text-gray-400">{label}</span>
-      <span className="text-white font-medium">{percentage.toFixed(1)}%</span>
-    </div>
-  );
-};
+import { useState, useEffect } from 'react';
 
 export default function ProjectStatistics() {
-  // Hardcoded statistics for demonstration
-  const satisfactionRate = 95;
-  const activeUsers = 2800;
-  const clicks = 1200;
-  const growth = 23;
-  
+  // Mock data for demonstration
+  const [stats, setStats] = useState({
+    satisfactionRate: 95,
+    activeUsers: 2600,
+    userGrowth: +23,
+    clicks: 1200
+  });
+
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h4 className="text-sm text-gray-400 mb-2">Satisfaction Rate</h4>
-        <CircularProgressBar percentage={satisfactionRate} />
-        <p className="text-xs text-gray-500 mt-2">From all projects</p>
-      </div>
+    <div className="bg-white bg-opacity-5 rounded-lg p-6">
+      <h2 className="text-xl font-semibold mb-4">Project Statistics</h2>
       
-      <div>
-        <h4 className="text-sm text-gray-400 mb-2">Monthly Activity</h4>
-        <BarChart />
-      </div>
-      
-      <div className="mt-4">
-        <h4 className="text-sm text-gray-400 mb-2">Active Users</h4>
-        <div className="flex justify-between items-center">
-          <div>
-            <span className="text-green-500 font-medium">+{growth}%</span>
-            <p className="text-xs text-gray-500">than last week</p>
-          </div>
-          <div className="flex space-x-4">
-            <div className="text-center">
-              <p className="text-lg font-bold">{(activeUsers / 1000).toFixed(1)}k</p>
-              <p className="text-xs text-gray-500">Users</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-[#1F1D38] bg-opacity-60 rounded-lg p-4">
+          <div className="flex flex-col items-center">
+            <div className="text-sm text-gray-400 mb-2">Satisfaction Rate</div>
+            <div className="text-xs text-gray-500 mb-4">From all projects</div>
+            
+            <div className="relative w-32 h-32">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-3xl font-bold">{stats.satisfactionRate}%</div>
+              </div>
+              <svg viewBox="0 0 100 100" className="transform -rotate-90">
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="45"
+                  fill="transparent"
+                  stroke="#2A2559"
+                  strokeWidth="10"
+                />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="45"
+                  fill="transparent"
+                  stroke="#6B56E3"
+                  strokeWidth="10"
+                  strokeDasharray={`${stats.satisfactionRate * 2.83} 283`}
+                />
+              </svg>
             </div>
-            <div className="text-center">
-              <p className="text-lg font-bold">{(clicks / 1000).toFixed(1)}k</p>
-              <p className="text-xs text-gray-500">Clicks</p>
+            
+            <div className="w-full mt-4">
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>0%</span>
+                <span>100%</span>
+              </div>
+              <div className="w-full bg-[#2A2559] h-1 rounded-full mt-1">
+                <div 
+                  className="bg-[#6B56E3] h-1 rounded-full" 
+                  style={{ width: `${stats.satisfactionRate}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-[#1F1D38] bg-opacity-60 rounded-lg p-4">
+          <div className="flex flex-col">
+            <div className="text-sm mb-6">Active Users</div>
+            
+            <div className="flex-1 flex items-end">
+              <div className="w-full h-32">
+                {/* Mock chart bars */}
+                <div className="flex justify-between items-end h-full">
+                  {[70, 90, 50, 80, 95, 85, 75].map((height, index) => (
+                    <div key={index} className="w-3 bg-[#6B56E3] rounded-t-sm mx-1" style={{ height: `${height}%` }}></div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-4 flex items-center">
+              <div className="text-green-500 text-sm">
+                (+{stats.userGrowth}) than last week
+              </div>
+              <div className="ml-auto flex items-center">
+                <div className="flex items-center mr-4">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                  <div className="text-sm">Users</div>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
+                  <div className="text-sm">Clicks</div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-between mt-2">
+              <div className="text-sm font-medium">2.6K</div>
+              <div className="text-sm font-medium">1.2K</div>
             </div>
           </div>
         </div>
       </div>
     </div>
   );
-} 
+}

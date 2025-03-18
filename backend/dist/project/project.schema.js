@@ -38,8 +38,8 @@ __decorate([
     __metadata("design:type", String)
 ], Project.prototype, "project_name", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ default: false }),
-    __metadata("design:type", Boolean)
+    (0, mongoose_1.Prop)({ default: 'pending' }),
+    __metadata("design:type", String)
 ], Project.prototype, "is_approved", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true, minlength: 10, maxlength: 1000 }),

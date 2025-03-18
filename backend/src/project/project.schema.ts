@@ -7,8 +7,8 @@ export class Project extends Document {
   project_id: Types.ObjectId;
   @Prop({ required: true , minlength: 3, maxlength:100})
   project_name: string;
-  @Prop({ default: false})
-  is_approved: boolean;
+  @Prop({ default: 'pending'})
+  is_approved: string;
   @Prop({ required:true , minlength:10 , maxlength:1000})
   description: string;
   @Prop({ default:false})

@@ -8,8 +8,8 @@ import { Model, Types } from 'mongoose';
 @Injectable()
 export class ProjectService {
   constructor(@InjectModel('Project') private projectModel: Model<Project>) { }
+  
   async create(createProjectDto: CreateProjectDto) {
-
     if (new Date(createProjectDto.start_date) >= new Date(createProjectDto.end_date)) {
       throw new BadRequestException('End date must be after start date');
     }
@@ -22,7 +22,7 @@ export class ProjectService {
     }
     const createdProject = new this.projectModel({
       ...createProjectDto,
-      is_approved: false,
+      is_approved: 'pending',
       is_completed: false,
     });
     return createdProject.save();
@@ -31,6 +31,7 @@ export class ProjectService {
   async findAll() {
     return this.projectModel.find().exec();
   }
+  
   async findOne(project_id: string) {
     const project = await this.projectModel.findOne({ _id: new Types.ObjectId(project_id) }).exec();
     if (!project) {
@@ -38,11 +39,13 @@ export class ProjectService {
     }
     return project;
   }
+  
   update(project_id: string, updateProjectDto: UpdateProjectDto) {
     return this.projectModel
       .findOneAndUpdate({ _id: new Types.ObjectId(project_id) }, updateProjectDto, { new: true })
       .exec();
   }
+  
   async remove(project_id: string) {
     const project = await this.projectModel.findOne({ _id: new Types.ObjectId(project_id) }).exec();
     if (!project) {
@@ -56,7 +59,7 @@ export class ProjectService {
 
   // for students
   async getStudents(project_id: string): Promise<Types.ObjectId[] | null> {
-    const project = await this.projectModel.findById( project_id ).populate({
+    const project = await this.projectModel.findById(project_id).populate({
       path: 'students_enrolled',
       model: 'User',
     }).exec();
@@ -99,14 +102,20 @@ export class ProjectService {
   async findByTaskId(task_id: string) { // used in submission service
     return this.projectModel.findOne({ tasks: task_id }).populate('owner').exec();
   }
-  approveProject(id: string) {
+  
+  async updateApprovalStatus(id: string, status: 'approved' | 'rejected' | 'pending') {
     return this.projectModel.findByIdAndUpdate(
       id,
-      { is_approved: true },
+      { is_approved: status },
       { new: true }
     ).exec();
   }
-  findPendingApprovals() {
-    return this.projectModel.find({ is_approved: false }).exec();
+  
+  async findPendingApprovals() {
+    return this.projectModel.find({ is_approved: 'pending' }).exec();
+  }
+  
+  async findApprovedProjects() {
+    return this.projectModel.find({ is_approved: 'approved' }).exec();
   }
 }

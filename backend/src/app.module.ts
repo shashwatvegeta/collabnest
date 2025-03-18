@@ -21,7 +21,7 @@ import { FeedbackModule } from './feedback/feedback.module';
 import { NotificationsModule } from "./notifications/notifications.module";
 import { MeetingModule } from "./meeting/meeting.module";
 
-import { NotificationModule } from "./admin_notification/admin_notification.module";
+// import { NotificationModule } from "./admin_notification/admin_notification.module";
 
 @Module({
   imports: [
@@ -46,7 +46,6 @@ import { NotificationModule } from "./admin_notification/admin_notification.modu
     FeedbackModule,
     NotificationsModule,
     MeetingModule,
-    NotificationModule
   ],
   controllers: [AppController],
   providers: [AppService],
