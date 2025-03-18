@@ -6,6 +6,7 @@ import {
   Medal,
   MessageCircle,
   Search,
+  SquareChartGantt,
   User,
 } from "lucide-react";
 import Image from "next/image";
@@ -51,9 +52,9 @@ const Sidebar = () => {
               size={25}
             />
           </Link>
-          <Link href="/student_dashboard/threads">
-            <MessageCircle
-              className={`${pathname == "/student_dashboard/threads" ? "text-teal-400" : ""}`}
+          <Link href="/student_dashboard/ongoing_projects">
+            <SquareChartGantt
+              className={`${pathname == "/student_dashboard/ongoing_projects" ? "text-teal-400" : ""}`}
               size={25}
             />
           </Link>
