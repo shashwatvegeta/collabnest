@@ -92,14 +92,12 @@ const SDashboard = () => {
 		]);
 	}, [user]);
 	return (
-		<div className="p-8 my-4">
-			<div className="text-2xl text-violet-400 p-4 font-semibold">
-				Dashboard
-			</div>
+		<div className="p-8 h-screen">
+			<div className="text-3xl text-violet-400 p-4 font-light">Dashboard</div>
 			<div className="text-2xl text-white font-bold p-4">
 				Welcome Back, {user.name}!
 			</div>
-			<div className="grid grid-cols-2 gap-8" style={{ width: "85vw" }}>
+			<div className="grid grid-cols-2 gap-4" style={{ width: "85vw" }}>
 				<div className="flex col-span-2">
 					{user.pfp_src ? (
 						<Image
@@ -128,26 +126,26 @@ const SDashboard = () => {
 						</div>
 					</div>
 				</div>
-				<div className="border-2 rounded-lg border-violet-300 text-white bg-[#2a2a38] row-span-2">
-					<div className="font-semibold bg-violet-400 p-4 flex">
-						<div className="flex-1 text-2xl">Recommended Projects</div>
+				<div className="border-0 rounded-lg border-violet-300 text-white bg-[#2a2a38] row-span-2 p-4">
+					<div className="font-semibold flex">
+						<div className="flex-1 text-xl">Recommended Projects</div>
 						<Link href="/student_dashboard/find_projects">
-							<button className="px-4 py-2 bg-indigo-950 text-sm rounded-lg">
+							<button className="px-4 py-2 bg-indigo-500 text-sm rounded-lg">
 								View All
 							</button>
 						</Link>
 					</div>
-					<div className="grid gap-2 p-2">
+					<div className="grid gap-2 p-4">
 						{recommendedProjects
 							? recommendedProjects
-								.slice(0, 4)
-								.map((p, index) => <ProjectCard key={index} {...p} />)
+									.slice(0, 4)
+									.map((p, index) => <ProjectCard key={index} {...p} />)
 							: ""}
 					</div>
 				</div>
 
 				<div className="row-span-4 col-span-1 ">
-					<div className="border-2 p-4 rounded-lg border-violet-300 text-white bg-gradient-to-r from-[#2a2a38] to-[#222131]">
+					<div className="border-0 p-4 rounded-lg border-violet-300 text-white bg-gradient-to-r from-[#2a2a38] to-[#222131]">
 						<div className="text-2xl font-semibold">Your Progress</div>
 						<div className="text-xs text-violet-300 py-2">
 							Track your Achievements and Level
@@ -192,20 +190,20 @@ const SDashboard = () => {
 								: ""}
 						</div>
 					</div>
-					<div className="border-2 rounded-lg border-violet-300 text-white bg-[#2a2a38] row-span-2 my-8">
-						<div className="font-semibold bg-violet-400 p-4 flex">
-							<div className="flex-1 text-2xl">Ongoing Projects</div>
+					<div className="border-0 rounded-lg border-violet-300 text-white bg-[#2a2a38] row-span-2 my-4 p-4">
+						<div className="font-semibold flex">
+							<div className="flex-1 text-xl">Ongoing Projects</div>
 							<Link href="/student_dashboard/ongoing_projects">
-								<button className="px-4 py-2 bg-indigo-950 text-sm rounded-lg">
+								<button className="px-4 py-2 bg-indigo-500 text-sm rounded-lg">
 									View All
 								</button>
 							</Link>
 						</div>
-						<div className="grid gap-2 p-2">
+						<div className="grid gap-2 pt-4">
 							{ongoingProjects
 								? ongoingProjects
-									.slice(0, 2)
-									.map((p, index) => <ProjectCard key={index} {...p} />)
+										.slice(0, 2)
+										.map((p, index) => <ProjectCard key={index} {...p} />)
 								: ""}
 						</div>
 					</div>
