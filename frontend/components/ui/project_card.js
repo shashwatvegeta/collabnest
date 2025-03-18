@@ -9,6 +9,7 @@ export function ProjectCard({ project }) {
   const level = project.status?.approved ? "Approved" : "Pending";
   
   return (
+    <Link href={`/project_thread?id=${id}`}>
     <div className="border-2 rounded-lg border-violet-400 flex bg-gradient-to-r from-[#2a283c] to-[#222131]">
       <div className="bg-violet-400 w-24 place-content-center place-items-center">
         <PanelTop size={40} strokeWidth={3} className="translate-x-[24px]" />
@@ -21,6 +22,7 @@ export function ProjectCard({ project }) {
         </div>
       </div>
     </div>
+    </Link>
   );
 }
 
