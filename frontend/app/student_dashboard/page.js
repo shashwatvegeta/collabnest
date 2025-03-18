@@ -44,24 +44,28 @@ const SDashboard = () => {
 	useEffect(() => {
 		setRecommendedProjects([
 			{
+				id: 1,
 				name: "Web Development Portfolio",
 				desc: "Create a personal portfolio showcasing your projects",
 				level: "Intermediate",
 				logo: "PanelTop",
 			},
 			{
+				id: 2,
 				name: "API Integration Project",
 				desc: "Build an Application that integrates external APIs",
 				level: "Advanced",
 				logo: "PanelTop",
 			},
 			{
+				id: 3,
 				name: "API Integration Project",
 				desc: "Build an Application that integrates external APIs",
 				level: "Advanced",
 				logo: "PanelTop",
 			},
 			{
+				id: 4,
 				name: "API Integration Project",
 				desc: "Build an Application that integrates external APIs",
 				level: "Advanced",
@@ -72,12 +76,14 @@ const SDashboard = () => {
 	useEffect(() => {
 		setOngoingProjects([
 			{
+				id: 5,
 				name: "Web Development Portfolio",
 				desc: "Create a personal portfolio showcasing your projects",
 				level: "Intermediate",
 				logo: "PanelTop",
 			},
 			{
+				id: 6,
 				name: "API Integration Project",
 				desc: "Build an Application that integrates external APIs",
 				level: "Advanced",
