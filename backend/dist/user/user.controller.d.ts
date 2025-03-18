@@ -14,7 +14,7 @@ export declare class UserController {
     }> & {
         __v: number;
     })[]>;
-    findOne(user_id: string): Promise<(import("mongoose").Document<unknown, {}, import("./user.schema").User> & import("./user.schema").User & Required<{
+    findOne(email: string): Promise<(import("mongoose").Document<unknown, {}, import("./user.schema").User> & import("./user.schema").User & Required<{
         _id: unknown;
     }> & {
         __v: number;

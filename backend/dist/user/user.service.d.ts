@@ -15,7 +15,7 @@ export declare class UserService {
     }> & {
         __v: number;
     })[]>;
-    findOne(user_id: string): Promise<(import("mongoose").Document<unknown, {}, User> & User & Required<{
+    findOne(email: string): Promise<(import("mongoose").Document<unknown, {}, User> & User & Required<{
         _id: unknown;
     }> & {
         __v: number;

@@ -44,8 +44,9 @@ exports.AppModule = AppModule = __decorate([
             submissions_module_1.SubmissionsModule,
             discussionthread_module_1.DiscussionThreadModule,
             feedback_module_1.FeedbackModule,
-            notifications_module_1.NotificationsModule,
             meeting_module_1.MeetingModule,
+            notifications_module_1.NotificationsModule,
+            admin_notification_module_1.NotificationModule
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

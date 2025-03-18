@@ -28,8 +28,8 @@ let UserService = class UserService {
     findAll() {
         return this.userModel.find().exec();
     }
-    findOne(user_id) {
-        return this.userModel.findById(user_id).exec();
+    findOne(email) {
+        return this.userModel.findOne({ email: email }).exec();
     }
     update(user_id, updateUserDto) {
         return this.userModel.findByIdAndUpdate(user_id, updateUserDto, { new: true }).exec();
