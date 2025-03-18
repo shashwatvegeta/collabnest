@@ -134,8 +134,8 @@ const SDashboard = () => {
 					<div className="grid gap-2 p-2">
 						{recommendedProjects
 							? recommendedProjects.map((p, index) => (
-									<ProjectCard key={index} {...p} />
-								))
+								<ProjectCard key={index} {...p} />
+							))
 							: ""}
 					</div>
 				</div>
@@ -172,7 +172,14 @@ const SDashboard = () => {
 								</span>
 							</div>
 						</div>
-						<div className="text-lg font-semibold py-2">Badges Earned</div>
+						<div className="flex">
+							<div className="text-lg font-semibold py-2 flex-1">
+								Badges Earned
+							</div>
+							<Link href="/student_dashboard/badges">
+								<div className="py-2 text-sm underline">View all</div>
+							</Link>
+						</div>
 						<div className="grid grid-cols-5 gap-4">
 							{user.badges
 								? user.badges.map((b) => <Badge key={b}>{b}</Badge>)
@@ -182,7 +189,7 @@ const SDashboard = () => {
 					<div className="border-2 rounded-lg border-violet-300 text-white bg-[#2a2a38] row-span-2 my-8">
 						<div className="font-semibold bg-violet-400 p-4 flex">
 							<div className="flex-1 text-2xl">Ongoing Projects</div>
-							<Link href="/student_dashboard/find_projects">
+							<Link href="/student_dashboard/ongoing_projects">
 								<button className="px-4 py-2 bg-indigo-950 text-sm rounded-lg">
 									View All
 								</button>
@@ -191,8 +198,8 @@ const SDashboard = () => {
 						<div className="grid gap-2 p-2">
 							{ongoingProjects
 								? ongoingProjects.map((p, index) => (
-										<ProjectCard key={index} {...p} />
-									))
+									<ProjectCard key={index} {...p} />
+								))
 								: ""}
 						</div>
 					</div>
