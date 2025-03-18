@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import Link from 'next/link';
 
 export default function OngoingProjects() {
   const [projects, setProjects] = useState([]);
@@ -27,12 +28,12 @@ export default function OngoingProjects() {
     <div className="bg-[#3A3693] bg-opacity-20 rounded-lg p-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Ongoing Projects</h2>
-        <button className="bg-[#1F1D38] text-white px-4 py-1 rounded-md text-sm flex items-center">
+        <Link href="/admin/projects?filter=approved" className="bg-[#1F1D38] text-white px-4 py-1 rounded-md text-sm flex items-center">
           View all
           <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
           </svg>
-        </button>
+        </Link>
       </div>
 
       {loading ? (
@@ -67,7 +68,7 @@ export default function OngoingProjects() {
                   )}
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-medium">{project.title}</h3>
+                  <h3 className="font-medium text-gray-400">{project.title}</h3>
                   <p className="text-sm text-gray-400">{project.description}</p>
                   <div className="mt-2">
                     <div className="text-xs text-[#8A8AFF] font-medium mb-1">
@@ -81,9 +82,12 @@ export default function OngoingProjects() {
                     </div>
                   </div>
                 </div>
-                <button className="bg-[#1F1D38] text-white px-3 py-1 rounded-md text-xs">
+                <Link 
+                  href={`/admin/projects/${project._id}`}
+                  className="bg-[#1F1D38] text-white px-3 py-1 rounded-md text-xs"
+                >
                   View Details
-                </button>
+                </Link>
               </div>
             </div>
           ))}

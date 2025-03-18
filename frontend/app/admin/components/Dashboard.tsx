@@ -8,9 +8,9 @@ import ProjectStatistics from './ProjectStatistics';
 export default function Dashboard() {
   const [user, setUser] = useState({
     name: 'Jyoti Shikha',
-    role: 'PROFESSOR',
-    email: 'jyotishikha2007@gmail.com',
-    id: '12345678'
+    role: 'ADMIN',
+    email: 'shashwat_2301cs50@iitp.ac.in',
+    id: 'shashwat_2301cs50@iitp.ac.in'
   });
 
   return (
