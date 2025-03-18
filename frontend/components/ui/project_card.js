@@ -1,7 +1,7 @@
 import { PanelTop } from "lucide-react";
 import Link from "next/link";
 
-export function ProjectCard({ project }) {
+export function ProjectCard({ key,project }) {
   // Destructure the project object
   const { name, description } = project;
   
@@ -9,7 +9,7 @@ export function ProjectCard({ project }) {
   const level = project.status?.approved ? "Approved" : "Pending";
   
   return (
-    <Link href={`/project_thread?id=${id}`}>
+    <Link href={`/project_thread?id=${key}`}>
     <div className="border-2 rounded-lg border-violet-400 flex bg-gradient-to-r from-[#2a283c] to-[#222131]">
       <div className="bg-violet-400 w-24 place-content-center place-items-center">
         <PanelTop size={40} strokeWidth={3} className="translate-x-[24px]" />
