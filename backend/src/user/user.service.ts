@@ -18,8 +18,8 @@ export class UserService {
     return this.userModel.find().exec();
   }
 
-  findOne(user_id: string) {
-    return this.userModel.findById(user_id).exec();
+  findOne(email: string) {
+    return this.userModel.findOne({email: email}).exec();
   }
 
   update(user_id: string, updateUserDto: UpdateUserDto) {

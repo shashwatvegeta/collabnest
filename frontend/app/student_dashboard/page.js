@@ -1,5 +1,5 @@
 "use client";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { ProjectCard } from "@/components/ui/project_card";
@@ -7,11 +7,14 @@ import Link from "next/link";
 import { getEmail, getName, getBatch, getRollNumber } from "@/lib/auth_utility";
 import { useIsAuthenticated } from "@azure/msal-react";
 import { redirect } from "next/navigation";
+import { fetchUserData, fetchUserProjects, fetchRecommendedProjects, fetchUserAchievements } from "@/lib/api";
 
 const SDashboard = () => {
 	const [user, setUser] = useState({});
 	const [name, setName] = useState("Loading...");
 	const [email, setEmail] = useState("Loading...");
+	const [isLoading, setIsLoading] = useState(true);
+	const [error, setError] = useState(null);
 
 	const [recommendedProjects, setRecommendedProjects] = useState([]);
 	const [ongoingProjects, setOngoingProjects] = useState([]);
@@ -24,73 +27,69 @@ const SDashboard = () => {
 	}, [isAuthenticated]);
 
 	useEffect(() => {
-		setName(getName());
-	}, []);
-	useEffect(() => {
-		setEmail(getEmail());
-	}, []);
-	useEffect(() => {
-		setUser({
-			name: name,
-			type: "Student",
-			email: email,
-			tel: "987654321",
-			pfp_src: "/user_placeholder.png",
-			level: 5,
-			level_progression: 0.72,
-			badges: ["First Badge", "Quick Learner", "Team Player"],
-		});
-	}, [email, name]);
-	useEffect(() => {
-		setRecommendedProjects([
-			{
-				id: 1,
-				name: "Web Development Portfolio",
-				desc: "Create a personal portfolio showcasing your projects",
-				level: "Intermediate",
-				logo: "PanelTop",
-			},
-			{
-				id: 2,
-				name: "API Integration Project",
-				desc: "Build an Application that integrates external APIs",
-				level: "Advanced",
-				logo: "PanelTop",
-			},
-			{
-				id: 3,
-				name: "API Integration Project",
-				desc: "Build an Application that integrates external APIs",
-				level: "Advanced",
-				logo: "PanelTop",
-			},
-			{
-				id: 4,
-				name: "API Integration Project",
-				desc: "Build an Application that integrates external APIs",
-				level: "Advanced",
-				logo: "PanelTop",
-			},
-		]);
-	}, [user]);
-	useEffect(() => {
-		setOngoingProjects([
-			{
-				id: 5,
-				name: "Web Development Portfolio",
-				desc: "Create a personal portfolio showcasing your projects",
-				level: "Intermediate",
-				logo: "PanelTop",
-			},
-			{
-				id: 6,
-				name: "API Integration Project",
-				desc: "Build an Application that integrates external APIs",
-				level: "Advanced",
-				logo: "PanelTop",
-			},
-		]);
-	}, [user]);
+		const loadUserData = async () => {
+			try {
+				setIsLoading(true);
+				setError(null);
+				
+				const rollNumber = getRollNumber();
+				const userName = getName();
+				const userEmail = getEmail();
+				
+				setName(userName);
+				setEmail(userEmail);
+
+				// Fetch user data
+				const userData = await fetchUserData(userEmail);
+				
+				// Fetch projects and achievements in parallel
+				const [projects, achievements] = await Promise.all([
+					fetchUserProjects(userData.projects),
+					// fetchRecommendedProjects(rollNumber),
+					fetchUserAchievements(userData._id)
+				]);
+
+				setUser({
+					...userData,
+					name: userName,
+					type: "Student",
+					email: userEmail,
+					tel: userData.phone || "Not provided",
+					pfp_src: userData.profilePicture || "/user_placeholder.png",
+					level: userData.level || 1,
+					level_progression: userData.levelProgress || 0,
+					badges: achievements.map(a => a.name) || [],
+				});
+
+				setOngoingProjects(projects);
+				setRecommendedProjects(projects);
+			} catch (err) {
+				setError(err.message);
+				console.error('Error loading user data:', err);
+			} finally {
+				setIsLoading(false);
+			}
+		};
+
+		loadUserData();
+	}, [isAuthenticated]);
+
+	if (isLoading) {
+		return (
+			<div className="flex items-center justify-center min-h-screen">
+				<div className="text-white text-xl">Loading...</div>
+			</div>
+		);
+	}
+
+	if (error) {
+		return (
+			<div className="flex items-center justify-center min-h-screen">
+				<div className="text-red-500 text-xl">Error: {error}</div>
+			</div>
+		);
+	}
+
 	return (
 		<div className="p-8 my-4">
 			<div className="text-2xl text-violet-400 p-4 font-semibold">
@@ -138,11 +137,13 @@ const SDashboard = () => {
 						</Link>
 					</div>
 					<div className="grid gap-2 p-2">
-						{recommendedProjects
-							? recommendedProjects
-								.slice(0, 4)
-								.map((p, index) => <ProjectCard key={index} {...p} />)
-							: ""}
+						{recommendedProjects.length > 0 ? (
+							recommendedProjects.map((p, index) => (
+								<ProjectCard key={index} project={p} />
+							))
+						) : (
+							<div className="text-center text-gray-400 py-4">No recommended projects available</div>
+						)}
 					</div>
 				</div>
 
@@ -161,19 +162,19 @@ const SDashboard = () => {
 									Level {user.level}
 								</div>
 								<div className="text-xs translate-y-[8px]">
-									{user.level_progression * 100}%
+									{Math.round(user.level_progression * 100)}%
 								</div>
 							</div>
 							<div>
 								<span
 									role="progressbar"
 									aria-labelledby="ProgressLabel"
-									aria-valuenow="75"
+									aria-valuenow={user.level_progression * 100}
 									className="relative block rounded-full bg-gray-400"
 								>
 									<span
 										className="block h-4 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-center"
-										style={{ width: user.level_progression * 100 + "%" }}
+										style={{ width: `${user.level_progression * 100}%` }}
 									></span>
 								</span>
 							</div>
@@ -187,9 +188,11 @@ const SDashboard = () => {
 							</Link>
 						</div>
 						<div className="grid grid-cols-5 gap-4">
-							{user.badges
-								? user.badges.slice(0, 5).map((b) => <Badge key={b}>{b}</Badge>)
-								: ""}
+							{user.badges.length > 0 ? (
+								user.badges.map((b, index) => <Badge key={`badge-${index}`}>{b}</Badge>)
+							) : (
+								<div className="text-center text-gray-400 col-span-5">No badges earned yet</div>
+							)}
 						</div>
 					</div>
 					<div className="border-2 rounded-lg border-violet-300 text-white bg-[#2a2a38] row-span-2 my-8">
@@ -202,11 +205,13 @@ const SDashboard = () => {
 							</Link>
 						</div>
 						<div className="grid gap-2 p-2">
-							{ongoingProjects
-								? ongoingProjects
-									.slice(0, 2)
-									.map((p, index) => <ProjectCard key={index} {...p} />)
-								: ""}
+							{ongoingProjects.length > 0 ? (
+								ongoingProjects.map((p, index) => (
+									<ProjectCard key={index} project={p} />
+								))
+							) : (
+								<div className="text-center text-gray-400 py-4">No ongoing projects</div>
+							)}
 						</div>
 					</div>
 				</div>
