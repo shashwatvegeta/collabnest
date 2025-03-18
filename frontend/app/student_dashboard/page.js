@@ -139,9 +139,9 @@ const SDashboard = () => {
 					</div>
 					<div className="grid gap-2 p-2">
 						{recommendedProjects
-							? recommendedProjects.map((p, index) => (
-								<ProjectCard key={index} {...p} />
-							))
+							? recommendedProjects
+								.slice(0, 4)
+								.map((p, index) => <ProjectCard key={index} {...p} />)
 							: ""}
 					</div>
 				</div>
@@ -188,7 +188,7 @@ const SDashboard = () => {
 						</div>
 						<div className="grid grid-cols-5 gap-4">
 							{user.badges
-								? user.badges.map((b) => <Badge key={b}>{b}</Badge>)
+								? user.badges.slice(0, 5).map((b) => <Badge key={b}>{b}</Badge>)
 								: ""}
 						</div>
 					</div>
@@ -203,9 +203,9 @@ const SDashboard = () => {
 						</div>
 						<div className="grid gap-2 p-2">
 							{ongoingProjects
-								? ongoingProjects.map((p, index) => (
-									<ProjectCard key={index} {...p} />
-								))
+								? ongoingProjects
+									.slice(0, 2)
+									.map((p, index) => <ProjectCard key={index} {...p} />)
 								: ""}
 						</div>
 					</div>
