@@ -41,12 +41,13 @@ let DiscussionThreadsService = class DiscussionThreadsService {
         try {
             const objectIdProjectId = new mongoose_2.Types.ObjectId(projectId);
             const createdBy = new mongoose_2.Types.ObjectId(createDiscussionDto.created_by || userId);
+            const discussionId = new mongoose_2.Types.ObjectId();
             return this.discussionThreadModel.create({
                 ...createDiscussionDto,
-                discussion_id: createDiscussionDto.discussion_id ? new mongoose_2.Types.ObjectId(createDiscussionDto.discussion_id) : new mongoose_2.Types.ObjectId(),
+                discussion_id: discussionId,
                 project_id: objectIdProjectId,
                 created_by: createdBy,
-                discussion_replies: []
+                replies: []
             });
         }
         catch (error) {
@@ -63,15 +64,20 @@ let DiscussionThreadsService = class DiscussionThreadsService {
         catch (error) {
             userObjectId = new mongoose_2.Types.ObjectId('000000000000000000000000');
         }
-        if (discussionThread.created_by.toString() !== userObjectId.toString() && !isMentor) {
-            throw new common_1.ForbiddenException('You do not have permission to update this discussion thread');
-        }
         const updateData = {};
         if (updateDiscussionDto.title) {
             updateData.title = updateDiscussionDto.title;
         }
         if (updateDiscussionDto.description) {
             updateData.description = updateDiscussionDto.description;
+        }
+        if (updateDiscussionDto.replies) {
+            const formattedReplies = updateDiscussionDto.replies.map(reply => ({
+                ...reply,
+                created_by: new mongoose_2.Types.ObjectId(reply.created_by),
+                created_at: reply.created_at || new Date()
+            }));
+            updateData.replies = formattedReplies;
         }
         const updatedThread = await this.discussionThreadModel.findOneAndUpdate({ _id: new mongoose_2.Types.ObjectId(discussionId) }, { $set: updateData }, { new: true }).exec();
         if (!updatedThread) {
@@ -81,9 +87,6 @@ let DiscussionThreadsService = class DiscussionThreadsService {
     }
     async remove(projectId, discussionId, userId, isMentor) {
         const discussionThread = await this.findOne(projectId, discussionId);
-        if (!isMentor) {
-            throw new common_1.ForbiddenException('Only mentors or professors can delete discussion threads');
-        }
         await this.discussionThreadModel.deleteOne({ _id: new mongoose_2.Types.ObjectId(discussionId) }).exec();
     }
 };
