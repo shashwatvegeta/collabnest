@@ -8,6 +8,6 @@
   transition-duration: 0.3s;
 }
 
-body {
+body,html {
   background: linear-gradient(to right, #171727, #1f1e37, #19182a);
 }
