@@ -1,16 +1,17 @@
 import { Module } from '@nestjs/common';
-import { GamificationController } from './gamification.controller';
-import { GamificationService } from './gamification.service';
 import { MongooseModule } from '@nestjs/mongoose';
+import { GamificationController, GamificationBulkController } from './gamification.controller';
+import { GamificationService } from './gamification.service';
 import { UserLevel, UserLevelSchema } from './schemas/user-level.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: UserLevel.name, schema: UserLevelSchema },
-    ]),
+      { name: UserLevel.name, schema: UserLevelSchema }
+    ])
   ],
-  controllers: [GamificationController],
+  controllers: [GamificationController, GamificationBulkController],
   providers: [GamificationService],
+  exports: [GamificationService]
 })
 export class GamificationModule {}

@@ -3,7 +3,8 @@ import { TaskService } from './task.service';
 import { TaskController } from './task.controller';
 import { Task, TaskSchema } from './task.schema';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Project, ProjectSchema } from 'src/project/project.schema';
+import { Project, ProjectSchema } from '../project/project.schema';
+import { GamificationModule } from '../gamification/gamification.module';
 
 @Module({
   imports:[
@@ -14,7 +15,8 @@ import { Project, ProjectSchema } from 'src/project/project.schema';
     MongooseModule.forFeature([{
       name: Project.name,
       schema: ProjectSchema
-    }])
+    }]),
+    GamificationModule
   ],
   controllers: [TaskController],
   providers: [TaskService],

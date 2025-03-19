@@ -3,10 +3,12 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task } from './task.schema';
 import { Project } from 'src/project/project.schema';
+import { GamificationService } from '../gamification/gamification.service';
 export declare class TaskService {
     private readonly taskModel;
     private readonly projectModel;
-    constructor(taskModel: Model<Task>, projectModel: Model<Project>);
+    private readonly gamificationService;
+    constructor(taskModel: Model<Task>, projectModel: Model<Project>, gamificationService: GamificationService);
     findByProjectId(project_id: string): Promise<Task[]>;
     findByProjectIdandTaskId(project_id: string, task_id: string): Promise<Task>;
     createTask(project_id: string, createTaskDto: CreateTaskDto): Promise<Task>;
