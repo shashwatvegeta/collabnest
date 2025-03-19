@@ -1,5 +1,6 @@
 "use client";
 import { Badge } from "@/components/ui/badge";
+import { fetchUserData } from "@/lib/api";
 import { getEmail, getName, getBatch, getRollNumber } from "@/lib/auth_utility";
 import { useIsAuthenticated } from "@azure/msal-react";
 import { redirect } from "next/navigation";
@@ -16,24 +17,34 @@ export default function Badges() {
 		}
 	}, [isAuthenticated]);
 
+
+
 	useEffect(() => {
-		setName(getName());
-	}, []);
-	useEffect(() => {
-		setEmail(getEmail());
-	}, []);
-	useEffect(() => {
-		setUser({
-			name: name,
-			type: "Student",
-			email: email,
-			tel: "987654321",
-			pfp_src: "/user_placeholder.png",
-			level: 5,
-			level_progression: 0.72,
-			badges: ["First Badge", "Quick Learner", "Team Player"],
-		});
-	}, [email, name]);
+		async function loadUserData() {
+			try {
+				const userName = getName();
+				const userEmail = getEmail();
+				setName(userName);
+				setEmail(userEmail);
+				const userData = await fetchUserData(userEmail);
+				console.log(userData);
+				setUser({
+					...userData,
+					name: userName,
+					type: "Student",
+					email: userEmail,
+					tel: userData.phone || "Not provided",
+					pfp_src: userData.profilePicture || "/user_placeholder.png",
+					level: userData.level || 1,
+					level_progression: userData.levelProgress || 0.5,
+					badges: userData.achievements.map(a => a.title) || [],
+				});
+			} catch (error) {
+				console.error("Error fetching user data:", error);
+			}
+		}
+		loadUserData();
+	}, [isAuthenticated]);
 	return (
 		<div className="p-8 h-screen">
 			<div className="text-4xl text-violet-400 p-4 font-light">
@@ -45,10 +56,10 @@ export default function Badges() {
 			<div className="grid grid-cols-5 gap-16 p-8">
 				{user.badges
 					? user.badges.map((b) => (
-							<Badge className="scale-150 hover:scale-125 p-4" key={b}>
-								{b}
-							</Badge>
-						))
+						<Badge className="scale-150 hover:scale-125 p-4" key={b}>
+							{b}
+						</Badge>
+					))
 					: ""}
 			</div>
 		</div>

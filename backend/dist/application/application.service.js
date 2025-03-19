@@ -29,10 +29,11 @@ let ApplicationsService = class ApplicationsService {
         this.userModel = userModel;
     }
     getHardcodedUserId() {
-        return '67cbd709f08fb1b143c0b7db';
+        return '67cde2e83c0958c938ef6210';
     }
     async create(createApplicationDto) {
-        const user_id = this.getHardcodedUserId();
+        const user_id = createApplicationDto.user_id;
+        console.log(user_id);
         const project = await this.projectModel.findById(createApplicationDto.project_id);
         if (!project) {
             throw new common_1.NotFoundException(`Project with ID ${createApplicationDto.project_id} not found`);
