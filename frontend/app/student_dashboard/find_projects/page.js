@@ -17,34 +17,52 @@ const find_projects = () => {
 
 		setFilteredProjects(filteredData);
 	};
+	// useEffect(() => {
+	// 	setRecommendedProjects([
+	// 		{
+	// 			id: 1,
+	// 			name: "Web Development Portfolio",
+	// 			desc: "Create a personal portfolio showcasing your projects",
+	// 			level: "Intermediate",
+	// 			logo: "PanelTop",
+	// 			tags: ["Development"],
+	// 		},
+	// 		{
+	// 			id: 2,
+	// 			name: "API Integration Project",
+	// 			desc: "Build an Application that integrates external APIs",
+	// 			level: "Advanced",
+	// 			logo: "PanelTop",
+	// 		},
+	// 		{
+	// 			id: 3,
+	// 			name: "API Integration Project",
+	// 			desc: "Build an Application that integrates external APIs",
+	// 			level: "Advanced",
+	// 			logo: "PanelTop",
+	// 		},
+	// 	]);
+	// }, []);
 	useEffect(() => {
-		setRecommendedProjects([
-			{
-				id: 1,
-				name: "Web Development Portfolio",
-				desc: "Create a personal portfolio showcasing your projects",
-				level: "Intermediate",
-				logo: "PanelTop",
-				tags: ["Development"],
-			},
-			{
-				id: 2,
-				name: "API Integration Project",
-				desc: "Build an Application that integrates external APIs",
-				level: "Advanced",
-				logo: "PanelTop",
-			},
-			{
-				id: 3,
-				name: "API Integration Project",
-				desc: "Build an Application that integrates external APIs",
-				level: "Advanced",
-				logo: "PanelTop",
-			},
-		]);
-	}, []);
-	useEffect(() => {
-		setFilteredProjects(recommendedProjects);
+		async function fetchProjectData() {
+			const response = await fetch("http://localhost:3001/project");
+			if (response.ok) {
+				const projects = await response.json();
+				// console.log(projects)
+				const formattedProjects = projects.map((project) => ({
+					id: project._id,
+					name: project.project_name || "Untitled Project",
+					desc: project.description || "No description available",
+					level: project.level || "Beginner",
+					logo: project.logo || "PanelTop",
+					tags: project.tags || [],
+					mentor: project.project_owner || "Rajiv Mishra"
+				}));
+				setFilteredProjects(formattedProjects);
+			}
+		}
+		fetchProjectData();
+		// setFilteredProjects(recommendedProjects);
 	}, [recommendedProjects]);
 	return (
 		<div className="p-6 h-screen">
@@ -64,7 +82,7 @@ const find_projects = () => {
 				</div>
 				{filteredProjects.map((p) => (
 					<Link
-						href={`/student_dashboard/project_application?id=${p.id}`}
+						href={`/student_dashboard/project_application?id=${p.id}&name=${encodeURIComponent(p.name)}&desc=${encodeURIComponent(p.desc)}&level=${encodeURIComponent(p.level)}&mentor=${encodeURIComponent(p.mentor)}`}
 						key={p.id}
 					>
 						<ProjectDisplayCard {...p} />
