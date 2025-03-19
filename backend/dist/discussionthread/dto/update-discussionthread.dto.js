@@ -11,14 +11,34 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdateDiscussionthreadDto = void 0;
 const class_validator_1 = require("class-validator");
-const class_validator_2 = require("class-validator");
+const class_transformer_1 = require("class-transformer");
+class ReplyDto {
+    content;
+    created_by;
+    created_at;
+}
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], ReplyDto.prototype, "content", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], ReplyDto.prototype, "created_by", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsDate)(),
+    __metadata("design:type", Date)
+], ReplyDto.prototype, "created_at", void 0);
 class UpdateDiscussionthreadDto {
     discussion_id;
     title;
     description;
     created_by;
     project_id;
-    discussion_replies;
+    replies;
 }
 exports.UpdateDiscussionthreadDto = UpdateDiscussionthreadDto;
 __decorate([
@@ -27,28 +47,30 @@ __decorate([
     __metadata("design:type", String)
 ], UpdateDiscussionthreadDto.prototype, "discussion_id", void 0);
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UpdateDiscussionthreadDto.prototype, "title", void 0);
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UpdateDiscussionthreadDto.prototype, "description", void 0);
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UpdateDiscussionthreadDto.prototype, "created_by", void 0);
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UpdateDiscussionthreadDto.prototype, "project_id", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_2.IsArray)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ValidateNested)({ each: true }),
+    (0, class_transformer_1.Type)(() => ReplyDto),
     __metadata("design:type", Array)
-], UpdateDiscussionthreadDto.prototype, "discussion_replies", void 0);
+], UpdateDiscussionthreadDto.prototype, "replies", void 0);
 //# sourceMappingURL=update-discussionthread.dto.js.map
