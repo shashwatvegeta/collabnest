@@ -1,5 +1,6 @@
 import { Document, Types } from 'mongoose';
 export declare class Application extends Document {
+    user_id: Types.ObjectId;
     project_id: Types.ObjectId;
     status: string;
     motivation_statement?: string;

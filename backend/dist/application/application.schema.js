@@ -13,6 +13,7 @@ exports.ApplicationSchema = exports.Application = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 let Application = class Application extends mongoose_2.Document {
+    user_id;
     project_id;
     status;
     motivation_statement;
@@ -23,6 +24,10 @@ let Application = class Application extends mongoose_2.Document {
     approval_notes;
 };
 exports.Application = Application;
+__decorate([
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'User', required: true }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
+], Application.prototype, "user_id", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Project', required: true }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
