@@ -105,6 +105,26 @@ const MDashboard = () => {
 					isImportant: task.status === "urgent", // Example condition
 				}));
 
+				// Mock notifications until the backend is implemented
+				setNotifications([
+					...taskNotifications,
+					{
+						title: "Project Progress Update",
+						message: "The Project progress has been updated as per the latest sprint review.",
+						isImportant: true,
+					},
+					{
+						title: "New Application",
+						message: "A new student has applied to join your project team.",
+						isImportant: true,
+					},
+					{
+						title: "Request for Access",
+						message: "A student has requested access to the project repository.",
+						isImportant: false,
+					},
+				]);
+
 				// Fetch applications for each project
 				const applicationPromises = mentorProjects.map(async (project) => {
 					const appResponse = await fetch(
@@ -127,20 +147,6 @@ const MDashboard = () => {
 					projectName: app.projectName || "Unknown Project",
 					projectType: app.projectType || "General",
 				}));
-
-				setNotifications([
-					...taskNotifications,
-					{
-						title: "Project Progress Update",
-						message: "The Project progress has been updated as per the...",
-						isImportant: true,
-					},
-					{
-						title: "Request for Access",
-						message: "Hello sir, this is to inform you...",
-						isImportant: false,
-					},
-				]);
 
 				setRequests(applicationRequests); // Set requests based on fetched applications
 			} catch (error) {
@@ -262,9 +268,11 @@ const MDashboard = () => {
 							className={`text-center mt-4 transform transition-all duration-500 ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
 							style={{ transitionDelay: "1000ms" }}
 						>
-							<button className="w-full px-4 py-2 bg-indigo-600 text-sm rounded-lg hover:bg-indigo-500 transition-colors duration-300 transform hover:scale-105">
-								View All
-							</button>
+							<Link href="/mentor/notifications">
+								<button className="w-full px-4 py-2 bg-indigo-600 text-sm rounded-lg hover:bg-indigo-500 transition-colors duration-300 transform hover:scale-105">
+									View All
+								</button>
+							</Link>
 						</div>
 					</div>
 				</div>
