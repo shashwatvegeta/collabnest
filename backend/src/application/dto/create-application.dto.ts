@@ -2,6 +2,8 @@ import { Types } from "mongoose";
 import { IsMongoId, IsString, IsOptional, IsUrl, IsEnum, IsDate } from "class-validator";
 
 export class CreateApplicationDto {
+    @IsString()
+    user_id: string;
 
     @IsOptional()
     project_id: Types.ObjectId;

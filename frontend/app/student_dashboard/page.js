@@ -57,8 +57,8 @@ const SDashboard = () => {
 					tel: userData.phone || "Not provided",
 					pfp_src: userData.profilePicture || "/user_placeholder.png",
 					level: userData.level || 1,
-					level_progression: userData.levelProgress || 0,
-					badges: achievements.map(a => a.name) || [],
+					level_progression: userData.levelProgress || 0.5,
+					badges: achievements.map(a => a.title) || [],
 				});
 
 				setOngoingProjects(projects);
