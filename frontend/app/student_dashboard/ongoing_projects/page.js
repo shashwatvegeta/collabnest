@@ -1,5 +1,6 @@
 "use client";
 import { ProjectCard } from "@/components/ui/project_card";
+import { fetchUserData, fetchUserProjects } from "@/lib/api";
 import { getEmail, getName, getBatch, getRollNumber } from "@/lib/auth_utility";
 import { useIsAuthenticated } from "@azure/msal-react";
 import { redirect } from "next/navigation";
@@ -18,40 +19,40 @@ export default function OngoingProjects() {
 	}, [isAuthenticated]);
 
 	useEffect(() => {
-		setName(getName());
-	}, []);
-	useEffect(() => {
-		setEmail(getEmail());
-	}, []);
-	useEffect(() => {
-		setUser({
-			name: name,
-			type: "Student",
-			email: email,
-			tel: "987654321",
-			pfp_src: "/user_placeholder.png",
-			level: 5,
-			level_progression: 0.72,
-			badges: ["First Badge", "Quick Learner", "Team Player"],
-		});
-	}, [email, name]);
+		async function loadUserData() {
+			const userEmail = getEmail();
 
-	useEffect(() => {
-		setOngoingProjects([
-			{
-				name: "Web Development Portfolio",
-				desc: "Create a personal portfolio showcasing your projects",
-				level: "Intermediate",
-				logo: "PanelTop",
-			},
-			{
-				name: "API Integration Project",
-				desc: "Build an Application that integrates external APIs",
-				level: "Advanced",
-				logo: "PanelTop",
-			},
-		]);
-	}, [user]);
+			const userData = await fetchUserData(userEmail).catch(err => {
+								console.error('Error fetching user data:', err);
+								return {}; // Default empty object if fetch fails
+							});
+			const projects = await fetchUserProjects(userData?.projects || []).catch(err => {
+									console.error('Error fetching user projects:', err);
+									return []; // Return empty array if projects fetch fails
+							});
+
+			setOngoingProjects(projects);			
+		}
+		loadUserData();
+		
+	}, []);
+
+	// useEffect(() => {
+	// 	setOngoingProjects([
+	// 		{
+	// 			name: "Web Development Portfolio",
+	// 			desc: "Create a personal portfolio showcasing your projects",
+	// 			level: "Intermediate",
+	// 			logo: "PanelTop",
+	// 		},
+	// 		{
+	// 			name: "API Integration Project",
+	// 			desc: "Build an Application that integrates external APIs",
+	// 			level: "Advanced",
+	// 			logo: "PanelTop",
+	// 		},
+	// 	]);
+	// }, [user]);
 	return (
 		<div className="p-8 h-screen">
 			<div className="text-4xl text-violet-400 p-4 font-light">
@@ -61,11 +62,11 @@ export default function OngoingProjects() {
 				Track Your Current Projects
 			</div>
 			<div className="grid grid-cols-3 gap-8 text-white p-8">
-				{ongoingProjects
+				{ongoingProjects.length > 0
 					? ongoingProjects.map((p, index) => (
-							<ProjectCard key={index} {...p} />
+							<ProjectCard id={index} project={p} />
 						))
-					: ""}
+					: <h1>No Ongoing Projects</h1>}
 			</div>
 		</div>
 	);

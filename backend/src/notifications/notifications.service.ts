@@ -7,7 +7,7 @@ import { Notification } from './notifications.schema';
 export class NotificationService {
   constructor(
     @InjectModel(Notification.name) private notificationModel: Model<Notification>,
-  ) {}
+  ) { }
 
   async createNotification(senderId: string, receiverIds: string[], message: string): Promise<Notification> {
     if (!Types.ObjectId.isValid(senderId)) {
@@ -90,7 +90,7 @@ export class NotificationService {
 
     return this.notificationModel.find({
       receivers: new Types.ObjectId(userId),
-      'readBy.readerId': { $ne: new Types.ObjectId(userId) }, 
+      'readBy.readerId': { $ne: new Types.ObjectId(userId) },
     }).sort({ createdAt: -1 }).exec();
   }
 
@@ -102,7 +102,7 @@ export class NotificationService {
     const result = await this.notificationModel.updateMany(
       {
         receivers: new Types.ObjectId(userId),
-        'readBy.readerId': { $ne: new Types.ObjectId(userId) }, 
+        'readBy.readerId': { $ne: new Types.ObjectId(userId) },
       },
       {
         $push: { readBy: { readerId: new Types.ObjectId(userId), readAt: new Date() } },

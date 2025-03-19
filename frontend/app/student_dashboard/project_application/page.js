@@ -45,7 +45,7 @@ export default function ProjectApplication() {
 	}
 
 	async function applyHandle(id) {
-		console.log("Applying for project", id);
+		// console.log("Applying for project", id);
 		// Fetch user ID from session or context
 		const email = getEmail();
 		const userData = await fetchUserData(email);
