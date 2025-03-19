@@ -24,7 +24,7 @@ export class UserProjectsService {
     const projectData = {
       ...createProjectDto,
       project_owner: userId,
-      is_approved: false,
+      is_approved: 'pending',
       is_completed: false,
       discussion_threads: [],
       tags: [],

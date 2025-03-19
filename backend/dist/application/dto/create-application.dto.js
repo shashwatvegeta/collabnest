@@ -22,8 +22,8 @@ class CreateApplicationDto {
 }
 exports.CreateApplicationDto = CreateApplicationDto;
 __decorate([
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
+    (0, class_validator_1.IsMongoId)(),
+    __metadata("design:type", mongoose_1.Types.ObjectId)
 ], CreateApplicationDto.prototype, "user_id", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),

@@ -4,9 +4,10 @@ import { getEmail } from "@/lib/auth_utility";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import React from "react";
 
 export default function ProjectDetails({ params }) {
-  const { id } = params;
+  const id = React.use(params).id;
   const [project, setProject] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,6 +16,190 @@ export default function ProjectDetails({ params }) {
   const [applications, setApplications] = useState([]);
   const [activeTab, setActiveTab] = useState("details");
   const router = useRouter();
+  
+  // Add Task modal state
+  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
+  const [newTask, setNewTask] = useState({
+    title: "",
+    description: "",
+    deadline: "",
+    status: "Pending"
+  });
+  const [taskError, setTaskError] = useState("");
+
+  // Function to toggle task completion status
+  const handleToggleTaskStatus = async (taskId, currentStatus) => {
+    try {
+      const newStatus = currentStatus === "Completed" ? "Pending" : "Completed";
+      
+      const response = await fetch(`http://localhost:3001/projects/${id}/tasks/${taskId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: newStatus
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update task status: ${response.statusText}`);
+      }
+
+      const updatedTask = await response.json();
+      
+      // Update the tasks state with the updated task
+      setTasks(tasks.map(task => 
+        task._id === taskId ? updatedTask : task
+      ));
+      
+    } catch (error) {
+      console.error('Error updating task status:', error);
+      alert(`Failed to update task: ${error.message}`);
+    }
+  };
+
+  // Handle task input changes
+  const handleTaskInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewTask({
+      ...newTask,
+      [name]: value
+    });
+  };
+
+  // Handle task creation
+  const handleCreateTask = async (e) => {
+    e.preventDefault();
+    setTaskError("");
+    
+    try {
+      // Validate inputs
+      if (!newTask.title.trim()) {
+        setTaskError("Title is required");
+        return;
+      }
+      
+      if (!newTask.description.trim()) {
+        setTaskError("Description is required");
+        return;
+      }
+      
+      if (!newTask.deadline) {
+        setTaskError("Deadline is required");
+        return;
+      }
+      
+      const response = await fetch(`http://localhost:3001/projects/${id}/tasks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newTask),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to create task: ${response.statusText} - ${errorText}`);
+      }
+
+      const createdTask = await response.json();
+      
+      // Add the new task to the tasks state
+      setTasks([...tasks, createdTask]);
+      
+      // Reset form and close modal
+      setNewTask({
+        title: "",
+        description: "",
+        deadline: "",
+        status: "Pending"
+      });
+      setIsAddTaskModalOpen(false);
+      
+    } catch (error) {
+      console.error('Error creating task:', error);
+      setTaskError(`Failed to create task: ${error.message}`);
+    }
+  };
+
+  const handleUpdateApplicationStatus = async (applicationId, status) => {
+    try {
+      // Prepare the request body based on the status
+      const updateData = {
+        review_date: new Date()
+      };
+      
+      if (status === 'approved') {
+        updateData.approval_notes = 'Application approved by mentor';
+      } else if (status === 'rejected') {
+        updateData.rejection_reason = 'Application rejected by mentor';
+      }
+      
+      console.log("Sending update request:", {
+        url: `http://localhost:3001/projects/${id}/applications/${applicationId}`,
+        data: updateData
+      });
+
+      const response = await fetch(`http://localhost:3001/projects/${id}/applications/${applicationId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData),
+      });
+
+      // Try to parse response as text first
+      const responseText = await response.text();
+      console.log("Server response:", {
+        status: response.status,
+        ok: response.ok,
+        text: responseText
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update application status: ${response.statusText} - ${responseText}`);
+      }
+
+      // Parse the response if it's JSON
+      let updatedApplication;
+      try {
+        updatedApplication = JSON.parse(responseText);
+        console.log("Updated application:", updatedApplication);
+        
+        // Update the applications in the UI with the server response data
+        setApplications(applications.map(app => 
+          app._id === applicationId ? updatedApplication : app
+        ));
+
+        // If application is approved, update the students list
+        if (status === 'approved') {
+          try {
+            const studentsResponse = await fetch(`http://localhost:3001/project/${id}/students`);
+            if (studentsResponse.ok) {
+              const studentsData = await studentsResponse.json();
+              console.log("Fetched students:", studentsData);
+              setStudents(studentsData);
+            } else {
+              console.error("Failed to fetch students:", await studentsResponse.text());
+            }
+          } catch (err) {
+            console.error("Error fetching students:", err);
+          }
+        }
+      } catch (e) {
+        console.warn("Response is not valid JSON:", responseText);
+        // Fallback to local update if we can't parse the response
+        setApplications(applications.map(app => 
+          app._id === applicationId ? { ...app, status } : app
+        ));
+      }
+      
+    } catch (error) {
+      console.error('Error updating application status:', error);
+      alert(`Failed to update application status: ${error.message}`);
+    }
+  };
 
   useEffect(() => {
     const fetchProjectDetails = async () => {
@@ -40,7 +225,10 @@ export default function ProjectDetails({ params }) {
           const studentsResponse = await fetch(`http://localhost:3001/project/${id}/students`);
           if (studentsResponse.ok) {
             const studentsData = await studentsResponse.json();
+            console.log("Fetched students:", studentsData);
             setStudents(studentsData);
+          } else {
+            console.error("Failed to fetch students:", await studentsResponse.text());
           }
         } catch (err) {
           console.error("Error fetching students:", err);
@@ -62,7 +250,10 @@ export default function ProjectDetails({ params }) {
           const applicationsResponse = await fetch(`http://localhost:3001/projects/${id}/applications`);
           if (applicationsResponse.ok) {
             const applicationsData = await applicationsResponse.json();
+            console.log("Fetched applications:", applicationsData);
             setApplications(applicationsData);
+          } else {
+            console.error("Failed to fetch applications:", await applicationsResponse.text());
           }
         } catch (err) {
           console.error("Error fetching applications:", err);
@@ -273,22 +464,14 @@ export default function ProjectDetails({ params }) {
                   <div key={index} className="bg-indigo-900/40 p-4 rounded-lg">
                     <div className="flex items-center space-x-3">
                       <div className="relative w-10 h-10 rounded-full overflow-hidden bg-violet-800">
-                        {student.profilePicture ? (
-                          <Image
-                            src={student.profilePicture}
-                            alt={student.name}
-                            fill
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="flex items-center justify-center h-full text-violet-300">
-                            {student.name?.charAt(0) || "S"}
-                          </div>
-                        )}
+                        <div className="flex items-center justify-center h-full text-violet-300">
+                          {student.username ? student.username.charAt(0).toUpperCase() : "S"}
+                        </div>
                       </div>
                       <div>
-                        <div className="text-white font-medium">{student.name}</div>
-                        <div className="text-gray-400 text-sm">{student.email}</div>
+                        <div className="text-white font-medium">{student.username || "Student"}</div>
+                        <div className="text-gray-400 text-sm">{student.email || ""}</div>
+                        {student.roll_number && <div className="text-gray-500 text-xs">Roll: {student.roll_number}</div>}
                       </div>
                     </div>
                   </div>
@@ -306,7 +489,10 @@ export default function ProjectDetails({ params }) {
           <div className="bg-[#2a2a38] rounded-lg border-2 border-violet-300/30 overflow-hidden p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-violet-400 text-lg font-semibold">Project Tasks</h3>
-              <button className="bg-violet-500 hover:bg-violet-600 text-white px-3 py-1 rounded-lg text-sm transition-colors">
+              <button 
+                className="bg-violet-500 hover:bg-violet-600 text-white px-3 py-1 rounded-lg text-sm transition-colors"
+                onClick={() => setIsAddTaskModalOpen(true)}
+              >
                 Add Task
               </button>
             </div>
@@ -316,21 +502,31 @@ export default function ProjectDetails({ params }) {
                 {tasks.map((task, index) => (
                   <div key={index} className="bg-indigo-900/40 p-4 rounded-lg">
                     <div className="flex justify-between">
-                      <h4 className="text-white font-medium">{task.title}</h4>
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={task.status === 'Completed'}
+                          onChange={() => handleToggleTaskStatus(task._id, task.status)}
+                          className="mr-3 h-5 w-5 rounded border-gray-600 bg-gray-700 text-violet-500 focus:ring-violet-500"
+                        />
+                        <h4 className={`text-white font-medium ${task.status === 'Completed' ? 'line-through text-gray-400' : ''}`}>
+                          {task.title}
+                        </h4>
+                      </div>
                       <div className={`text-xs px-2 py-1 rounded-full ${
-                        task.status === 'completed' 
+                        task.status === 'Completed' 
                           ? 'bg-green-500/20 text-green-300 border border-green-500/30' 
-                          : task.status === 'in_progress'
+                          : task.status === 'In Progress'
                           ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
                           : 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
                       }`}>
                         {task.status}
                       </div>
                     </div>
-                    <p className="text-purple-200 text-sm mt-2">{task.description}</p>
-                    <div className="flex justify-between mt-3 text-xs text-gray-400">
-                      <div>Assigned to: {task.assignedTo || 'Unassigned'}</div>
-                      <div>Due: {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date'}</div>
+                    <p className="text-purple-200 text-sm mt-2 ml-8">{task.description}</p>
+                    <div className="flex justify-between mt-3 text-xs text-gray-400 ml-8">
+                      <div>Assigned to: {task.assigned_to?.length > 0 ? task.assigned_to.join(", ") : 'Unassigned'}</div>
+                      <div>Due: {task.deadline ? new Date(task.deadline).toLocaleDateString() : 'No due date'}</div>
                     </div>
                   </div>
                 ))}
@@ -349,41 +545,82 @@ export default function ProjectDetails({ params }) {
             
             {applications.length > 0 ? (
               <div className="space-y-4">
-                {applications.map((application, index) => (
-                  <div key={index} className="bg-indigo-900/40 p-4 rounded-lg">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="text-white font-medium">{application.applicantName}</div>
-                        <div className="text-gray-400 text-sm">{application.applicantEmail}</div>
+                {applications.map((application, index) => {
+                  console.log("Application data:", application);
+                  return (
+                    <div key={index} className="bg-indigo-900/40 p-4 rounded-lg">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="text-white font-medium">
+                            {application.user_id?.username || 'Unknown Student'}
+                          </div>
+                          <div className="text-gray-400 text-sm">
+                            {application.user_id?.email || ''}
+                            {application.user_id?.roll_number ? ` (${application.user_id.roll_number})` : ''}
+                          </div>
+                        </div>
+                        <div className={`text-xs px-2 py-1 rounded-full ${
+                          application.status === 'approved' 
+                            ? 'bg-green-500/20 text-green-300 border border-green-500/30' 
+                            : application.status === 'rejected'
+                            ? 'bg-red-500/20 text-red-300 border border-red-500/30'
+                            : 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
+                        }`}>
+                          {application.status || 'Pending'}
+                        </div>
                       </div>
-                      <div className={`text-xs px-2 py-1 rounded-full ${
-                        application.status === 'approved' 
-                          ? 'bg-green-500/20 text-green-300 border border-green-500/30' 
-                          : application.status === 'rejected'
-                          ? 'bg-red-500/20 text-red-300 border border-red-500/30'
-                          : 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
-                      }`}>
-                        {application.status || 'Pending'}
-                      </div>
-                    </div>
-                    
-                    {application.message && (
+                      
+                      {application.motivation_statement && (
+                        <div className="mt-3">
+                          <div className="text-violet-400 text-xs">Motivation Statement:</div>
+                          <p className="text-purple-200 text-sm mt-1">{application.motivation_statement}</p>
+                        </div>
+                      )}
+                      
                       <div className="mt-3">
-                        <div className="text-violet-400 text-xs">Application Message:</div>
-                        <p className="text-purple-200 text-sm mt-1">{application.message}</p>
+                        <div className="text-violet-400 text-xs">Resume Link:</div>
+                        <a 
+                          href={application.resume_link} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-blue-400 hover:text-blue-300 text-sm mt-1 underline"
+                        >
+                          View Resume
+                        </a>
                       </div>
-                    )}
-                    
-                    <div className="mt-4 flex space-x-2 justify-end">
-                      <button className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs transition-colors">
-                        Approve
-                      </button>
-                      <button className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition-colors">
-                        Reject
-                      </button>
+                      
+                      <div className="mt-4 flex space-x-2 justify-end">
+                        {application.status === 'pending' && (
+                          <>
+                            <button 
+                              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs transition-colors"
+                              onClick={() => {
+                                console.log("Application ID:", application._id);
+                                handleUpdateApplicationStatus(application._id, 'approved');
+                              }}
+                            >
+                              Approve
+                            </button>
+                            <button 
+                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition-colors"
+                              onClick={() => {
+                                console.log("Application ID:", application._id);
+                                handleUpdateApplicationStatus(application._id, 'rejected');
+                              }}
+                            >
+                              Reject
+                            </button>
+                          </>
+                        )}
+                        {application.status !== 'pending' && (
+                          <span className="text-gray-400 text-xs">
+                            {application.status === 'approved' ? 'Application approved' : 'Application rejected'}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-8 text-gray-400">
@@ -393,6 +630,99 @@ export default function ProjectDetails({ params }) {
           </div>
         )}
       </div>
+
+      {/* Add Task Modal */}
+      {isAddTaskModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#2a2a38] rounded-lg border-2 border-violet-300/30 p-6 w-full max-w-md">
+            <h3 className="text-violet-400 text-lg font-semibold mb-4">Add New Task</h3>
+            
+            {taskError && (
+              <div className="bg-red-500/20 text-red-300 border border-red-500/30 p-2 rounded-lg mb-4">
+                {taskError}
+              </div>
+            )}
+            
+            <form onSubmit={handleCreateTask}>
+              <div className="mb-4">
+                <label className="block text-violet-300 mb-1 text-sm" htmlFor="title">
+                  Task Title
+                </label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  value={newTask.title}
+                  onChange={handleTaskInputChange}
+                  className="w-full bg-indigo-900/40 border border-violet-300/30 text-white rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  placeholder="Enter task title"
+                />
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-violet-300 mb-1 text-sm" htmlFor="description">
+                  Description
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  value={newTask.description}
+                  onChange={handleTaskInputChange}
+                  className="w-full bg-indigo-900/40 border border-violet-300/30 text-white rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-violet-500 min-h-[100px]"
+                  placeholder="Enter task description"
+                ></textarea>
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-violet-300 mb-1 text-sm" htmlFor="deadline">
+                  Deadline
+                </label>
+                <input
+                  type="date"
+                  id="deadline"
+                  name="deadline"
+                  value={newTask.deadline}
+                  onChange={handleTaskInputChange}
+                  className="w-full bg-indigo-900/40 border border-violet-300/30 text-white rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                />
+              </div>
+              
+              <div className="mb-6">
+                <label className="block text-violet-300 mb-1 text-sm" htmlFor="status">
+                  Status
+                </label>
+                <select
+                  id="status"
+                  name="status"
+                  value={newTask.status}
+                  onChange={handleTaskInputChange}
+                  className="w-full bg-indigo-900/40 border border-violet-300/30 text-white rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                </select>
+              </div>
+              
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setIsAddTaskModalOpen(false)}
+                  className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="bg-violet-500 hover:bg-violet-600 text-white px-4 py-2 rounded-lg text-sm"
+                >
+                  Create Task
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
