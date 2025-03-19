@@ -28,8 +28,8 @@ let UserController = class UserController {
     findAll() {
         return this.userService.findAll();
     }
-    findOne(user_id) {
-        return this.userService.findOne(user_id);
+    findOne(email) {
+        return this.userService.findOne(email);
     }
     update(user_id, updateUserDto) {
         return this.userService.update(user_id, updateUserDto);
@@ -53,8 +53,8 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], UserController.prototype, "findAll", null);
 __decorate([
-    (0, common_1.Get)(':user_id'),
-    __param(0, (0, common_1.Param)('user_id')),
+    (0, common_1.Get)(':email'),
+    __param(0, (0, common_1.Param)('email')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)

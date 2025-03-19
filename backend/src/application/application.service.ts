@@ -17,7 +17,7 @@ export class ApplicationsService {
 
     // Function to return a hardcoded user_id (Replace this when auth is ready)
     private getHardcodedUserId(): string {
-        return '67cbd709f08fb1b143c0b7db';
+        return '67cde2e83c0958c938ef6210';
         // return '67cbd709f08fb1b143c0b7da'; // Replace with a valid ObjectId from your database
     }
 
@@ -25,8 +25,8 @@ export class ApplicationsService {
     // check if the applying user has a application_id that is already their in the projects
     // applications array
     async create(createApplicationDto: CreateApplicationDto): Promise<Application> {
-        const user_id = this.getHardcodedUserId();
-
+        const user_id = createApplicationDto.user_id;
+        
         // Fetch project details
         const project = await this.projectModel.findById(createApplicationDto.project_id);
         if (!project) {
