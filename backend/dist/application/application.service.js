@@ -33,7 +33,6 @@ let ApplicationsService = class ApplicationsService {
     }
     async create(createApplicationDto) {
         const user_id = createApplicationDto.user_id;
-        console.log(user_id);
         const project = await this.projectModel.findById(createApplicationDto.project_id);
         if (!project) {
             throw new common_1.NotFoundException(`Project with ID ${createApplicationDto.project_id} not found`);
