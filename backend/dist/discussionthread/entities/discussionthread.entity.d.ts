@@ -1,9 +1,13 @@
-import { Types } from 'mongoose';
-export declare class DiscussionThread {
+import { Document, Types } from 'mongoose';
+export declare class DiscussionThread extends Document {
     title: string;
-    discussion_id: string;
+    discussion_id: Types.ObjectId;
     description: string;
     project_id: Types.ObjectId;
     created_by: Types.ObjectId;
-    discussion_replies: any[];
+    replies: Array<{
+        content: string;
+        created_by: Types.ObjectId;
+        created_at: Date;
+    }>;
 }

@@ -48,7 +48,10 @@ let ApplicationsService = class ApplicationsService {
         if (hasApplied) {
             throw new Error(`User has already applied for this project`);
         }
-        const createdApplication = new this.applicationModel(createApplicationDto);
+        const createdApplication = new this.applicationModel({
+            ...createApplicationDto,
+            user_id: user_id
+        });
         await createdApplication.save();
         await this.userModel.findByIdAndUpdate(user_id, {
             $push: { project_application: createdApplication._id },
@@ -56,44 +59,106 @@ let ApplicationsService = class ApplicationsService {
         await this.projectModel.findByIdAndUpdate(createApplicationDto.project_id, {
             $push: { project_application: createdApplication._id },
         });
-        return createdApplication;
+        const populatedApplication = await this.applicationModel
+            .findById(createdApplication._id)
+            .populate({
+            path: 'user_id',
+            model: 'User',
+            select: 'username email roll_number'
+        });
+        if (!populatedApplication) {
+            throw new common_1.NotFoundException(`Failed to find created application with ID ${createdApplication._id}`);
+        }
+        return populatedApplication;
     }
     async findAll(project_id) {
-        const project = await this.projectModel
-            .findById(project_id)
-            .populate({
-            path: 'project_applications',
-            model: 'Application'
-        });
-        if (!project) {
-            throw new common_1.NotFoundException(`Project with ID ${project_id} not found`);
+        try {
+            const project = await this.projectModel
+                .findById(project_id)
+                .populate({
+                path: 'project_application',
+                model: 'Application',
+                populate: {
+                    path: 'user_id',
+                    model: 'User',
+                    select: 'username email roll_number'
+                }
+            });
+            if (!project) {
+                throw new common_1.NotFoundException(`Project with ID ${project_id} not found`);
+            }
+            console.log("Populated applications:", project.project_application);
+            return project.project_application;
         }
-        return project.project_applications;
+        catch (error) {
+            if (error instanceof common_1.NotFoundException) {
+                throw error;
+            }
+            throw new Error(`Failed to fetch applications for project ${project_id}\n${error.message}`);
+        }
     }
     async findApplication(project_id, application_id) {
-        const application = await this.applicationModel
-            .findOne({ _id: application_id, project_id: new mongoose_2.Types.ObjectId(project_id) });
-        if (!application) {
-            throw new common_1.NotFoundException(`Application with project ID ${project_id} and application ID ${application_id} not found`);
+        try {
+            const application = await this.applicationModel
+                .findOne({ _id: application_id, project_id: new mongoose_2.Types.ObjectId(project_id) })
+                .populate({
+                path: 'user_id',
+                model: 'User',
+                select: 'username email roll_number'
+            });
+            if (!application) {
+                throw new common_1.NotFoundException(`Application with project ID ${project_id} and application ID ${application_id} not found`);
+            }
+            return application;
         }
-        return application;
+        catch (error) {
+            if (error instanceof common_1.NotFoundException) {
+                throw error;
+            }
+            throw new Error(`Failed to fetch application: ${error.message}`);
+        }
     }
     async updateApplication(project_id, application_id, updateApplicationDto) {
-        const application = await this.applicationModel.findOne({
-            _id: application_id,
-            project_id: new mongoose_2.Types.ObjectId(project_id)
-        });
-        if (!application) {
-            throw new common_1.NotFoundException(`Application with project ID ${project_id} and application ID ${application_id} not found`);
+        try {
+            const application = await this.applicationModel.findOne({
+                _id: application_id,
+                project_id: new mongoose_2.Types.ObjectId(project_id)
+            }).populate('user_id');
+            if (!application) {
+                throw new common_1.NotFoundException(`Application with project ID ${project_id} and application ID ${application_id} not found`);
+            }
+            if (application.review_date) {
+                throw new common_1.BadRequestException(`Application has already been reviewed on ${application.review_date}`);
+            }
+            if (updateApplicationDto.status === 'approved') {
+                const project = await this.projectModel.findById(project_id);
+                if (!project) {
+                    throw new common_1.NotFoundException(`Project with ID ${project_id} not found`);
+                }
+                const isStudentEnrolled = project.students_enrolled.some(studentId => studentId.toString() === application.user_id._id.toString());
+                if (!isStudentEnrolled) {
+                    await this.projectModel.findByIdAndUpdate(project_id, { $addToSet: { students_enrolled: application.user_id._id } });
+                    await this.userModel.findByIdAndUpdate(application.user_id._id, { $addToSet: { projects: new mongoose_2.Types.ObjectId(project_id) } });
+                }
+            }
+            const updatedApplication = await this.applicationModel.findByIdAndUpdate(application_id, { $set: updateApplicationDto }, { new: true, runValidators: true })
+                .populate({
+                path: 'user_id',
+                model: 'User',
+                select: 'username email roll_number'
+            })
+                .exec();
+            if (!updatedApplication) {
+                throw new common_1.NotFoundException(`Failed to update: Application with ID ${application_id} not found`);
+            }
+            return updatedApplication;
         }
-        if (application.review_date) {
-            throw new common_1.BadRequestException(`Application has already been reviewed on ${application.review_date}`);
+        catch (error) {
+            if (error instanceof common_1.NotFoundException || error instanceof common_1.BadRequestException) {
+                throw error;
+            }
+            throw new Error(`Failed to update application: ${error.message}`);
         }
-        const updatedApplication = await this.applicationModel.findByIdAndUpdate(application_id, { $set: updateApplicationDto }, { new: true, runValidators: true }).exec();
-        if (!updatedApplication) {
-            throw new common_1.NotFoundException(`Failed to update: Application with ID ${application_id} not found`);
-        }
-        return updatedApplication;
     }
 };
 exports.ApplicationsService = ApplicationsService;

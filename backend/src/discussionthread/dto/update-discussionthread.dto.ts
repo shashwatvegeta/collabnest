@@ -1,30 +1,44 @@
+import { IsNotEmpty, IsString, IsUUID, IsOptional, IsArray, ValidateNested, IsDate } from 'class-validator';
+import { Type } from 'class-transformer';
 
-import { IsNotEmpty, IsString, IsUUID, IsOptional } from 'class-validator';
+class ReplyDto {
+    @IsString()
+    @IsNotEmpty()
+    content: string;
 
-import { IsArray } from 'class-validator';
+    @IsString()
+    @IsNotEmpty()
+    created_by: string;
+
+    @IsOptional()
+    @IsDate()
+    created_at?: Date;
+}
 
 export class UpdateDiscussionthreadDto {
     @IsOptional()
     @IsString()
-    discussion_id?: string; // Changed from UUID to string
+    discussion_id?: string;
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsString()
-    title: string;
+    title?: string;
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsString()
-    description: string;
+    description?: string;
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsString()
-    created_by: string; // Changed from UUID to string
+    created_by?: string;
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsString()
-    project_id: string; // Changed from UUID to string
+    project_id?: string;
 
     @IsOptional()
     @IsArray()
-    discussion_replies?: string[]; // Optional array of reply IDs
+    @ValidateNested({ each: true })
+    @Type(() => ReplyDto)
+    replies?: ReplyDto[];
 }

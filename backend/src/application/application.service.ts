@@ -54,7 +54,10 @@ export class ApplicationsService {
         }
 
         // Create new application
-        const createdApplication = new this.applicationModel(createApplicationDto);
+        const createdApplication = new this.applicationModel({
+            ...createApplicationDto,
+            user_id: user_id // user_id is already an ObjectId from the DTO validation
+        });
 
         // Save the application first
         await createdApplication.save();
@@ -69,69 +72,144 @@ export class ApplicationsService {
             $push: { project_application: createdApplication._id },
         });
 
-        return createdApplication;
+        // Populate the user data before returning
+        const populatedApplication = await this.applicationModel
+            .findById(createdApplication._id)
+            .populate({
+                path: 'user_id',
+                model: 'User',
+                select: 'username email roll_number'
+            });
+
+        if (!populatedApplication) {
+            throw new NotFoundException(`Failed to find created application with ID ${createdApplication._id}`);
+        }
+
+        return populatedApplication;
     }
 
     // for mentors/professors
     async findAll(project_id: string): Promise<Application[]> {
+        try {
+            const project = await this.projectModel
+                .findById(project_id)
+                .populate({
+                    path: 'project_application',
+                    model: 'Application',
+                    populate: {
+                        path: 'user_id',
+                        model: 'User',
+                        select: 'username email roll_number'
+                    }
+                });
 
-        const project = await this.projectModel
-            .findById(project_id)
-            .populate<{ project_applications: Application[] }>({
-                path: 'project_applications',
-                model: 'Application'
-            });
+            if (!project) {
+                throw new NotFoundException(`Project with ID ${project_id} not found`);
+            }
 
-        if (!project) {
-            throw new NotFoundException(`Project with ID ${project_id} not found`);
+            console.log("Populated applications:", project.project_application);
+            return project.project_application as unknown as Application[];
+        } catch (error) {
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+            throw new Error(`Failed to fetch applications for project ${project_id}\n${error.message}`);
         }
-
-        return project.project_applications;
     }
 
     // for mentors/professors (owner only)
     async findApplication(project_id: string, application_id: string): Promise<Application> {
+        try {
+            const application = await this.applicationModel
+                .findOne({ _id: application_id, project_id: new Types.ObjectId(project_id) })
+                .populate({
+                    path: 'user_id',
+                    model: 'User',
+                    select: 'username email roll_number'
+                });
 
-        const application = await this.applicationModel
-            .findOne({ _id: application_id, project_id: new Types.ObjectId(project_id) })
+            if (!application) {
+                throw new NotFoundException(`Application with project ID ${project_id} and application ID ${application_id} not found`);
+            }
 
-        if (!application) {
-            throw new NotFoundException(`Application with project ID ${project_id} and application ID ${application_id} not found`);
+            return application;
+        } catch (error) {
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+            throw new Error(`Failed to fetch application: ${error.message}`);
         }
-
-        return application;
     }
 
     // for mentors/professors (owner only)
     async updateApplication(project_id: string, application_id: string, updateApplicationDto: UpdateApplicationDto): Promise<Application> {
+        try {
+            // update Application only professor and mentor has right to update it
+            // and also only few of the selected fields
 
+            const application = await this.applicationModel.findOne({
+                _id: application_id,
+                project_id: new Types.ObjectId(project_id)
+            }).populate('user_id');
 
-        // update Application only professor and mentor has right to update it
-        // and also only few of the selected fields
+            if (!application) {
+                throw new NotFoundException(`Application with project ID ${project_id} and application ID ${application_id} not found`);
+            }
 
-        const application = await this.applicationModel.findOne({
-            _id: application_id,
-            project_id: new Types.ObjectId(project_id)
-        });
+            if (application.review_date) {
+                throw new BadRequestException(`Application has already been reviewed on ${application.review_date}`);
+            }
 
-        if (!application) {
-            throw new NotFoundException(`Application with project ID ${project_id} and application ID ${application_id} not found`);
+            // If the application is being approved, add the student to the project's enrolled students
+            if (updateApplicationDto.status === 'approved') {
+                // Check if the project exists
+                const project = await this.projectModel.findById(project_id);
+                if (!project) {
+                    throw new NotFoundException(`Project with ID ${project_id} not found`);
+                }
+                
+                // Check if the student is already enrolled
+                const isStudentEnrolled = project.students_enrolled.some(
+                    studentId => studentId.toString() === application.user_id._id.toString()
+                );
+                
+                if (!isStudentEnrolled) {
+                    // Add student to enrolled students
+                    await this.projectModel.findByIdAndUpdate(
+                        project_id,
+                        { $addToSet: { students_enrolled: application.user_id._id } }
+                    );
+                    
+                    // Also add project to user's projects
+                    await this.userModel.findByIdAndUpdate(
+                        application.user_id._id,
+                        { $addToSet: { projects: new Types.ObjectId(project_id) } }
+                    );
+                }
+            }
+
+            const updatedApplication = await this.applicationModel.findByIdAndUpdate(
+                application_id,
+                { $set: updateApplicationDto },
+                { new: true, runValidators: true }
+            )
+            .populate({
+                path: 'user_id',
+                model: 'User',
+                select: 'username email roll_number'
+            })
+            .exec();
+
+            if (!updatedApplication) {
+                throw new NotFoundException(`Failed to update: Application with ID ${application_id} not found`);
+            }
+
+            return updatedApplication;
+        } catch (error) {
+            if (error instanceof NotFoundException || error instanceof BadRequestException) {
+                throw error;
+            }
+            throw new Error(`Failed to update application: ${error.message}`);
         }
-
-        if (application.review_date) {
-            throw new BadRequestException(`Application has already been reviewed on ${application.review_date}`);
-        }
-
-        const updatedApplication = await this.applicationModel.findByIdAndUpdate(
-            application_id,
-            { $set: updateApplicationDto },
-            { new: true, runValidators: true }
-        ).exec();
-
-        if (!updatedApplication) {
-            throw new NotFoundException(`Failed to update: Application with ID ${application_id} not found`);
-        }
-
-        return updatedApplication;
     }
 }

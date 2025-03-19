@@ -38,14 +38,15 @@ export class DiscussionThreadsService {
       // Convert strings to ObjectIds
       const objectIdProjectId = new Types.ObjectId(projectId);
       const createdBy = new Types.ObjectId(createDiscussionDto.created_by || userId);
+      const discussionId = new Types.ObjectId(); // Generate new discussion ID
 
       // Create the discussion thread with converted ObjectIds
       return this.discussionThreadModel.create({
         ...createDiscussionDto,
-        discussion_id: createDiscussionDto.discussion_id ? new Types.ObjectId(createDiscussionDto.discussion_id) : new Types.ObjectId(),
+        discussion_id: discussionId,
         project_id: objectIdProjectId,
         created_by: createdBy,
-        discussion_replies: []
+        replies: [] // Initialize empty replies array
       });
     } catch (error) {
       console.error('Error creating discussion thread:', error);
@@ -61,10 +62,6 @@ export class DiscussionThreadsService {
       userObjectId = new Types.ObjectId('000000000000000000000000');
     }
 
-    // Check if user has permission (creator or mentor/professor)
-    if (discussionThread.created_by.toString() !== userObjectId.toString() && !isMentor) {
-      throw new ForbiddenException('You do not have permission to update this discussion thread');
-    }
     // Prepare update object with only fields that are provided
     const updateData: Partial<DiscussionThread> = {};
 
@@ -74,6 +71,17 @@ export class DiscussionThreadsService {
 
     if (updateDiscussionDto.description) {
       updateData.description = updateDiscussionDto.description;
+    }
+
+    // Handle replies array update
+    if (updateDiscussionDto.replies) {
+      // Convert created_by to ObjectId in each reply
+      const formattedReplies = updateDiscussionDto.replies.map(reply => ({
+        ...reply,
+        created_by: new Types.ObjectId(reply.created_by),
+        created_at: reply.created_at || new Date()
+      }));
+      updateData.replies = formattedReplies;
     }
 
     // Use findOneAndUpdate instead of save()
@@ -93,10 +101,7 @@ export class DiscussionThreadsService {
   async remove(projectId: string, discussionId: string, userId: string, isMentor: boolean): Promise<void> {
     const discussionThread = await this.findOne(projectId, discussionId);
 
-    // Only mentor/professor can delete
-    if (!isMentor) {
-      throw new ForbiddenException('Only mentors or professors can delete discussion threads');
-    }
+
 
     await this.discussionThreadModel.deleteOne({ _id: new Types.ObjectId(discussionId) }).exec();
   }
