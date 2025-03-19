@@ -1,7 +1,12 @@
 import { PanelTop } from "lucide-react";
 import Link from "next/link";
 
-export function ProjectCard({ key,project }) {
+export function ProjectCard({ project, id }) {
+  // Check if project exists before destructuring
+  if (!project) {
+    return null; // Or a fallback UI for when project is undefined
+  }
+  
   // Destructure the project object
   const { name, description } = project;
   
@@ -9,7 +14,7 @@ export function ProjectCard({ key,project }) {
   const level = project.status?.approved ? "Approved" : "Pending";
   
   return (
-    <Link href={`/project_thread?id=${key}`}>
+    <Link href={`/project_thread?id=${id || project._id}`}>
     <div className="border-2 rounded-lg border-violet-400 flex bg-gradient-to-r from-[#2a283c] to-[#222131]">
       <div className="bg-violet-400 w-24 place-content-center place-items-center">
         <PanelTop size={40} strokeWidth={3} className="translate-x-[24px]" />

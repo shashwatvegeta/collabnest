@@ -74,12 +74,18 @@ const MDashboard = () => {
 				if (!projectResponse.ok) {
 					throw new Error("Failed to fetch projects");
 				}
-				const projects = await projectResponse.json();
-				console.log("Fetched Projects:", projects);
-				setOngoingProjects(projects);
+				const allProjects = await projectResponse.json();
+				console.log("Fetched Projects:", allProjects);
+				
+				// Filter projects where the current mentor is the project_owner
+				const mentorProjects = allProjects.filter(project => 
+					project.project_owner === email || project.mentor_email === email
+				);
+				
+				setOngoingProjects(mentorProjects);
 
 				// Fetch tasks for each project
-				const taskPromises = projects.map(async (project) => {
+				const taskPromises = mentorProjects.map(async (project) => {
 					const taskResponse = await fetch(
 						`http://localhost:3001/projects/${project._id}/tasks`,
 					);
@@ -100,9 +106,9 @@ const MDashboard = () => {
 				}));
 
 				// Fetch applications for each project
-				const applicationPromises = projects.map(async (project) => {
+				const applicationPromises = mentorProjects.map(async (project) => {
 					const appResponse = await fetch(
-						`http://localhost:3001/projects/${project_id}/applications`,
+						`http://localhost:3001/projects/${project._id}/applications`,
 					);
 					if (!appResponse.ok) {
 						throw new Error(
@@ -151,40 +157,46 @@ const MDashboard = () => {
 	}, [user]);
 
 	return (
-		<div className="p-8 my-4 pl-36 h-screen">
+		<div className="p-4 sm:p-6 md:p-8 pl-24 md:pl-28 h-screen">
 			<div
-				className={`text-2xl text-violet-400 p-4 font-semibold transform ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"} transition-all duration-500`}
+				className={`text-xl sm:text-2xl text-violet-400 p-2 sm:p-4 font-semibold transform ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"} transition-all duration-500`}
 			>
 				Dashboard
 			</div>
 			<div
-				className={`text-2xl text-white font-bold p-4 transform ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"} transition-all duration-700 delay-100`}
+				className={`text-xl sm:text-2xl text-white font-bold p-2 sm:p-4 transform ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"} transition-all duration-700 delay-100`}
 			>
 				Welcome Back, {user.name}!
 			</div>
-			<div className="grid grid-cols-2 gap-8" style={{ width: "85vw" }}>
+			<div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 w-full">
 				<div
-					className={`flex col-span-2 transform ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"} transition-all duration-700 delay-200`}
+					className={`flex flex-col sm:flex-row col-span-1 md:col-span-2 transform ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"} transition-all duration-700 delay-200`}
 				>
 					{user.pfp_src ? (
-						<Image
-							className="mx-8 object-contain rounded-full animate-fadeIn hover:scale-105 transition-transform duration-300"
-							src={user.pfp_src}
-							alt="User Profile"
-							width={75}
-							height={75}
-						/>
+						<div className="relative mx-auto sm:mx-4 md:mx-8 w-[85px] h-[85px] rounded-full overflow-hidden shadow-lg shadow-violet-500/30 ring-2 ring-purple-400 transform hover:scale-105 transition-all duration-300">
+							<Image
+								className="object-cover"
+								src={user.pfp_src}
+								alt="User Profile"
+								fill
+								sizes="85px"
+								priority
+							/>
+						</div>
 					) : (
-						<Image
-							className="mx-8 object-contain rounded-full animate-fadeIn hover:scale-105 transition-transform duration-300"
-							src="/logo.png"
-							alt="User Profile"
-							width={75}
-							height={75}
-						/>
+						<div className="relative mx-auto sm:mx-4 md:mx-8 w-[85px] h-[85px] rounded-full overflow-hidden shadow-lg shadow-violet-500/30 ring-2 ring-purple-400 transform hover:scale-105 transition-all duration-300">
+							<Image
+								className="object-cover"
+								src="/logo.png"
+								alt="User Profile"
+								fill
+								sizes="85px"
+								priority
+							/>
+						</div>
 					)}
-					<div className="place-content-center">
-						<div className="font-semibold text-xl text-white">
+					<div className="place-content-center mt-4 sm:mt-0 text-center sm:text-left">
+						<div className="font-semibold text-lg sm:text-xl text-white">
 							{user.name} ·{" "}
 							<p className="inline uppercase text-teal-400 hover:text-teal-300 transition-colors duration-300">
 								{user.type}
@@ -198,26 +210,30 @@ const MDashboard = () => {
 
 				{/* Ongoing Projects Section */}
 				<div
-					className={`border-2 rounded-lg border-violet-300 text-white bg-[#2a2a38] row-span-2 shadow-md hover:shadow-lg hover:shadow-violet-500/20 transition-all duration-500 transform ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"} delay-300`}
+					className={`border-2 rounded-lg border-violet-300 text-white bg-[#2a2a38] md:row-span-2 shadow-md hover:shadow-lg hover:shadow-violet-500/20 transition-all duration-500 transform ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"} delay-300`}
 				>
-					<div className="font-semibold bg-violet-400 p-4 flex rounded-t-lg">
-						<div className="flex-1 text-2xl">Ongoing Projects</div>
-						<Link href="/mentor/find_projects">
-							<button className="px-4 py-2 bg-indigo-950 text-sm rounded-lg hover:bg-indigo-800 transition-colors duration-300 transform hover:scale-105">
+					<div className="font-semibold bg-violet-400 p-3 sm:p-4 flex flex-col sm:flex-row items-center rounded-t-lg">
+						<div className="flex-1 text-xl sm:text-2xl mb-2 sm:mb-0">Ongoing Projects</div>
+						<Link href="/mentor/projects">
+							<button className="px-4 py-2 bg-indigo-950 text-sm rounded-lg hover:bg-indigo-800 transition-colors duration-300 transform hover:scale-105 w-full sm:w-auto">
 								View All
 							</button>
 						</Link>
 					</div>
 					<div className="grid gap-2 p-2">
-						{ongoingProjects.map((project, index) => (
-							<div
-								key={index}
-								className={`transform transition-all duration-500 ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
-								style={{ transitionDelay: `${400 + index * 100}ms` }}
-							>
-								<ProjectCard {...project} />
-							</div>
-						))}
+						{ongoingProjects.length > 0 ? (
+							ongoingProjects.map((project, index) => (
+								<div
+									key={index}
+									className={`transform transition-all duration-500 ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
+									style={{ transitionDelay: `${400 + index * 100}ms` }}
+								>
+									<ProjectCard project={project} id={project._id} />
+								</div>
+							))
+						) : (
+							<div className="text-center p-4 text-gray-400">No projects found</div>
+						)}
 					</div>
 				</div>
 
@@ -225,19 +241,23 @@ const MDashboard = () => {
 				<div
 					className={`border-2 rounded-lg border-violet-300 text-white bg-[#2a2a38] shadow-md hover:shadow-lg hover:shadow-violet-500/20 transition-all duration-500 transform ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"} delay-400`}
 				>
-					<div className="font-semibold p-4 bg-white text-black rounded-t-lg">
+					<div className="font-semibold p-3 sm:p-4 bg-white text-black rounded-t-lg">
 						<div className="text-xl">Notifications</div>
 					</div>
-					<div className="p-4">
-						{notifications.map((notification, index) => (
-							<div
-								key={index}
-								className={`transform transition-all duration-500 ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
-								style={{ transitionDelay: `${800 + index * 100}ms` }}
-							>
-								<NotificationItem {...notification} />
-							</div>
-						))}
+					<div className="p-3 sm:p-4">
+						{notifications.length > 0 ? (
+							notifications.map((notification, index) => (
+								<div
+									key={index}
+									className={`transform transition-all duration-500 ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
+									style={{ transitionDelay: `${800 + index * 100}ms` }}
+								>
+									<NotificationItem {...notification} />
+								</div>
+							))
+						) : (
+							<div className="text-center p-4 text-gray-400">No notifications found</div>
+						)}
 						<div
 							className={`text-center mt-4 transform transition-all duration-500 ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
 							style={{ transitionDelay: "1000ms" }}
@@ -253,19 +273,23 @@ const MDashboard = () => {
 				<div
 					className={`border-2 rounded-lg border-violet-300 text-white bg-[#2a2a38] shadow-md hover:shadow-lg hover:shadow-violet-500/20 transition-all duration-500 transform ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"} delay-500`}
 				>
-					<div className="font-semibold p-4 bg-white text-black rounded-t-lg">
+					<div className="font-semibold p-3 sm:p-4 bg-white text-black rounded-t-lg">
 						<div className="text-xl">Requests</div>
 					</div>
-					<div className="p-4">
-						{requests.map((request, index) => (
-							<div
-								key={index}
-								className={`transform transition-all duration-500 ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
-								style={{ transitionDelay: `${1100 + index * 100}ms` }}
-							>
-								<RequestItem {...request} />
-							</div>
-						))}
+					<div className="p-3 sm:p-4">
+						{requests.length > 0 ? (
+							requests.map((request, index) => (
+								<div
+									key={index}
+									className={`transform transition-all duration-500 ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
+									style={{ transitionDelay: `${1100 + index * 100}ms` }}
+								>
+									<RequestItem {...request} />
+								</div>
+							))
+						) : (
+							<div className="text-center p-4 text-gray-400">No requests found</div>
+						)}
 						<div
 							className={`text-center mt-4 transform transition-all duration-500 ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
 							style={{ transitionDelay: "1300ms" }}
