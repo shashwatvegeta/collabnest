@@ -14,7 +14,7 @@ import { MarkAsReadDto } from './dto/mark-as-read.dto';
 
 @Controller('notifications')
 export class NotificationController {
-    constructor(private readonly notificationService: NotificationService) {}
+    constructor(private readonly notificationService: NotificationService) { }
 
     @Post()
     @HttpCode(HttpStatus.CREATED)
@@ -65,4 +65,3 @@ export class NotificationController {
         };
     }
 }
-  

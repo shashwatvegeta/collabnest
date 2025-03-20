@@ -79,7 +79,8 @@ export class DiscussionThreadsService {
       const formattedReplies = updateDiscussionDto.replies.map(reply => ({
         ...reply,
         created_by: new Types.ObjectId(reply.created_by),
-        created_at: reply.created_at || new Date()
+        created_at: reply.created_at || new Date(),
+        created_by_username: reply.created_by_username
       }));
       updateData.replies = formattedReplies;
     }
