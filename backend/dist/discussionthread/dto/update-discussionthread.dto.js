@@ -16,6 +16,7 @@ class ReplyDto {
     content;
     created_by;
     created_at;
+    created_by_username;
 }
 __decorate([
     (0, class_validator_1.IsString)(),
@@ -32,6 +33,11 @@ __decorate([
     (0, class_validator_1.IsDate)(),
     __metadata("design:type", Date)
 ], ReplyDto.prototype, "created_at", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], ReplyDto.prototype, "created_by_username", void 0);
 class UpdateDiscussionthreadDto {
     discussion_id;
     title;
