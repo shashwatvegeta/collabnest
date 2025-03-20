@@ -6,13 +6,15 @@ import { UpdateApplicationDto } from './dto/update-application.dto';
 import { Project } from 'src/project/project.schema';
 import { Application } from './application.schema';
 import { User } from 'src/user/user.schema';
+import { NotificationService } from 'src/notifications/notifications.service';
 
 @Injectable()
 export class ApplicationsService {
     constructor(
         @InjectModel(Application.name) private applicationModel: Model<Application>,
         @InjectModel(Project.name) private projectModel: Model<Project>,
-        @InjectModel(User.name) private userModel: Model<User>
+        @InjectModel(User.name) private userModel: Model<User>,
+        private readonly notificationService: NotificationService
     ) { }
 
     // Function to return a hardcoded user_id (Replace this when auth is ready)
@@ -71,6 +73,34 @@ export class ApplicationsService {
         await this.projectModel.findByIdAndUpdate(createApplicationDto.project_id, {
             $push: { project_application: createdApplication._id },
         });
+
+        // Create notification for the project owner/mentor
+        try {
+            const receiverIds: string[] = [];
+            
+            // Add the project owner if it exists
+            if (project.project_owner) {
+                receiverIds.push(project.project_owner.toString());
+            }
+            
+            // Let's make sure we have at least one recipient for the notification
+            if (receiverIds.length > 0) {
+                // Get the student's name for the notification
+                const studentName = user.username || 'A student';
+                const projectName = project.project_name || 'your project';
+                
+                await this.notificationService.createNotification(
+                    user_id.toString(),
+                    receiverIds,
+                    `${studentName} has applied to join ${projectName}`
+                );
+                
+                console.log(`Created notification for application to project ${project.project_name}`);
+            }
+        } catch (error) {
+            // Don't fail the application if notification creation fails
+            console.error('Failed to create notification for application:', error);
+        }
 
         // Populate the user data before returning
         const populatedApplication = await this.applicationModel
@@ -210,10 +240,46 @@ export class ApplicationsService {
                             await user.save();
                             console.log("User saved directly, projects:", user.projects);
                         }
+                        
+                        // Send notification to student about application approval
+                        try {
+                            const studentId = application.user_id._id.toString();
+                            const projectDetails = await this.projectModel.findById(project_id);
+                            
+                            if (projectDetails && projectDetails.project_owner) {
+                                const projectName = projectDetails.project_name || 'the project';
+                                
+                                await this.notificationService.createNotification(
+                                    projectDetails.project_owner.toString(),
+                                    [studentId],
+                                    `Your application to join ${projectName} has been approved!`
+                                );
+                            }
+                        } catch (error) {
+                            console.error('Failed to create approval notification:', error);
+                        }
                     } catch (err) {
                         console.error("Error updating user or project:", err);
                         throw new Error(`Failed to update user or project: ${err.message}`);
                     }
+                }
+            } else if (updateApplicationDto.status === 'rejected') {
+                // Send notification to student about application rejection
+                try {
+                    const studentId = application.user_id._id.toString();
+                    const projectDetails = await this.projectModel.findById(project_id);
+                    
+                    if (projectDetails && projectDetails.project_owner) {
+                        const projectName = projectDetails.project_name || 'the project';
+                        
+                        await this.notificationService.createNotification(
+                            projectDetails.project_owner.toString(),
+                            [studentId],
+                            `Your application to join ${projectName} was not accepted.`
+                        );
+                    }
+                } catch (error) {
+                    console.error('Failed to create rejection notification:', error);
                 }
             }
 

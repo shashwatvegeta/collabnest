@@ -13,6 +13,7 @@ export default function ProjectTasks({ params }) {
     const [project, setProject] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isLoaded, setIsLoaded] = useState(false);
     const isAuthenticated = useIsAuthenticated();
     const router = useRouter();
 
@@ -45,7 +46,13 @@ export default function ProjectTasks({ params }) {
                     if (tasksResponse.ok) {
                         const tasksData = await tasksResponse.json();
                         console.log("Tasks fetched successfully:", tasksData);
-                        setTasks(tasksData);
+                        
+                        // Limit to only show 4-5 tasks if there are more
+                        if (tasksData.length > 5) {
+                            setTasks(tasksData.slice(0, 5));
+                        } else {
+                            setTasks(tasksData);
+                        }
                     } else {
                         const errorText = await tasksResponse.text();
                         console.error("Tasks API error:", errorText);
@@ -63,6 +70,11 @@ export default function ProjectTasks({ params }) {
                 console.error("Error fetching data:", err);
             } finally {
                 setIsLoading(false);
+                
+                // Add a small delay to simulate loading and then trigger animations
+                setTimeout(() => {
+                    setIsLoaded(true);
+                }, 300);
             }
         };
 
@@ -148,7 +160,7 @@ export default function ProjectTasks({ params }) {
     return (
         <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e] p-2 sm:p-4 md:p-6 lg:p-8 pl-4 sm:pl-8 md:pl-16 lg:pl-28">
             {/* Header */}
-            <div className="bg-[#202040]/50 backdrop-blur-sm border border-violet-500/20 rounded-lg p-4 sm:p-6 mb-4 sm:mb-6 md:mb-8 shadow-lg">
+            <div className={`bg-[#202040]/50 backdrop-blur-sm border border-violet-500/20 rounded-lg p-4 sm:p-6 mb-4 sm:mb-6 md:mb-8 shadow-lg transform ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"} transition-all duration-500`}>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="w-full sm:w-auto">
                         <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2 break-words">
@@ -186,17 +198,21 @@ export default function ProjectTasks({ params }) {
             </div>
 
             {error && (
-                <div className="bg-red-500/10 border border-red-500/30 text-red-300 p-4 rounded-lg mb-6">
+                <div className={`bg-red-500/10 border border-red-500/30 text-red-300 p-3 sm:p-4 rounded-lg mb-4 sm:mb-6 text-sm sm:text-base transform ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"} transition-all duration-500 delay-100`}>
                     {error}
                 </div>
             )}
 
             {/* Task Overview Section */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6">
-                {Object.entries(groupedTasks).map(([status, statusTasks]) => {
+                {Object.entries(groupedTasks).map(([status, statusTasks], index) => {
                     const { bg, border, text, icon } = getStatusColor(status);
                     return (
-                        <div key={status} className={`${bg} rounded-xl ${border} border p-3 sm:p-4 shadow-lg`}>
+                        <div 
+                            key={status} 
+                            className={`${bg} rounded-xl ${border} border p-3 sm:p-4 shadow-lg transform ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"} transition-all duration-500`}
+                            style={{ transitionDelay: `${200 + index * 100}ms` }}
+                        >
                             <div className="flex items-center mb-3 sm:mb-4">
                                 <span className={`${text} text-base sm:text-lg font-semibold flex items-center gap-2`}>
                                     <span className="inline-flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/10">
@@ -221,7 +237,7 @@ export default function ProjectTasks({ params }) {
             </div>
 
             {/* Task List */}
-            <div className="bg-[#2a2a38]/70 backdrop-blur-sm rounded-xl border-2 border-violet-300/20 shadow-xl p-3 sm:p-4 md:p-6">
+            <div className={`bg-[#2a2a38]/70 backdrop-blur-sm rounded-xl border-2 border-violet-300/20 shadow-xl p-3 sm:p-4 md:p-6 transform ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"} transition-all duration-700 delay-300`}>
                 <h2 className="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6 flex items-center">
                     <span className="bg-violet-500/20 p-2 rounded-lg mr-2 sm:mr-3">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 text-violet-400" viewBox="0 0 20 20" fill="currentColor">
@@ -233,7 +249,7 @@ export default function ProjectTasks({ params }) {
                 
                 {tasks.length > 0 ? (
                     <div className="space-y-3 sm:space-y-4">
-                        {Object.entries(groupedTasks).map(([status, statusTasks]) => (
+                        {Object.entries(groupedTasks).map(([status, statusTasks], groupIndex) => (
                             statusTasks.length > 0 && (
                                 <div key={status} className="mb-6 sm:mb-8">
                                     <h3 className="text-base sm:text-lg font-medium text-violet-300 mb-2 sm:mb-3">{status} Tasks</h3>
@@ -243,7 +259,8 @@ export default function ProjectTasks({ params }) {
                                             return (
                                                 <div
                                                     key={task._id || index}
-                                                    className={`${bg} rounded-lg ${border} border p-3 sm:p-4 hover:border-violet-500/40 transition-all`}
+                                                    className={`${bg} rounded-lg ${border} border p-3 sm:p-4 hover:border-violet-500/40 transition-all transform ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"} hover:-translate-y-1`}
+                                                    style={{ transitionDelay: `${500 + (groupIndex * 100) + (index * 70)}ms` }}
                                                 >
                                                     <div className="flex items-start justify-between">
                                                         <div className="flex-1 min-w-0">
@@ -287,6 +304,17 @@ export default function ProjectTasks({ params }) {
                                 </div>
                             )
                         ))}
+                        
+                        {tasks.length > 5 && (
+                            <div className="text-center mt-6">
+                                <button 
+                                    className="px-4 py-2 bg-violet-500/30 hover:bg-violet-500/50 text-white rounded-lg transition-all border border-violet-500/30 transform hover:scale-105"
+                                    onClick={() => router.push(`/student_dashboard/projects/${projectId}/all-tasks`)}
+                                >
+                                    View All Tasks
+                                </button>
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <div className="text-center py-8 sm:py-12 bg-[#222131]/70 rounded-lg border border-violet-500/10">
@@ -299,13 +327,25 @@ export default function ProjectTasks({ params }) {
                         <p className="text-xs sm:text-sm text-violet-300 mb-4 sm:mb-6">Check back later as your mentor adds tasks.</p>
                         <button
                             onClick={() => router.push(`/student_dashboard/projects/${projectId}`)}
-                            className="px-3 sm:px-4 py-2 bg-violet-500/20 hover:bg-violet-500/30 text-white rounded-lg transition-all border border-violet-500/30 text-sm sm:text-base"
+                            className="px-3 sm:px-4 py-2 bg-violet-500/20 hover:bg-violet-500/30 text-white rounded-lg transition-all border border-violet-500/30 text-sm sm:text-base transform hover:scale-105"
                         >
                             Return to Project Details
                         </button>
                     </div>
                 )}
             </div>
+            
+            {/* Add global CSS for custom animations */}
+            <style jsx global>{`
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                
+                .animate-fadeIn {
+                    animation: fadeIn 0.5s ease-in-out;
+                }
+            `}</style>
         </div>
     );
 } 

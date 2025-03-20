@@ -15,6 +15,8 @@ const application_service_1 = require("./application.service");
 const application_controller_1 = require("./application.controller");
 const project_module_1 = require("../project/project.module");
 const user_schema_1 = require("../user/user.schema");
+const notifications_module_1 = require("../notifications/notifications.module");
+const notifications_schema_1 = require("../notifications/notifications.schema");
 let ApplicationModule = class ApplicationModule {
 };
 exports.ApplicationModule = ApplicationModule;
@@ -33,7 +35,12 @@ exports.ApplicationModule = ApplicationModule = __decorate([
                     name: user_schema_1.User.name,
                     schema: user_schema_1.UserSchema
                 }]),
-            project_module_1.ProjectModule
+            mongoose_1.MongooseModule.forFeature([{
+                    name: notifications_schema_1.Notification.name,
+                    schema: notifications_schema_1.NotificationsSchema
+                }]),
+            project_module_1.ProjectModule,
+            notifications_module_1.NotificationsModule
         ],
         providers: [application_service_1.ApplicationsService],
         controllers: [application_controller_1.ApplicationsController]

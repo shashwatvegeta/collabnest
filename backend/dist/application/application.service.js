@@ -19,14 +19,17 @@ const mongoose_2 = require("mongoose");
 const project_schema_1 = require("../project/project.schema");
 const application_schema_1 = require("./application.schema");
 const user_schema_1 = require("../user/user.schema");
+const notifications_service_1 = require("../notifications/notifications.service");
 let ApplicationsService = class ApplicationsService {
     applicationModel;
     projectModel;
     userModel;
-    constructor(applicationModel, projectModel, userModel) {
+    notificationService;
+    constructor(applicationModel, projectModel, userModel, notificationService) {
         this.applicationModel = applicationModel;
         this.projectModel = projectModel;
         this.userModel = userModel;
+        this.notificationService = notificationService;
     }
     getHardcodedUserId() {
         return '67cde2e83c0958c938ef6210';
@@ -59,6 +62,21 @@ let ApplicationsService = class ApplicationsService {
         await this.projectModel.findByIdAndUpdate(createApplicationDto.project_id, {
             $push: { project_application: createdApplication._id },
         });
+        try {
+            const receiverIds = [];
+            if (project.project_owner) {
+                receiverIds.push(project.project_owner.toString());
+            }
+            if (receiverIds.length > 0) {
+                const studentName = user.username || 'A student';
+                const projectName = project.project_name || 'your project';
+                await this.notificationService.createNotification(user_id.toString(), receiverIds, `${studentName} has applied to join ${projectName}`);
+                console.log(`Created notification for application to project ${project.project_name}`);
+            }
+        }
+        catch (error) {
+            console.error('Failed to create notification for application:', error);
+        }
         const populatedApplication = await this.applicationModel
             .findById(createdApplication._id)
             .populate({
@@ -158,11 +176,35 @@ let ApplicationsService = class ApplicationsService {
                             await user.save();
                             console.log("User saved directly, projects:", user.projects);
                         }
+                        try {
+                            const studentId = application.user_id._id.toString();
+                            const projectDetails = await this.projectModel.findById(project_id);
+                            if (projectDetails && projectDetails.project_owner) {
+                                const projectName = projectDetails.project_name || 'the project';
+                                await this.notificationService.createNotification(projectDetails.project_owner.toString(), [studentId], `Your application to join ${projectName} has been approved!`);
+                            }
+                        }
+                        catch (error) {
+                            console.error('Failed to create approval notification:', error);
+                        }
                     }
                     catch (err) {
                         console.error("Error updating user or project:", err);
                         throw new Error(`Failed to update user or project: ${err.message}`);
                     }
+                }
+            }
+            else if (updateApplicationDto.status === 'rejected') {
+                try {
+                    const studentId = application.user_id._id.toString();
+                    const projectDetails = await this.projectModel.findById(project_id);
+                    if (projectDetails && projectDetails.project_owner) {
+                        const projectName = projectDetails.project_name || 'the project';
+                        await this.notificationService.createNotification(projectDetails.project_owner.toString(), [studentId], `Your application to join ${projectName} was not accepted.`);
+                    }
+                }
+                catch (error) {
+                    console.error('Failed to create rejection notification:', error);
                 }
             }
             const updatedApplication = await this.applicationModel.findByIdAndUpdate(application_id, { $set: updateApplicationDto }, { new: true, runValidators: true })
@@ -193,6 +235,7 @@ exports.ApplicationsService = ApplicationsService = __decorate([
     __param(2, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
         mongoose_2.Model,
-        mongoose_2.Model])
+        mongoose_2.Model,
+        notifications_service_1.NotificationService])
 ], ApplicationsService);
 //# sourceMappingURL=application.service.js.map

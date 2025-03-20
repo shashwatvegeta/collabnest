@@ -7,6 +7,8 @@ import { ApplicationsController } from './application.controller';
 import { ProjectService } from 'src/project/project.service';
 import { ProjectModule } from 'src/project/project.module';
 import { User, UserSchema } from 'src/user/user.schema';
+import { NotificationsModule } from 'src/notifications/notifications.module';
+import { Notification, NotificationsSchema } from 'src/notifications/notifications.schema';
 
 @Module({
   imports: [
@@ -22,7 +24,12 @@ import { User, UserSchema } from 'src/user/user.schema';
       name: User.name,
       schema: UserSchema
     }]),
-    ProjectModule
+    MongooseModule.forFeature([{
+      name: Notification.name,
+      schema: NotificationsSchema
+    }]),
+    ProjectModule,
+    NotificationsModule
   ],
   providers: [ApplicationsService],
   controllers: [ApplicationsController]

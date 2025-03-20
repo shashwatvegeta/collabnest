@@ -24,6 +24,7 @@ let Project = class Project extends mongoose_2.Document {
     discussion_threads;
     tags;
     project_owner;
+    mentor_email;
     students_enrolled;
     tasks;
     project_application;
@@ -73,6 +74,10 @@ __decorate([
     (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'User', required: true }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
 ], Project.prototype, "project_owner", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: String }),
+    __metadata("design:type", String)
+], Project.prototype, "mentor_email", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: 'User' }] }),
     __metadata("design:type", Array)

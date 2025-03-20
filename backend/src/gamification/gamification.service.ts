@@ -52,10 +52,10 @@ export class GamificationService {
     try {
       this.logger.log(`Updating user level for user: ${userId}`);
       const result = await this.userLevelModel.findOneAndUpdate(
-        { userId },
-        { $set: updateLevelDto },
-        { new: true, upsert: true }
-      ).exec();
+      { userId },
+      { $set: updateLevelDto },
+      { new: true, upsert: true }
+    ).exec();
       
       if (!result) {
         throw new Error(`Failed to update user level for user: ${userId}`);

@@ -11,6 +11,7 @@ export declare class Project extends Document {
     discussion_threads: Object[];
     tags: Object[];
     project_owner: Types.ObjectId;
+    mentor_email: string;
     students_enrolled: Types.ObjectId[];
     tasks: Types.ObjectId[];
     project_application: Types.ObjectId[];

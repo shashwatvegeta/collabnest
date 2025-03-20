@@ -1,4 +1,4 @@
-import { IsMongoId, IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsMongoId } from 'class-validator';
 
 export class MarkAsReadDto {
   @IsMongoId()

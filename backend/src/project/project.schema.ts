@@ -25,6 +25,9 @@ export class Project extends Document {
   tags: Object[];
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   project_owner: Types.ObjectId;
+  
+  @Prop({ type: String })
+  mentor_email: string;
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }] })  // refrencing user for getting enrolled students
   students_enrolled: Types.ObjectId[];
