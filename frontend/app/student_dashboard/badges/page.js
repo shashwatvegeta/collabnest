@@ -11,6 +11,13 @@ export default function Badges() {
 	const [name, setName] = useState("Loading...");
 	const [email, setEmail] = useState("Loading...");
 	const isAuthenticated = useIsAuthenticated();
+
+	const badges = [
+		{ id: 1, name: "First Project", image: "/badges/first-project.png" },
+		{ id: 2, name: "Fast Learner", image: "/badges/fast-learner.png" },
+		{ id: 3, name: "Team Player", image: "/badges/team-player.png" },
+	];
+
 	useEffect(() => {
 		if (!isAuthenticated) {
 			redirect("/");
@@ -61,6 +68,11 @@ export default function Badges() {
 						</Badge>
 					))
 					: ""}
+				{badges.map(badge => (
+					<Badge className="scale-150 hover:scale-125 p-4" key={badge.id}>
+						{badge.name}
+					</Badge>
+				))}
 			</div>
 		</div>
 	);

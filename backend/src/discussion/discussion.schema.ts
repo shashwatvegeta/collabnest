@@ -1,16 +1,17 @@
 import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import * as mongoose from 'mongoose';
 
-@Schema()
+@Schema({ timestamps: true })
 export class Discussion extends Document {
-    @Prop({ type: Types.ObjectId, required: true })
-    Post_Id: Types.ObjectId;
+    @Prop({ type: mongoose.Schema.Types.ObjectId, required: true })
+    Post_Id: mongoose.Schema.Types.ObjectId;
 
-    @Prop({ type: Types.ObjectId, required: true, ref: 'Discussion' })
-    discussion_id: Types.ObjectId;
+    @Prop({ type: mongoose.Schema.Types.ObjectId, required: true })
+    discussion_id: mongoose.Schema.Types.ObjectId;
 
-    @Prop({ type: Types.ObjectId, required: true })
-    posted_by: Types.ObjectId;
+    @Prop({ type: mongoose.Schema.Types.ObjectId, required: true })
+    posted_by: mongoose.Schema.Types.ObjectId;
 
     @Prop({ required: true })
     reply_message: string;
@@ -20,3 +21,4 @@ export class Discussion extends Document {
 }
 
 export const DiscussionSchema = SchemaFactory.createForClass(Discussion);
+export type DiscussionDocument = Discussion & Document;
