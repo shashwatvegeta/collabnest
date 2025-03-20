@@ -245,7 +245,7 @@ const SDashboard = () => {
 	}
 
 	return (
-		<div className="p-8 h-screen">
+		<div className="p-8 pb-24 h-screen overflow-y-auto">
 			<div className="text-3xl text-violet-400 p-4 font-light">Dashboard</div>
 			<div className="text-2xl text-white font-bold p-4">
 				Welcome Back, {user.name}!
