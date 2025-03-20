@@ -31,6 +31,16 @@ export default function ProjectDetails({ params }) {
   const handleToggleTaskStatus = async (taskId, currentStatus) => {
     try {
       const newStatus = currentStatus === "Completed" ? "Pending" : "Completed";
+      const isCompleting = newStatus === "Completed";
+      
+      if (isCompleting && students.length > 0) {
+        // Show loading indicator or disable the checkbox during the update
+        setTasks(prevTasks => 
+          prevTasks.map(task => 
+            task._id === taskId ? { ...task, isUpdating: true } : task
+          )
+        );
+      }
       
       const response = await fetch(`http://localhost:3001/projects/${id}/tasks/${taskId}`, {
         method: 'PUT',
@@ -50,11 +60,24 @@ export default function ProjectDetails({ params }) {
       
       // Update the tasks state with the updated task
       setTasks(tasks.map(task => 
-        task._id === taskId ? updatedTask : task
+        task._id === taskId ? { ...updatedTask, isUpdating: false } : task
       ));
+      
+      // Show a notification if completing a task
+      if (isCompleting && students.length > 0) {
+        alert(`Task completed successfully! ${students.length} student(s) were awarded 200 XP each.`);
+      }
       
     } catch (error) {
       console.error('Error updating task status:', error);
+      
+      // Reset the updating state in case of error
+      setTasks(prevTasks => 
+        prevTasks.map(task => 
+          task._id === taskId ? { ...task, isUpdating: false } : task
+        )
+      );
+      
       alert(`Failed to update task: ${error.message}`);
     }
   };
@@ -414,7 +437,23 @@ export default function ProjectDetails({ params }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <h3 className="text-violet-400 text-lg font-semibold mb-3">Project Description</h3>
-                <p className="text-purple-200 whitespace-pre-line">{project.description}</p>
+                <div className="bg-slate-900/30 rounded-lg p-4 mb-6 border border-slate-700/50">
+                  <p className="text-slate-300 whitespace-pre-line">{project.description}</p>
+                </div>
+                
+                {/* Project Tags */}
+                {project.tags && project.tags.length > 0 && (
+                  <div className="bg-slate-900/30 rounded-lg p-4 mb-6 border border-slate-700/50">
+                    <h3 className="text-violet-400 font-semibold mb-3">Technologies</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {project.tags.map((tag, idx) => (
+                        <span key={idx} className="px-3 py-1 bg-indigo-900/40 text-indigo-300 rounded-full border border-indigo-600/30">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 
                 <h3 className="text-violet-400 text-lg font-semibold mt-6 mb-3">Timeline</h3>
                 <div className="flex justify-between bg-indigo-900/40 p-3 rounded-lg">
@@ -497,6 +536,15 @@ export default function ProjectDetails({ params }) {
               </button>
             </div>
             
+            <div className="mb-4 p-3 bg-indigo-900/40 border border-indigo-500/30 rounded-md">
+              <p className="text-sm text-indigo-300 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="mr-2" viewBox="0 0 16 16">
+                  <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
+                </svg>
+                Completing a task awards 200 XP to each student enrolled in the project
+              </p>
+            </div>
+            
             {tasks.length > 0 ? (
               <div className="space-y-4">
                 {tasks.map((task, index) => (
@@ -507,11 +555,23 @@ export default function ProjectDetails({ params }) {
                           type="checkbox"
                           checked={task.status === 'Completed'}
                           onChange={() => handleToggleTaskStatus(task._id, task.status)}
-                          className="mr-3 h-5 w-5 rounded border-gray-600 bg-gray-700 text-violet-500 focus:ring-violet-500"
+                          disabled={task.isUpdating}
+                          className={`mr-3 h-5 w-5 rounded border-gray-600 bg-gray-700 text-violet-500 focus:ring-violet-500 ${
+                            task.isUpdating ? 'opacity-50 cursor-wait' : 'cursor-pointer'
+                          }`}
                         />
                         <h4 className={`text-white font-medium ${task.status === 'Completed' ? 'line-through text-gray-400' : ''}`}>
                           {task.title}
+                          {task.isUpdating && (
+                            <span className="ml-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-violet-400 border-r-transparent align-[-0.125em]"></span>
+                          )}
                         </h4>
+                        {/* Add XP indicator */}
+                        {task.status !== 'Completed' && (
+                          <span className="ml-2 text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-300 border border-green-500/30">
+                            +200 XP
+                          </span>
+                        )}
                       </div>
                       <div className={`text-xs px-2 py-1 rounded-full ${
                         task.status === 'Completed' 

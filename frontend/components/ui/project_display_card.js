@@ -2,9 +2,15 @@ import Image from "next/image";
 
 export function ProjectDisplayCard({ name, desc, level, image, mentor, tags }) {
   return (
-    <div className="border-2 rounded-lg border-violet-400 bg-gradient-to-r from-[#2a283c] to-[#222131] overflow-hidden hover:scale-[110%]">
-      <div className="w-40 h-40">
-        {/* <Image alt="Project Cover Image" src={"/iitp.png"} fill={true} /> */}
+    <div className="border-2 rounded-lg border-violet-400 bg-gradient-to-r from-[#2a283c] to-[#222131] overflow-hidden hover:scale-[110%] transition-transform">
+      <div className="relative w-full h-40">
+        <Image
+          alt="Project Cover Image"
+          src={image || "/project-placeholder.png"}
+          layout="fill"
+          objectFit="cover"
+          className="rounded-t-lg"
+        />
       </div>
 
       <div className="p-4 sm:p-6">

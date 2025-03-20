@@ -13,6 +13,7 @@ const task_controller_1 = require("./task.controller");
 const task_schema_1 = require("./task.schema");
 const mongoose_1 = require("@nestjs/mongoose");
 const project_schema_1 = require("../project/project.schema");
+const gamification_module_1 = require("../gamification/gamification.module");
 let TaskModule = class TaskModule {
 };
 exports.TaskModule = TaskModule;
@@ -26,7 +27,8 @@ exports.TaskModule = TaskModule = __decorate([
             mongoose_1.MongooseModule.forFeature([{
                     name: project_schema_1.Project.name,
                     schema: project_schema_1.ProjectSchema
-                }])
+                }]),
+            gamification_module_1.GamificationModule
         ],
         controllers: [task_controller_1.TaskController],
         providers: [task_service_1.TaskService],

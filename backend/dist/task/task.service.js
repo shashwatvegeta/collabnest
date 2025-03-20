@@ -18,12 +18,15 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const task_schema_1 = require("./task.schema");
 const project_schema_1 = require("../project/project.schema");
+const gamification_service_1 = require("../gamification/gamification.service");
 let TaskService = class TaskService {
     taskModel;
     projectModel;
-    constructor(taskModel, projectModel) {
+    gamificationService;
+    constructor(taskModel, projectModel, gamificationService) {
         this.taskModel = taskModel;
         this.projectModel = projectModel;
+        this.gamificationService = gamificationService;
     }
     async findByProjectId(project_id) {
         const project = await this.projectModel
@@ -82,10 +85,14 @@ let TaskService = class TaskService {
         if (!project) {
             throw new common_1.NotFoundException(`Project with project ID ${project_id} not found`);
         }
-        const task = project.tasks.find(task => task._id.toString() === task_id);
+        const task = await this.taskModel.findById(task_id);
         if (!task) {
             throw new common_1.NotFoundException(`Task with ID ${task_id} not found in project ${project_id}`);
         }
+        const isCompletingTask = task.status !== 'Completed' &&
+            updateTaskDto.status === 'Completed';
+        const isUncompletingTask = task.status === 'Completed' &&
+            updateTaskDto.status !== 'Completed';
         if (updateTaskDto.assigned_to) {
             updateTaskDto.assigned_to = updateTaskDto.assigned_to.map(id => new mongoose_2.Types.ObjectId(id));
         }
@@ -104,6 +111,17 @@ let TaskService = class TaskService {
         if (!updatedTask) {
             throw new common_1.NotFoundException(`Failed to update: task with ID ${task_id} not found`);
         }
+        if (isCompletingTask && project.students_enrolled && project.students_enrolled.length > 0) {
+            try {
+                const studentIds = project.students_enrolled.map(id => id.toString());
+                console.log(`Awarding 200 XP to students:`, studentIds);
+                await this.gamificationService.awardXpToMultipleUsers(studentIds, 200);
+                console.log(`Awarded 200 XP to ${studentIds.length} students for completing task ${task_id}`);
+            }
+            catch (error) {
+                console.error('Error awarding XP:', error);
+            }
+        }
         return updatedTask;
     }
     async findOne(task_id) {
@@ -121,6 +139,7 @@ exports.TaskService = TaskService = __decorate([
     __param(0, (0, mongoose_1.InjectModel)(task_schema_1.Task.name)),
     __param(1, (0, mongoose_1.InjectModel)(project_schema_1.Project.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
-        mongoose_2.Model])
+        mongoose_2.Model,
+        gamification_service_1.GamificationService])
 ], TaskService);
 //# sourceMappingURL=task.service.js.map

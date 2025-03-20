@@ -1,80 +1,109 @@
 "use client";
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useMsal } from "@azure/msal-react";
+import { usePathname } from "next/navigation";
 import {
 	Bell,
 	LayoutDashboard,
 	LogOut,
 	Medal,
-	MessageCircle,
 	Search,
 	SquareChartGantt,
 	User,
 } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useMsal } from "@azure/msal-react";
-import { redirect } from "next/dist/server/api-utils";
-import { usePathname } from "next/navigation";
 
 const Sidebar = () => {
-	const { instance, accounts } = useMsal();
+	const { instance } = useMsal();
 	const pathname = usePathname();
+
 	const logout = () => {
 		instance.logoutRedirect();
 	};
+
 	return (
-		<div className="h-screen bg-[#2a2a38] grid grid-cols-1 place-items-center fixed shadow-lg shadow-black/15  ">
-			<div className="flex flex-col justify-center items-center relative transition-all duration-[450ms] ease-in-out ">
-				<article className="border-0 border-solid border-gray-500 w-full ease-in-out duration-500 left-0 rounded-2xl inline-block p-8 text-white grid xl:gap-16 gap-8">
-					<div>
-						<Image
-							src="/logo.png"
-							alt="Collabnest Logo"
-							width={30}
-							height={50}
-						/>
-					</div>
-					<div className="row-span-2"></div>
-					<Link href="/student_dashboard">
-						<LayoutDashboard
-							className={`${pathname == "/student_dashboard" ? "text-teal-400" : ""}`}
-							size={25}
-						/>
+		<div className="fixed left-0 top-0 h-full flex items-center z-20 px-4">
+			<div className="w-[60px] bg-gradient-to-b from-[#1F1D38] to-[#252244] flex flex-col items-center py-8 rounded-2xl shadow-xl border border-violet-800/30 transition-all duration-300 h-[90vh] my-auto">
+				{/* Logo */}
+				<div className="p-2 mb-10 flex justify-center w-full transition-transform duration-300 hover:scale-110">
+					<Image 
+						src="/logo.png" 
+						alt="Logo" 
+						width={40} 
+						height={40} 
+						className="drop-shadow-[0_0_15px_rgba(138,43,226,0.5)] animate-pulse-slow" 
+						priority
+					/>
+				</div>
+
+				{/* Navigation */}
+				<div className="flex flex-col items-center w-full px-2 space-y-8 flex-grow">
+					{/* Dashboard */}
+					<Link href="/student_dashboard" className="w-full">
+						<div className={`p-3 rounded-xl transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg hover:shadow-violet-500/20 transform hover:-translate-y-1 ${pathname === "/student_dashboard" ? "bg-[#18172E]" : "hover:bg-[#25243A]"}`}>
+							<LayoutDashboard size={24} className={pathname === "/student_dashboard" ? "text-teal-400" : "text-gray-400"} />
+						</div>
 					</Link>
-					<Link href="/student_dashboard/badges">
-						<Medal
-							className={`${pathname == "/student_dashboard/badges" ? "text-teal-400" : ""}`}
-							size={25}
-						/>
+
+					{/* Badges */}
+					<Link href="/student_dashboard/badges" className="w-full">
+						<div className={`p-3 rounded-xl transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg hover:shadow-violet-500/20 transform hover:-translate-y-1 ${pathname === "/student_dashboard/badges" ? "bg-[#18172E]" : "hover:bg-[#25243A]"}`}>
+							<Medal size={24} className={pathname === "/student_dashboard/badges" ? "text-teal-400" : "text-gray-400"} />
+						</div>
 					</Link>
-					<Link href="/student_dashboard/notifications">
-						<Bell
-							className={`${pathname == "/student_dashboard/notifications" ? "text-teal-400" : ""}`}
-							size={25}
-						/>
+
+					{/* Notifications */}
+					<Link href="/student_dashboard/notifications" className="w-full">
+						<div className={`p-3 rounded-xl transition-all duration-300 flex items-center justify-center hover:shadow-lg hover:shadow-violet-500/20 transform hover:-translate-y-1 relative ${pathname === "/student_dashboard/notifications" ? "bg-[#18172E]" : "hover:bg-[#25243A]"}`}>
+							<Bell size={24} className={pathname === "/student_dashboard/notifications" ? "text-teal-400" : "text-gray-400"} />
+							<span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-lg">3</span>
+						</div>
 					</Link>
-					<Link href="/student_dashboard/ongoing_projects">
-						<SquareChartGantt
-							className={`${pathname == "/student_dashboard/ongoing_projects" ? "text-teal-400" : ""}`}
-							size={25}
-						/>
+
+					{/* Ongoing Projects */}
+					<Link href="/student_dashboard/ongoing_projects" className="w-full">
+						<div className={`p-3 rounded-xl transition-all duration-300 flex items-center justify-center hover:shadow-lg hover:shadow-violet-500/20 transform hover:-translate-y-1 ${pathname === "/student_dashboard/ongoing_projects" ? "bg-[#18172E]" : "hover:bg-[#25243A]"}`}>
+							<SquareChartGantt size={24} className={pathname === "/student_dashboard/ongoing_projects" ? "text-teal-400" : "text-gray-400"} />
+						</div>
 					</Link>
-					<Link href="/student_dashboard/find_projects">
-						<Search
-							className={`${pathname == "/student_dashboard/find_projects" ? "text-teal-400" : ""}`}
-							size={25}
-						/>
+
+					{/* Find Projects */}
+					<Link href="/student_dashboard/find_projects" className="w-full">
+						<div className={`p-3 rounded-xl transition-all duration-300 flex items-center justify-center hover:shadow-lg hover:shadow-violet-500/20 transform hover:-translate-y-1 ${pathname === "/student_dashboard/find_projects" ? "bg-[#18172E]" : "hover:bg-[#25243A]"}`}>
+							<Search size={24} className={pathname === "/student_dashboard/find_projects" ? "text-teal-400" : "text-gray-400"} />
+						</div>
 					</Link>
-					<div className="row-span-2"></div>
-					<button
-						onClick={() => {
-							logout();
-						}}
-					>
-						<LogOut size={25} />
+                    
+                    {/* Profile */}
+					<Link href="/student_dashboard/profile" className="w-full">
+						<div className={`p-3 rounded-xl transition-all duration-300 flex items-center justify-center hover:shadow-lg hover:shadow-violet-500/20 transform hover:-translate-y-1 ${pathname === "/student_dashboard/profile" ? "bg-[#18172E]" : "hover:bg-[#25243A]"}`}>
+							<User size={24} className={pathname === "/student_dashboard/profile" ? "text-teal-400" : "text-gray-400"} />
+						</div>
+					</Link>
+				</div>
+
+				{/* Logout */}
+				<div className="mt-auto w-full px-2">
+					<button onClick={logout} className="w-full p-3 hover:bg-[#3A1D1D] rounded-xl transition-all duration-300 flex items-center justify-center hover:shadow-lg hover:shadow-red-500/20 transform hover:-translate-y-1 mt-6">
+						<LogOut size={24} className="text-red-500" />
 					</button>
-				</article>
+				</div>
+
+				{/* Add custom animation */}
+				<style jsx global>{`
+					@keyframes pulse-slow {
+						0% { transform: scale(1); }
+						50% { transform: scale(1.05); }
+						100% { transform: scale(1); }
+					}
+					.animate-pulse-slow {
+						animation: pulse-slow 3s infinite ease-in-out;
+					}
+				`}</style>
 			</div>
 		</div>
 	);
 };
+
 export default Sidebar;

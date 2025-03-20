@@ -174,17 +174,46 @@ export class ApplicationsService {
                 );
                 
                 if (!isStudentEnrolled) {
-                    // Add student to enrolled students
-                    await this.projectModel.findByIdAndUpdate(
-                        project_id,
-                        { $addToSet: { students_enrolled: application.user_id._id } }
-                    );
-                    
-                    // Also add project to user's projects
-                    await this.userModel.findByIdAndUpdate(
-                        application.user_id._id,
-                        { $addToSet: { projects: new Types.ObjectId(project_id) } }
-                    );
+                    try {
+                        // Add student to enrolled students
+                        await this.projectModel.findByIdAndUpdate(
+                            project_id,
+                            { $addToSet: { students_enrolled: application.user_id._id } }
+                        );
+                        
+                        // Get the user document to verify current projects
+                        const user = await this.userModel.findById(application.user_id._id);
+                        if (!user) {
+                            throw new NotFoundException(`User with ID ${application.user_id._id} not found`);
+                        }
+                        console.log("User before update:", user.username, "Projects:", user.projects);
+                        
+                        // Also add project to user's projects using explicit method
+                        const projectObjectId = new Types.ObjectId(project_id);
+                        const updateResult = await this.userModel.updateOne(
+                            { _id: application.user_id._id },
+                            { $addToSet: { projects: projectObjectId } }
+                        );
+                        console.log("User update result:", updateResult);
+                        
+                        // Verify the update
+                        const updatedUser = await this.userModel.findById(application.user_id._id);
+                        if (!updatedUser) {
+                            throw new NotFoundException(`User with ID ${application.user_id._id} not found after update`);
+                        }
+                        console.log("User after update:", updatedUser.username, "Projects:", updatedUser.projects);
+                        
+                        if (updateResult.modifiedCount === 0) {
+                            console.warn("User project array not updated, attempting alternative method");
+                            // Alternative approach - direct array push
+                            user.projects.push(projectObjectId);
+                            await user.save();
+                            console.log("User saved directly, projects:", user.projects);
+                        }
+                    } catch (err) {
+                        console.error("Error updating user or project:", err);
+                        throw new Error(`Failed to update user or project: ${err.message}`);
+                    }
                 }
             }
 

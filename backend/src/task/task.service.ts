@@ -5,12 +5,14 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task } from './task.schema';
 import { Project } from 'src/project/project.schema';
+import { GamificationService } from '../gamification/gamification.service';
 
 @Injectable()
 export class TaskService {
     constructor(
         @InjectModel(Task.name) private readonly taskModel: Model<Task>,
-        @InjectModel(Project.name) private readonly projectModel: Model<Project>
+        @InjectModel(Project.name) private readonly projectModel: Model<Project>,
+        private readonly gamificationService: GamificationService
     ) { }
 
     async findByProjectId(project_id: string): Promise<Task[]> {
@@ -94,11 +96,21 @@ export class TaskService {
             throw new NotFoundException(`Project with project ID ${project_id} not found`);
         }
 
-        // Check if task exists within project
-        const task = project.tasks.find(task => (task._id as Types.ObjectId).toString() === task_id);
+        // Find the task
+        const task = await this.taskModel.findById(task_id);
         if (!task) {
             throw new NotFoundException(`Task with ID ${task_id} not found in project ${project_id}`);
         }
+
+        // Check if task status is changing to "Completed"
+        const isCompletingTask = 
+            task.status !== 'Completed' && 
+            updateTaskDto.status === 'Completed';
+
+        // Check if task status is changing from "Completed" to something else
+        const isUncompletingTask = 
+            task.status === 'Completed' && 
+            updateTaskDto.status !== 'Completed';
 
         // Convert assigned_to string IDs to ObjectIds
         if (updateTaskDto.assigned_to) {
@@ -129,6 +141,20 @@ export class TaskService {
 
         if (!updatedTask) {
             throw new NotFoundException(`Failed to update: task with ID ${task_id} not found`);
+        }
+
+        // Award XP to enrolled students if task is now completed
+        if (isCompletingTask && project.students_enrolled && project.students_enrolled.length > 0) {
+            try {
+                // Award 200 XP to each enrolled student
+                const studentIds = project.students_enrolled.map(id => id.toString());
+                console.log(`Awarding 200 XP to students:`, studentIds);
+                await this.gamificationService.awardXpToMultipleUsers(studentIds, 200);
+                console.log(`Awarded 200 XP to ${studentIds.length} students for completing task ${task_id}`);
+            } catch (error) {
+                console.error('Error awarding XP:', error);
+                // Don't throw the error as we still want to return the updated task
+            }
         }
 
         return updatedTask;

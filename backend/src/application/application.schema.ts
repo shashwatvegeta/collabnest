@@ -3,12 +3,14 @@ import { Document, Types } from 'mongoose';
 
 @Schema()
 export class Application extends Document {
+    @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+    user_id: Types.ObjectId; // Required (An application must be linked to a user)
 
     @Prop({ type: Types.ObjectId, ref: 'Project', required: true }) 
     project_id: Types.ObjectId; // Required (An application must be linked to a project)
 
-    @Prop({ type: Types.ObjectId, ref: 'User', required: true }) 
-    user_id: Types.ObjectId; // Required (An application must be linked to a user)
+    // @Prop({ type: Types.ObjectId, ref: 'User', required: true }) 
+    // user_id: Types.ObjectId; // Required (An application must be linked to a user)
 
     @Prop({ type: String, default: 'pending', enum: ['pending', 'approved', 'rejected'], required: true }) 
     status: string; // Required (An application must have a status)
