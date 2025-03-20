@@ -74,6 +74,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                     onClick={onClose}
                     className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
                     disabled={isLoading}
+                    aria-label="Close modal"
                 >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M18 6L6 18M6 6l12 12" />
@@ -90,10 +91,11 @@ export default function CreateProjectModal({ isOpen, onClose }) {
 
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
-                        <label className="block text-gray-700 text-sm font-medium mb-2">
+                        <label htmlFor="projectTitle" className="block text-gray-700 text-sm font-medium mb-2">
                             Project Title
                         </label>
                         <input
+                            id="projectTitle"
                             type="text"
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             value={projectTitle}
@@ -104,10 +106,11 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                     </div>
 
                     <div className="mb-4">
-                        <label className="block text-gray-700 text-sm font-medium mb-2">
+                        <label htmlFor="description" className="block text-gray-700 text-sm font-medium mb-2">
                             Description
                         </label>
                         <textarea
+                            id="description"
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             rows={4}
                             value={description}
@@ -119,11 +122,12 @@ export default function CreateProjectModal({ isOpen, onClose }) {
 
                     <div className="flex gap-4 mb-4">
                         <div className="flex-1">
-                            <label className="block text-gray-700 text-sm font-medium mb-2">
+                            <label htmlFor="domain" className="block text-gray-700 text-sm font-medium mb-2">
                                 Domain
                             </label>
                             <div className="relative">
                                 <select
+                                    id="domain"
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     value={domain}
                                     onChange={(e) => setDomain(e.target.value)}
@@ -147,10 +151,11 @@ export default function CreateProjectModal({ isOpen, onClose }) {
 
                     <div className="flex gap-4 mb-4">
                         <div className="flex-1">
-                            <label className="block text-gray-700 text-sm font-medium mb-2">
+                            <label htmlFor="startDate" className="block text-gray-700 text-sm font-medium mb-2">
                                 Start Date
                             </label>
                             <input
+                                id="startDate"
                                 type="date"
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 value={startDate}
@@ -160,10 +165,11 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                             />
                         </div>
                         <div className="flex-1">
-                            <label className="block text-gray-700 text-sm font-medium mb-2">
+                            <label htmlFor="endDate" className="block text-gray-700 text-sm font-medium mb-2">
                                 End Date
                             </label>
                             <input
+                                id="endDate"
                                 type="date"
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 value={endDate}
@@ -175,10 +181,11 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                     </div>
 
                     <div className="mb-4">
-                        <label className="block text-gray-700 text-sm font-medium mb-2">
+                        <label htmlFor="mentorName" className="block text-gray-700 text-sm font-medium mb-2">
                             Mentor Name
                         </label>
                         <input
+                            id="mentorName"
                             type="text"
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             value={mentorName}
@@ -188,10 +195,11 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                     </div>
 
                     <div className="mb-6">
-                        <label className="block text-gray-700 text-sm font-medium mb-2">
+                        <label htmlFor="imageUrl" className="block text-gray-700 text-sm font-medium mb-2">
                             Image URL (optional)
                         </label>
                         <input
+                            id="imageUrl"
                             type="url"
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="https://example.com/image.jpg"

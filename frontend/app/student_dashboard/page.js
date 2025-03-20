@@ -24,10 +24,12 @@ const SDashboard = () => {
 	const [ongoingProjects, setOngoingProjects] = useState([]);
 	const isAuthenticated = useIsAuthenticated();
 
-	const badges = [
-		{ id: 1, name: "First Project", image: "/badges/first-project.png" },
-		{ id: 2, name: "Fast Learner", image: "/badges/fast-learner.png" },
-		{ id: 3, name: "Team Player", image: "/badges/team-player.png" },
+	const availableBadges = [
+		{ id: 1, name: "First Project", image: "/badges/cup.png", description: "Complete your first project" },
+		{ id: 2, name: "Fast Learner", image: "/badges/star.png", description: "Complete 3 projects" },
+		{ id: 3, name: "Team Player", image: "/badges/team.png", description: "Collaborate in 2 projects" },
+		{ id: 4, name: "Code Master", image: "/badges/code.png", description: "Complete 5 projects" },
+		{ id: 5, name: "Mentor's Choice", image: "/badges/mentor.png", description: "Get recognized by a mentor" }
 	];
 
 	useEffect(() => {
@@ -329,25 +331,52 @@ const SDashboard = () => {
 								</span>
 							</div>
 						</div>
-						<div className="flex">
-							<div className="text-lg font-semibold py-2 flex-1">
+						<div className="flex justify-between items-center mb-4">
+							<div className="text-lg font-semibold">
 								Badges Earned
 							</div>
 							<Link href="/student_dashboard/badges">
-								<div className="py-2 text-sm underline">View all</div>
+								<button className="text-sm text-violet-400 hover:text-violet-300 transition-colors duration-200">
+									View all →
+								</button>
 							</Link>
 						</div>
-						<div className="grid grid-cols-5 gap-4">
-							{(user.badges || []).length > 0 ? (
-								user.badges.map((b, index) => <Badge className="scale-150 hover:scale-125 p-4" key={`badge-${index}`}>{b || 'Badge'}</Badge>)
-							) : (
-								<div className="text-center text-gray-400 col-span-5">No badges earned yet</div>
-							)}
-							{badges.map(badge => (
-								<Badge className="scale-150 hover:scale-125 p-4" key={badge.id}>
-									{badge.name}
-								</Badge>
-							))}
+					</div>
+					<div className="space-y-6">
+						<div>
+							<h3 className="text-sm font-medium text-violet-300 mb-3">Your Achievements</h3>
+							<div className="grid grid-cols-3 gap-4">
+								{user.badges && user.badges.length > 0 ? (
+									user.badges.map((badge, index) => (
+										<div key={`earned-${index}`} className="relative group">
+											<div className="bg-indigo-900/40 rounded-xl p-3 hover:bg-indigo-900/60 transition-all duration-300 transform hover:-translate-y-1">
+												<div className="flex flex-col items-center">
+													<div className="relative w-16 h-16 mb-2">
+														<Image
+															src={availableBadges.find(b => b.name === badge)?.image || "/badges/cup.png"}
+															alt={badge}
+															fill
+															className="object-contain"
+															onError={(e) => {
+																e.target.src = "/badges/cup.png";
+															}}
+														/>
+														<div className="absolute inset-0 bg-indigo-500/20 rounded-full animate-pulse"></div>
+													</div>
+													<span className="text-xs font-medium text-center text-white">{badge}</span>
+												</div>
+											</div>
+											<div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800/90 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap shadow-lg">
+												{availableBadges.find(b => b.name === badge)?.description || "Achievement badge"}
+											</div>
+										</div>
+									))
+								) : (
+									<div className="col-span-3 text-center text-gray-400 py-4 bg-gray-800/20 rounded-lg">
+										No badges earned yet
+									</div>
+								)}
+							</div>
 						</div>
 					</div>
 					<div className="border-0 rounded-lg border-violet-300 text-white bg-[#2a2a38] row-span-2 my-4 p-4">
@@ -361,7 +390,7 @@ const SDashboard = () => {
 						</div>
 						<div className="grid gap-2 p-2">
 							{(ongoingProjects || []).length > 0 ? (
-								ongoingProjects.map((p, index) => (
+								ongoingProjects.slice(0, 2).map((p, index) => (
 									<ProjectCard key={index} project={p || {}} />
 								))
 							) : (
