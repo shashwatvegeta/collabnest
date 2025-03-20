@@ -1,11 +1,9 @@
-
-
 import ChatPage from '../components/ChatPage';
 
 export default function ChatPageWrapper() {
     return (
-
-        <ChatPage />
-
+        <div className="w-full">
+            <ChatPage />
+        </div>
     );
 }
