@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 
 const ADMIN_INFO = {
-    name: 'Shashwat Kumar Singh',
+    name: 'Jyoti Shikha',
     role: 'PROFESSOR',
     email: 'jyotishikha2007@gmail.com',
-    id: '67d43bbaa0d1c77b0fb4aed6'
+    id: '67cde2e83c0958c938ef6210'
 };
 
 interface Project {
@@ -21,6 +21,7 @@ interface Project {
     start_date: string;
     end_date: string;
     tags: any[];
+    students_enrolled: any[];
 }
 
 interface DiscussionThread {
@@ -92,7 +93,7 @@ export default function ChatPage() {
 
     // Filter projects where the owner ID matches ADMIN_INFO.id
     const ongoingProjects = projects.filter((project) => {
-        return project.project_owner === ADMIN_INFO.id;
+        return project.students_enrolled.includes(ADMIN_INFO.id);
     });
 
     const fetchDiscussionThreads = async (projectId) => {
@@ -175,7 +176,6 @@ export default function ChatPage() {
             await fetchDiscussionThreads(activeProjectId);
             await fetchDiscussions(activeThreadId);
             setNewMessage('');
-
 
         } catch (error) {
             console.error('Error sending message:', error);

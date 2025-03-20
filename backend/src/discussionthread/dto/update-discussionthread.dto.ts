@@ -13,6 +13,11 @@ class ReplyDto {
     @IsOptional()
     @IsDate()
     created_at?: Date;
+    @IsString()
+    @IsNotEmpty()
+    created_by_username: string;
+
+
 }
 
 export class UpdateDiscussionthreadDto {

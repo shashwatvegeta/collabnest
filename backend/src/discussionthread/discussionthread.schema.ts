@@ -22,8 +22,9 @@ export class DiscussionThread extends Document {
     @Prop({ type: [Object], default: [] })
     replies: Array<{
         content: string;
-        created_by: mongoose.Schema.Types.ObjectId;
+        created_by: string;
         created_at: Date;
+        created_by_username: string;
     }>;
 }
 

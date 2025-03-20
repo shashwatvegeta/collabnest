@@ -8,8 +8,9 @@ export declare class DiscussionThread extends Document {
     created_by: mongoose.Schema.Types.ObjectId;
     replies: Array<{
         content: string;
-        created_by: mongoose.Schema.Types.ObjectId;
+        created_by: string;
         created_at: Date;
+        created_by_username: string;
     }>;
 }
 export declare const DiscussionThreadSchema: mongoose.Schema<DiscussionThread, mongoose.Model<DiscussionThread, any, any, any, Document<unknown, any, DiscussionThread> & DiscussionThread & Required<{
