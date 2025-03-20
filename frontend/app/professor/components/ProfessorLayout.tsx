@@ -19,7 +19,7 @@ export default function ProfessorLayout({ children }: ProfessorLayoutProps) {
                 </div>
 
                 <div className="flex flex-col items-center space-y-8">
-                    <Link href="/professor/dashboard" className="text-white p-2 rounded hover:bg-[#7c68ee33]">
+                    <Link href="/professor" className="text-white p-2 rounded hover:bg-[#7c68ee33]">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                             <rect x="3" y="3" width="7" height="7" rx="1" />
                             <rect x="14" y="3" width="7" height="7" rx="1" />

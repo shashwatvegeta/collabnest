@@ -167,7 +167,7 @@ export default function ProfessorDashboard() {
                     <div className="bg-indigo-500 bg-opacity-20 p-6 rounded-lg">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-white text-xl font-semibold">Ongoing Projects</h2>
-                            <Link href="/projects">
+                            <Link href="/professor/projects">
                                 <button className="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded-md text-sm">
                                     View all →
                                 </button>
@@ -203,7 +203,7 @@ export default function ProfessorDashboard() {
                                                     <p className="text-gray-400 text-sm">{project.description}</p>
                                                 </div>
                                             </div>
-                                            <Link href={`/project/${project._id}`}>
+                                            <Link href={`/professor/projects/${project._id}`}>
                                                 <button className="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded-md text-xs">
                                                     View Details
                                                 </button>

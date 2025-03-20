@@ -244,8 +244,8 @@ export default function ChatPage() {
 
     return (
         <div className="flex h-screen bg-gray-900 text-gray-100">
-            {/* Projects list section */}
-            <div className="w-80 border-r border-gray-800 overflow-y-auto">
+            {/* Projects list section - adjusted to position after the main sidebar */}
+            <div className="w-80 border-r border-gray-800 overflow-y-auto fixed left-64 top-0 bottom-0 z-10">
                 <div className="flex justify-between items-center p-5">
                     <h2 className="text-xl font-semibold">Projects</h2>
                     <button className="p-2 rounded-full hover:bg-gray-800 transition-colors">
@@ -282,8 +282,8 @@ export default function ChatPage() {
                 </div>
             </div>
 
-            {/* Discussion content section */}
-            <div className="flex flex-col flex-1">
+            {/* Discussion content section - adjusted margin to account for both sidebars */}
+            <div className="flex flex-col flex-1 ml-[36rem]">
                 {/* Project header */}
                 {activeProject && (
                     <div className="flex items-center justify-between p-4 border-b border-gray-800">
