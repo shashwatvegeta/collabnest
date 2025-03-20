@@ -15,6 +15,7 @@ const SDashboard = () => {
 	const [name, setName] = useState("Loading...");
 	const [email, setEmail] = useState("Loading...");
 	const [userId, setUserId] = useState(null);
+	const [allProjects, setAllProjects] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [levelData, setLevelData] = useState(null);
@@ -79,7 +80,10 @@ const SDashboard = () => {
 				});
 
 				setOngoingProjects(projects || []);
-				setRecommendedProjects(projects || []);
+				const allProj=await fetchProjectData();
+				const recommendations = getRecommendations(projects, allProj)
+				console.log(recommendations)
+				setRecommendedProjects(recommendations || []);
 
 				if (userData && userData._id) {
 					console.log("User ID from API:", userData._id);
@@ -133,7 +137,6 @@ const SDashboard = () => {
 					});
 
 					setOngoingProjects(projects || []);
-					setRecommendedProjects(projects || []);
 				} else {
 					console.error("Failed to get valid user ID:", userData);
 				}
@@ -147,7 +150,64 @@ const SDashboard = () => {
 
 		loadUserData();
 	}, [isAuthenticated]);
-
+	const getRecommendations = (userProjects, allProjectsLocal) => {
+		// console.log(userProjects);
+		// console.log(allProjectsLocal);
+		let userTags = [];
+		let userProjIds = [];
+	
+		for (let proj of userProjects) {
+		  // console.log(proj.tags);
+		  userTags = userTags.concat(proj.tags);
+		  userProjIds.push(proj._id);
+		}
+		for (let i = 0; i < userTags.length; i++) {
+		  userTags[i] = userTags[i].toLowerCase();
+		}
+		for (let i = 0; i < allProjectsLocal.length; i++) {
+		  let proj = allProjectsLocal[i];
+		  // console.log(userProjIds, proj, proj.id, userProjIds.includes(proj.id));
+		  if (userProjIds.includes(proj.id)) {
+			allProjectsLocal[i].similarity = -100;
+			continue;
+		  }
+		  proj.similarity = 0;
+		  for (let tag of proj.tags) {
+			let tagLower = tag.toLowerCase();
+			// console.log(userTags.includes(tagLower), "saala", tagLower, userTags);
+			if (userTags.includes(tagLower)) {
+			  // console.log(allProjectsLocal[i]);
+			  allProjectsLocal[i].similarity++;
+			  // console.log(allProjectsLocal[i]);
+			}
+		  }
+		}
+		allProjectsLocal.sort((a, b) => {
+		  return b.similarity - a.similarity;
+		});
+		console.log(allProjectsLocal, userTags);
+		return allProjectsLocal.slice(0, 5);
+	  };
+	
+	  async function fetchProjectData() {
+		const response = await fetch("http://localhost:3001/project");
+		if (response.ok) {
+		  const projects = await response.json();
+		  // console.log(projects)
+		  const formattedProjects = projects.map((project) => ({
+			id: project._id,
+			name: project.project_name || "Untitled Project",
+			desc: project.description || "No description available",
+			level: project.level || "Beginner",
+			logo: project.logo || "PanelTop",
+			tags: project.tags || [],
+			mentor: project.project_owner || "Rajiv Mishra",
+		  }));
+		  console.log("am i being too arrogant?", formattedProjects);
+		  setAllProjects(formattedProjects);
+		  return formattedProjects;
+		}
+	  }
 	// When levelData changes, update the user object with new level info
 	useEffect(() => {
 		if (levelData && userId) {
