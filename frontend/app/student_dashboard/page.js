@@ -43,66 +43,67 @@ const SDashboard = () => {
 				setEmail(userEmail);
 
 				// Fetch user data
-                const userData = await fetchUserData(userEmail).catch(err => {
-                    console.error('Error fetching user data:', err);
-                    return {}; // Default empty object if fetch fails
-                });
-                
-                if (userData && userData._id) {
-                    console.log("User ID from API:", userData._id);
-                    setUserId(userData._id);
-                    
-                    // Fetch user level data from gamification service
-                    try {
-                        const levelResponse = await fetch(`http://localhost:3001/users/${userData._id}/gamification/level`);
-                        if (levelResponse.ok) {
-                            const levelInfo = await levelResponse.json();
-                            console.log("Fetched level data:", levelInfo);
-                            setLevelData(levelInfo);
-                        } else {
-                            console.error("Failed to fetch level data:", await levelResponse.text());
-                        }
-                    } catch (levelErr) {
-                        console.error("Error fetching level data:", levelErr);
-                    }
-                } else {
-                    console.error("Failed to get valid user ID:", userData);
-                }
-                
-                // Fetch projects and achievements in parallel
-                const [projects, achievements] = await Promise.all([
-                    fetchUserProjects(userData?.projects || []).catch(err => {
-                        console.error('Error fetching user projects:', err);
-                        return []; // Return empty array if projects fetch fails
-                    }),
-                    fetchUserAchievements(userData?._id || '').catch(err => {
-                        console.error('Error fetching user achievements:', err);
-                        return []; // Return empty array if achievements fetch fails
-                    })
-                ]);
+				const userData = await fetchUserData(userEmail).catch(err => {
+					console.error('Error fetching user data:', err);
+					return {}; // Default empty object if fetch fails
+				});
+				
+				if (userData && userData._id) {
+					console.log("User ID from API:", userData._id);
+					setUserId(userData._id);
+					
+					// Fetch user level data from gamification service
+					let levelInfo = null;
+					try {
+						const levelResponse = await fetch(`http://localhost:3001/users/${userData._id}/gamification/level`);
+						if (levelResponse.ok) {
+							levelInfo = await levelResponse.json();
+							console.log("Fetched level data:", levelInfo);
+							setLevelData(levelInfo);
+						} else {
+							console.error("Failed to fetch level data:", await levelResponse.text());
+						}
+					} catch (levelErr) {
+						console.error("Error fetching level data:", levelErr);
+					}
 
-                // Calculate level progression based on XP and nextLevelXP
-                const level = levelData?.level || 1;
-                const xp = levelData?.xp || 0;
-                const nextLevelXp = levelData?.nextLevelXp || 600;
-                const levelProgression = nextLevelXp > 0 ? xp / nextLevelXp : 0;
+					// Fetch projects and achievements in parallel
+					const [projects, achievements] = await Promise.all([
+						fetchUserProjects(userData?.projects || []).catch(err => {
+							console.error('Error fetching user projects:', err);
+							return []; // Return empty array if projects fetch fails
+						}),
+						fetchUserAchievements(userData?._id || '').catch(err => {
+							console.error('Error fetching user achievements:', err);
+							return []; // Return empty array if achievements fetch fails
+						})
+					]);
 
-                setUser({
-                    ...userData,
-                    name: userName || 'User',
-                    type: "Student",
-                    email: userEmail || 'No email available',
-                    tel: userData?.phone || "1010101",
-                    pfp_src: userData?.profilePicture || "/user_placeholder.png",
-                    level: level,
-                    level_progression: levelProgression,
-                    xp: xp,
-                    nextLevelXp: nextLevelXp,
-                    badges: (achievements || []).map(a => a?.title || 'Unnamed Badge'),
-                });
+					// Calculate level progression based on XP and nextLevelXP
+					const level = levelInfo?.level || 1;
+					const xp = levelInfo?.xp || 0;
+					const nextLevelXp = levelInfo?.nextLevelXp || 600;
+					const levelProgression = nextLevelXp > 0 ? xp / nextLevelXp : 0;
 
-                setOngoingProjects(projects || []);
-                setRecommendedProjects(projects || []);
+					setUser({
+						...userData,
+						name: userName || 'User',
+						type: "Student",
+						email: userEmail || 'No email available',
+						tel: userData?.phone || "1010101",
+						pfp_src: userData?.profilePicture || "/user_placeholder.png",
+						level: level,
+						level_progression: levelProgression,
+						xp: xp,
+						nextLevelXp: nextLevelXp,
+						badges: (achievements || []).map(a => a?.title || 'Unnamed Badge'),
+					});
+
+					setOngoingProjects(projects || []);
+					setRecommendedProjects(projects || []);
+				} else {
+					console.error("Failed to get valid user ID:", userData);
+				}
 			} catch (err) {
 				setError(err.message);
 				console.error('Error loading user data:', err);
