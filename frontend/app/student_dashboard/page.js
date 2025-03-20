@@ -7,21 +7,86 @@ import Link from "next/link";
 import { getEmail, getName, getBatch, getRollNumber } from "@/lib/auth_utility";
 import { useIsAuthenticated } from "@azure/msal-react";
 import { redirect } from "next/navigation";
-import { fetchUserData, fetchUserProjects, fetchRecommendedProjects, fetchUserAchievements } from "@/lib/api";
+import {
+  fetchUserData,
+  fetchUserProjects,
+  fetchRecommendedProjects,
+  fetchUserAchievements,
+} from "@/lib/api";
 import XpLevelDisplay from "@/components/XpLevelDisplay";
 
 const SDashboard = () => {
-	const [user, setUser] = useState({});
-	const [name, setName] = useState("Loading...");
-	const [email, setEmail] = useState("Loading...");
-	const [userId, setUserId] = useState(null);
-	const [isLoading, setIsLoading] = useState(true);
-	const [error, setError] = useState(null);
-	const [levelData, setLevelData] = useState(null);
+  const [user, setUser] = useState({});
+  const [name, setName] = useState("Loading...");
+  const [email, setEmail] = useState("Loading...");
+  const [userId, setUserId] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [levelData, setLevelData] = useState(null);
+  const [allProjects, setAllProjects] = useState([]);
 
-	const [recommendedProjects, setRecommendedProjects] = useState([]);
-	const [ongoingProjects, setOngoingProjects] = useState([]);
-	const isAuthenticated = useIsAuthenticated();
+  const [recommendedProjects, setRecommendedProjects] = useState([]);
+  const [ongoingProjects, setOngoingProjects] = useState([]);
+  const isAuthenticated = useIsAuthenticated();
+
+  const getRecommendations = (userProjects, allProjectsLocal) => {
+    // console.log(userProjects);
+    // console.log(allProjectsLocal);
+    let userTags = [];
+    let userProjIds = [];
+
+    for (let proj of userProjects) {
+      // console.log(proj.tags);
+      userTags = userTags.concat(proj.tags);
+      userProjIds.push(proj._id);
+    }
+    for (let i = 0; i < userTags.length; i++) {
+      userTags[i] = userTags[i].toLowerCase();
+    }
+    for (let i = 0; i < allProjectsLocal.length; i++) {
+      let proj = allProjectsLocal[i];
+      // console.log(userProjIds, proj, proj.id, userProjIds.includes(proj.id));
+      if (userProjIds.includes(proj.id)) {
+        allProjectsLocal[i].similarity = -100;
+        continue;
+      }
+      proj.similarity = 0;
+      for (let tag of proj.tags) {
+        let tagLower = tag.toLowerCase();
+        // console.log(userTags.includes(tagLower), "saala", tagLower, userTags);
+        if (userTags.includes(tagLower)) {
+          // console.log(allProjectsLocal[i]);
+          allProjectsLocal[i].similarity++;
+          // console.log(allProjectsLocal[i]);
+        }
+      }
+    }
+    allProjectsLocal.sort((a, b) => {
+      return b.similarity - a.similarity;
+    });
+    console.log(allProjectsLocal, userTags);
+    return allProjectsLocal.slice(0, 5);
+  };
+
+  async function fetchProjectData() {
+    const response = await fetch("http://localhost:3001/project");
+    if (response.ok) {
+      const projects = await response.json();
+      // console.log(projects)
+      const formattedProjects = projects.map((project) => ({
+        id: project._id,
+        name: project.project_name || "Untitled Project",
+        desc: project.description || "No description available",
+        level: project.level || "Beginner",
+        logo: project.logo || "PanelTop",
+        tags: project.tags || [],
+        mentor: project.project_owner || "Rajiv Mishra",
+      }));
+      console.log("am i being too arrogant?", formattedProjects);
+      setAllProjects(formattedProjects);
+      return formattedProjects;
+    }
+  }
 
 	const badges = [
 		{ id: 1, name: "First Project", image: "/badges/first-project.png" },
@@ -100,88 +165,93 @@ const SDashboard = () => {
 						console.error("Error fetching level data:", levelErr);
 					}
 
-					// Fetch projects and achievements in parallel
-					const [projects, achievements] = await Promise.all([
-						fetchUserProjects(userData?.projects || []).catch(err => {
-							console.error('Error fetching user projects:', err);
-							return []; // Return empty array if projects fetch fails
-						}),
-						fetchUserAchievements(userData?._id || '').catch(err => {
-							console.error('Error fetching user achievements:', err);
-							return []; // Return empty array if achievements fetch fails
-						})
-					]);
+          // Fetch projects and achievements in parallel
+          const [projects, achievements] = await Promise.all([
+            fetchUserProjects(userData?.projects || []).catch((err) => {
+              console.error("Error fetching user projects:", err);
+              return []; // Return empty array if projects fetch fails
+            }),
+            fetchUserAchievements(userData?._id || "").catch((err) => {
+              console.error("Error fetching user achievements:", err);
+              return []; // Return empty array if achievements fetch fails
+            }),
+          ]);
 
-					// Calculate level progression based on XP and nextLevelXP
-					const level = levelInfo?.level || 1;
-					const xp = levelInfo?.xp || 0;
-					const nextLevelXp = levelInfo?.nextLevelXp || 600;
-					const levelProgression = nextLevelXp > 0 ? xp / nextLevelXp : 0;
+          // Calculate level progression based on XP and nextLevelXP
+          const level = levelInfo?.level || 1;
+          const xp = levelInfo?.xp || 0;
+          const nextLevelXp = levelInfo?.nextLevelXp || 600;
+          const levelProgression = nextLevelXp > 0 ? xp / nextLevelXp : 0;
 
-					setUser({
-						...userData,
-						name: userName || 'User',
-						type: "Student",
-						email: userEmail || 'No email available',
-						tel: userData?.phone || "1010101",
-						pfp_src: userData?.profilePicture || "/user_placeholder.png",
-						level: level,
-						level_progression: levelProgression,
-						xp: xp,
-						nextLevelXp: nextLevelXp,
-						badges: (achievements || []).map(a => a?.title || 'Unnamed Badge'),
-					});
+          setUser({
+            ...userData,
+            name: userName || "User",
+            type: "Student",
+            email: userEmail || "No email available",
+            tel: userData?.phone || "1010101",
+            pfp_src: userData?.profilePicture || "/user_placeholder.png",
+            level: level,
+            level_progression: levelProgression,
+            xp: xp,
+            nextLevelXp: nextLevelXp,
+            badges: (achievements || []).map(
+              (a) => a?.title || "Unnamed Badge"
+            ),
+          });
+          const allproj = await fetchProjectData();
 
-					setOngoingProjects(projects || []);
-					setRecommendedProjects(projects || []);
-				} else {
-					console.error("Failed to get valid user ID:", userData);
-				}
-			} catch (err) {
-				setError(err.message);
-				console.error('Error loading user data:', err);
-			} finally {
-				setIsLoading(false);
-			}
-		};
+          setOngoingProjects(projects || []);
+          const recommendations = getRecommendations(projects, allproj);
+          setRecommendedProjects(recommendations || []);
+        } else {
+          console.error("Failed to get valid user ID:", userData);
+        }
+      } catch (err) {
+        setError(err.message);
+        console.error("Error loading user data:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-		loadUserData();
-	}, [isAuthenticated]);
+    loadUserData();
+  }, [isAuthenticated]);
 
-	// When levelData changes, update the user object with new level info
-	useEffect(() => {
-		if (levelData && userId) {
-			const level = levelData.level || 1;
-			const xp = levelData.xp || 0;
-			const nextLevelXp = levelData.nextLevelXp || 600;
-			const levelProgression = nextLevelXp > 0 ? xp / nextLevelXp : 0;
-			
-			setUser(prevUser => ({
-				...prevUser,
-				level: level,
-				level_progression: levelProgression,
-				xp: xp,
-				nextLevelXp: nextLevelXp
-			}));
-		}
-	}, [levelData, userId]);
+  // When levelData changes, update the user object with new level info
+  useEffect(() => {
+    if (levelData && userId) {
+      const level = levelData.level || 1;
+      const xp = levelData.xp || 0;
+      const nextLevelXp = levelData.nextLevelXp || 600;
+      const levelProgression = nextLevelXp > 0 ? xp / nextLevelXp : 0;
 
-	if (isLoading) {
-		return (
-			<div className="flex items-center justify-center min-h-screen">
-				<div className="text-white text-xl">Loading...</div>
-			</div>
-		);
-	}
+      setUser((prevUser) => ({
+        ...prevUser,
+        level: level,
+        level_progression: levelProgression,
+        xp: xp,
+        nextLevelXp: nextLevelXp,
+      }));
+    }
+  }, [levelData, userId]);
 
-	if (error) {
-		return (
-			<div className="flex items-center justify-center min-h-screen">
-				<div className="text-red-500 text-xl">Error: {error}</div>
-			</div>
-		);
-	}
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
 
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-red-500 text-xl">Error: {error}</div>
+      </div>
+    );
+  }
+
+  
 	return (
 		<div className="p-8 h-screen">
 			<div className="text-3xl text-violet-400 p-4 font-light">Dashboard</div>

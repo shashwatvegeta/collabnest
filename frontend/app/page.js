@@ -6,6 +6,7 @@ import Navbar from "../components/navbar";
 import HowItWorks from "../components/HowItWorks";
 import { useIsAuthenticated, useMsal } from "@azure/msal-react";
 import { redirect } from "next/navigation";
+import { getEmail, getName, getRollNumber } from "@/lib/auth_utility";
 
 const Home = () => {
   const isAuthenticated = useIsAuthenticated();
@@ -13,15 +14,56 @@ const Home = () => {
   const initializeSignIn = (url) => {
     instance.loginRedirect();
   };
-  // useEffect(() => {
-  //   if (isAuthenticated) {
-  //     // alert(isAuthenticated);
-  //     // alert(redirectURL);
-  //     if (redirectURL != "") {
-  //       redirect(redirectURL);
-  //     }
-  //   }
-  // }, [isAuthenticated, redirectURL]);
+  const createNewUser = () => {
+    fetch("http://localhost:3001/users", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: getName(),
+        password: "_",
+        email: getEmail(),
+        isVerified: true,
+        roll_number: getRollNumber(),
+        user_type: "student",
+      }),
+    }).then((response) => {
+      if (response.status == 200) {
+        alert("user created");
+      }
+    });
+  };
+  useEffect(() => {
+    if (isAuthenticated) {
+      // alert(isAuthenticated);
+      // alert(redirectURL);
+      fetch("http://localhost:3001/users/" + getEmail(), {
+        method: "GET",
+      }).then((response) => {
+        const contentType = response.headers.get("content-type");
+
+        if (contentType && contentType.includes("application/json")) {
+          // For JSON responses
+          response.json().then((data) => {
+            if (!data) {
+              //create new user
+
+              createNewUser();
+            }
+          });
+        } else {
+          // For text or other responses
+          response.text().then((data) => {
+            if (data.trim() == "") {
+              //create new user;
+              createNewUser();
+            }
+          });
+        }
+      });
+    }
+  }, [isAuthenticated]);
   return (
     <div>
       <div
