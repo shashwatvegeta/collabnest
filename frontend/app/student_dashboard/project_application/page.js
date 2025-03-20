@@ -11,6 +11,8 @@ export default function ProjectApplication() {
 	const desc = searchParams.get("desc") || "No description available";
 	const level = searchParams.get("level") || "Beginner";
 	const mentor = searchParams.get("mentor") || "Unknown";
+	const tagsParam = searchParams.get("tags");
+	const tags = tagsParam ? JSON.parse(decodeURIComponent(tagsParam)) : [];
 	const [project, setProject] = useState({});
 
 	useEffect(() => {
@@ -21,7 +23,7 @@ export default function ProjectApplication() {
 			desc,
 			level,
 			mentor,
-			tags: [] // We could pass tags as a comma-separated string and split here
+			tags
 		});
 
 		// Optional: Fetch additional project details if needed
@@ -33,7 +35,7 @@ export default function ProjectApplication() {
 		//   }
 		// }
 		// fetchProjectDetails();
-	}, [id, name, desc, level, mentor]);
+	}, [id, name, desc, level, mentor, tags]);
 
 	function isValidURL(str) {
 		try {
@@ -81,6 +83,20 @@ export default function ProjectApplication() {
 			<div className="text-xl text-white font-light p-4">{project.desc}</div>
 			<div className="text-lg text-gray-300 p-4">
 				Difficulty: {project.level}
+			</div>
+			<div className="flex flex-wrap gap-2 p-4">
+				{project.tags && project.tags.length > 0 ? (
+					project.tags.map((tag, index) => (
+						<span 
+							key={index} 
+							className="inline-block bg-violet-900/60 text-violet-200 px-3 py-1 rounded-full text-sm"
+						>
+							{tag}
+						</span>
+					))
+				) : (
+					<span className="text-gray-400 text-sm">No tags available</span>
+				)}
 			</div>
 			<div className="text-lg text-gray-300 p-4">
 				<textarea id="resumeLink"

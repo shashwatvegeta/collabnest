@@ -4,51 +4,33 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 
 const find_projects = () => {
-	const [recommendedProjects, setRecommendedProjects] = useState([]);
-	const [filteredProjects, setFilteredProjects] = useState(recommendedProjects);
+	const [projects, setProjects] = useState([]);
+	const [filteredProjects, setFilteredProjects] = useState([]);
 	const [searchQuery, setSearchQuery] = useState("");
+
 	const handleSearch = (e) => {
-		const value = e.target.value;
+		const value = e.target.value.toLowerCase();
 		setSearchQuery(value);
 
-		const filteredData = recommendedProjects.filter((item) =>
-			item.name.toLowerCase().includes(value.toLowerCase()),
-		);
+		const filteredData = projects.filter((item) => {
+			const searchableFields = [
+				item.name,
+				item.desc,
+				...(item.tags || [])
+			];
+			return searchableFields.some(field => 
+				field.toLowerCase().includes(value)
+			);
+		});
 
 		setFilteredProjects(filteredData);
 	};
-	// useEffect(() => {
-	// 	setRecommendedProjects([
-	// 		{
-	// 			id: 1,
-	// 			name: "Web Development Portfolio",
-	// 			desc: "Create a personal portfolio showcasing your projects",
-	// 			level: "Intermediate",
-	// 			logo: "PanelTop",
-	// 			tags: ["Development"],
-	// 		},
-	// 		{
-	// 			id: 2,
-	// 			name: "API Integration Project",
-	// 			desc: "Build an Application that integrates external APIs",
-	// 			level: "Advanced",
-	// 			logo: "PanelTop",
-	// 		},
-	// 		{
-	// 			id: 3,
-	// 			name: "API Integration Project",
-	// 			desc: "Build an Application that integrates external APIs",
-	// 			level: "Advanced",
-	// 			logo: "PanelTop",
-	// 		},
-	// 	]);
-	// }, []);
+
 	useEffect(() => {
 		async function fetchProjectData() {
 			const response = await fetch("http://localhost:3001/project");
 			if (response.ok) {
 				const projects = await response.json();
-				// console.log(projects)
 				const formattedProjects = projects.map((project) => ({
 					id: project._id,
 					name: project.project_name || "Untitled Project",
@@ -58,12 +40,29 @@ const find_projects = () => {
 					tags: project.tags || [],
 					mentor: project.project_owner || "Rajiv Mishra"
 				}));
+				setProjects(formattedProjects);
 				setFilteredProjects(formattedProjects);
 			}
 		}
 		fetchProjectData();
-		// setFilteredProjects(recommendedProjects);
-	}, [recommendedProjects]);
+	}, []);
+
+	// Update filtered projects when search query changes
+	useEffect(() => {
+		const value = searchQuery.toLowerCase();
+		const filteredData = projects.filter((item) => {
+			const searchableFields = [
+				item.name,
+				item.desc,
+				...(item.tags || [])
+			];
+			return searchableFields.some(field => 
+				field.toLowerCase().includes(value)
+			);
+		});
+		setFilteredProjects(filteredData);
+	}, [searchQuery, projects]);
+
 	return (
 		<div className="p-6 h-screen">
 			<div className="text-4xl text-violet-400 p-4 font-light">Projects</div>
@@ -82,7 +81,7 @@ const find_projects = () => {
 				</div>
 				{filteredProjects.map((p) => (
 					<Link
-						href={`/student_dashboard/project_application?id=${p.id}&name=${encodeURIComponent(p.name)}&desc=${encodeURIComponent(p.desc)}&level=${encodeURIComponent(p.level)}&mentor=${encodeURIComponent(p.mentor)}`}
+						href={`/student_dashboard/project_application?id=${p.id}&name=${encodeURIComponent(p.name)}&desc=${encodeURIComponent(p.desc)}&level=${encodeURIComponent(p.level)}&mentor=${encodeURIComponent(p.mentor)}&tags=${encodeURIComponent(JSON.stringify(p.tags))}`}
 						key={p.id}
 					>
 						<ProjectDisplayCard {...p} />
