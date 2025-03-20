@@ -1,9 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { ProjectCard } from "@/components/ui/project_card";
 import { getEmail } from "@/lib/auth_utility";
 import { useIsAuthenticated } from "@azure/msal-react";
 import { useRouter } from "next/navigation";
+import tagsData from "@/components/tags.json";
 
 export default function MentorProjects() {
   const [projects, setProjects] = useState([]);
@@ -16,6 +17,10 @@ export default function MentorProjects() {
   const [successMessage, setSuccessMessage] = useState("");
   const isAuthenticated = useIsAuthenticated();
   const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [isTagsDropdownOpen, setIsTagsDropdownOpen] = useState(false);
+  const tagsDropdownRef = useRef(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -23,12 +28,28 @@ export default function MentorProjects() {
     description: "",
     cap: 1,
     start_date: "",
-    end_date: ""
+    end_date: "",
+    tags: []
   });
 
   useEffect(() => {
     setEmail(getEmail());
   }, []);
+
+  useEffect(() => {
+    // Handle click outside to close tags dropdown
+    const handleClickOutside = (event) => {
+      if (tagsDropdownRef.current && !tagsDropdownRef.current.contains(event.target)) {
+        setIsTagsDropdownOpen(false);
+        setSearchTerm("");
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [tagsDropdownRef]);
 
   useEffect(() => {
     if (email) {
@@ -91,6 +112,26 @@ export default function MentorProjects() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleTagSelect = (tag) => {
+    if (!selectedTags.includes(tag)) {
+      const newSelectedTags = [...selectedTags, tag];
+      setSelectedTags(newSelectedTags);
+      setFormData(prev => ({ ...prev, tags: newSelectedTags }));
+    }
+    setSearchTerm("");
+    setIsTagsDropdownOpen(false);
+  };
+
+  const handleRemoveTag = (tag) => {
+    const newSelectedTags = selectedTags.filter(t => t !== tag);
+    setSelectedTags(newSelectedTags);
+    setFormData(prev => ({ ...prev, tags: newSelectedTags }));
+  };
+
+  const filteredTags = tagsData.tags
+    .filter(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+    .filter(tag => !selectedTags.includes(tag));
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -126,8 +167,10 @@ export default function MentorProjects() {
         description: "",
         cap: 1,
         start_date: "",
-        end_date: ""
+        end_date: "",
+        tags: []
       });
+      setSelectedTags([]);
       
       // Fetch updated projects
       fetchProjects();
@@ -217,6 +260,25 @@ export default function MentorProjects() {
                     </div>
                   </div>
                   
+                  {/* Display project tags */}
+                  {project.tags && project.tags.length > 0 && (
+                    <div className="mb-3">
+                      <span className="block text-xs text-violet-400 mb-1">Technologies</span>
+                      <div className="flex flex-wrap gap-1">
+                        {project.tags.slice(0, 3).map((tag, idx) => (
+                          <span key={idx} className="text-xs px-2 py-1 bg-indigo-900/40 text-indigo-300 rounded-full">
+                            {tag}
+                          </span>
+                        ))}
+                        {project.tags.length > 3 && (
+                          <span className="text-xs px-2 py-1 bg-indigo-900/40 text-indigo-300 rounded-full">
+                            +{project.tags.length - 3} more
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
                   <button 
                     onClick={() => router.push(`/mentor/projects/${project._id}`)}
                     className="w-full mt-2 px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-500 transition-colors duration-300"
@@ -249,114 +311,164 @@ export default function MentorProjects() {
               <h3>Create New Project</h3>
               <button 
                 onClick={() => setIsShowModal(false)}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-gray-300 hover:text-white transition-colors"
               >
-                ✕
+                &times;
               </button>
             </div>
-
-            {successMessage && (
-              <div className="p-4 bg-green-600/20 border-l-4 border-green-600 text-green-100 my-2 mx-4">
-                {successMessage}
+            
+            <form onSubmit={handleSubmit} className="p-6">
+              {errorMessage && (
+                <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 text-red-300 rounded-lg">
+                  {errorMessage}
+                </div>
+              )}
+              
+              {successMessage && (
+                <div className="mb-4 p-3 bg-green-500/20 border border-green-500/30 text-green-300 rounded-lg">
+                  {successMessage}
+                </div>
+              )}
+              
+              <div className="mb-4">
+                <label htmlFor="project_name" className="block text-violet-300 mb-1">Project Name</label>
+                <input
+                  type="text"
+                  id="project_name"
+                  name="project_name"
+                  value={formData.project_name}
+                  onChange={handleChange}
+                  required
+                  className="w-full p-2 bg-[#1e1e2d] border-2 border-violet-500/30 rounded-lg text-white focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                />
               </div>
-            )}
-
-            {errorMessage && (
-              <div className="p-4 bg-red-600/20 border-l-4 border-red-600 text-red-100 my-2 mx-4">
-                {errorMessage}
+              
+              <div className="mb-4">
+                <label htmlFor="description" className="block text-violet-300 mb-1">Description</label>
+                <textarea
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  required
+                  className="w-full p-2 bg-[#1e1e2d] border-2 border-violet-500/30 rounded-lg text-white focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 min-h-[100px]"
+                ></textarea>
               </div>
-            )}
 
-            <form onSubmit={handleSubmit} className="p-4">
-              <div className="grid grid-cols-1 gap-5">
-                <div>
-                  <label className="block text-violet-300 mb-1">Project Name*</label>
+              <div className="mb-4">
+                <label htmlFor="tags" className="block text-violet-300 mb-1">Project Tags</label>
+                <div className="relative" ref={tagsDropdownRef}>
                   <input
                     type="text"
-                    name="project_name"
-                    value={formData.project_name}
-                    onChange={handleChange}
-                    required
-                    minLength={3}
-                    maxLength={100}
-                    className="w-full p-2 rounded bg-indigo-900/40 border border-violet-400/50 text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
-                    placeholder="Enter project name"
+                    id="tags"
+                    name="tags"
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setIsTagsDropdownOpen(true);
+                    }}
+                    onFocus={() => setIsTagsDropdownOpen(true)}
+                    placeholder="Search for technologies..."
+                    className="w-full p-2 bg-[#1e1e2d] border-2 border-violet-500/30 rounded-lg text-white focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
                   />
+                  
+                  {isTagsDropdownOpen && (
+                    <div className="absolute z-10 mt-1 w-full max-h-60 overflow-auto bg-[#2a2a38] border-2 border-violet-500/30 rounded-lg shadow-lg">
+                      {filteredTags.length > 0 ? (
+                        filteredTags.slice(0, 10).map((tag, index) => (
+                          <div 
+                            key={index} 
+                            className="p-2 hover:bg-violet-500/20 cursor-pointer text-white transition-colors"
+                            onClick={() => handleTagSelect(tag)}
+                          >
+                            {tag}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-3 text-sm text-gray-400">
+                          {searchTerm ? "No matching technologies found" : "Start typing to search technologies"}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-
+                
+                {selectedTags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {selectedTags.map((tag, index) => (
+                      <div key={index} className="bg-violet-500/20 text-violet-300 px-2 py-1 rounded-full text-sm flex items-center border border-violet-500/30">
+                        {tag}
+                        <button 
+                          type="button"
+                          onClick={() => handleRemoveTag(tag)} 
+                          className="ml-2 text-violet-300 hover:text-white transition-colors"
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="block text-violet-300 mb-1">Description*</label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    required
-                    minLength={10}
-                    maxLength={1000}
-                    rows={4}
-                    className="w-full p-2 rounded bg-indigo-900/40 border border-violet-400/50 text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
-                    placeholder="Describe your project (min 10 characters)"
-                  ></textarea>
-                </div>
-
-                <div>
-                  <label className="block text-violet-300 mb-1">Student Capacity*</label>
+                  <label htmlFor="cap" className="block text-violet-300 mb-1">Max Students</label>
                   <input
                     type="number"
+                    id="cap"
                     name="cap"
+                    min="1"
+                    max="10"
                     value={formData.cap}
                     onChange={handleChange}
                     required
-                    min={1}
-                    className="w-full p-2 rounded bg-indigo-900/40 border border-violet-400/50 text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    className="w-full p-2 bg-[#1e1e2d] border-2 border-violet-500/30 rounded-lg text-white focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
                   />
                 </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-violet-300 mb-1">Start Date*</label>
-                    <input
-                      type="date"
-                      name="start_date"
-                      value={formData.start_date}
-                      onChange={handleChange}
-                      required
-                      className="w-full p-2 rounded bg-indigo-900/40 border border-violet-400/50 text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-violet-300 mb-1">End Date*</label>
-                    <input
-                      type="date"
-                      name="end_date"
-                      value={formData.end_date}
-                      onChange={handleChange}
-                      required
-                      className="w-full p-2 rounded bg-indigo-900/40 border border-violet-400/50 text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
-                    />
-                  </div>
+                
+                <div>
+                  <label htmlFor="start_date" className="block text-violet-300 mb-1">Start Date</label>
+                  <input
+                    type="date"
+                    id="start_date"
+                    name="start_date"
+                    value={formData.start_date}
+                    onChange={handleChange}
+                    required
+                    className="w-full p-2 bg-[#1e1e2d] border-2 border-violet-500/30 rounded-lg text-white focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  />
                 </div>
-
-                <div className="text-sm text-violet-200 italic">
-                  Your project will be created with a "pending" approval status.
+                
+                <div>
+                  <label htmlFor="end_date" className="block text-violet-300 mb-1">End Date</label>
+                  <input
+                    type="date"
+                    id="end_date"
+                    name="end_date"
+                    value={formData.end_date}
+                    onChange={handleChange}
+                    required
+                    className="w-full p-2 bg-[#1e1e2d] border-2 border-violet-500/30 rounded-lg text-white focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  />
                 </div>
-
-                <div className="flex justify-end gap-3 mt-3">
-                  <button
-                    type="button"
-                    onClick={() => setIsShowModal(false)}
-                    className="px-5 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className={`px-5 py-2 bg-violet-600 text-white rounded hover:bg-violet-500 transition-colors ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
-                  >
-                    {isSubmitting ? 'Creating...' : 'Create Project'}
-                  </button>
-                </div>
+              </div>
+              
+              <div className="flex justify-end mt-6 space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setIsShowModal(false)}
+                  className="px-4 py-2 border border-gray-500 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                >
+                  {isSubmitting ? 'Creating...' : 'Create Project'}
+                </button>
               </div>
             </form>
           </div>

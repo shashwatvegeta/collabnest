@@ -32,7 +32,7 @@ __decorate([
     __metadata("design:type", Number)
 ], UserLevel.prototype, "xp", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
+    (0, mongoose_1.Prop)({ default: 600 }),
     __metadata("design:type", Number)
 ], UserLevel.prototype, "nextLevelXp", void 0);
 exports.UserLevel = UserLevel = __decorate([

@@ -1,17 +1,12 @@
 import { Model } from 'mongoose';
-import { UserLevel, UserLevelDocument } from './schemas/user-level.schema';
+import { UserLevelDocument } from './schemas/user-level.schema';
 import { UpdateLevelDto } from './dto/update-level.dto';
 export declare class GamificationService {
     private userLevelModel;
+    private readonly logger;
     constructor(userLevelModel: Model<UserLevelDocument>);
-    getUserLevel(userId: string): Promise<(import("mongoose").Document<unknown, {}, UserLevelDocument> & UserLevel & import("mongoose").Document<unknown, any, any> & Required<{
-        _id: unknown;
-    }> & {
-        __v: number;
-    }) | null>;
-    updateUserLevel(userId: string, updateLevelDto: UpdateLevelDto): Promise<import("mongoose").Document<unknown, {}, UserLevelDocument> & UserLevel & import("mongoose").Document<unknown, any, any> & Required<{
-        _id: unknown;
-    }> & {
-        __v: number;
-    }>;
+    getUserLevel(userId: string): Promise<UserLevelDocument>;
+    updateUserLevel(userId: string, updateLevelDto: UpdateLevelDto): Promise<UserLevelDocument>;
+    awardXp(userId: string, xpAmount: number): Promise<UserLevelDocument>;
+    awardXpToMultipleUsers(userIds: string[], xpAmount: number): Promise<UserLevelDocument[]>;
 }

@@ -216,3 +216,17 @@ export async function updateProjectTask(projectId, taskId, taskData) {
     throw error;
   }
 }
+
+export async function fetchUserCertificates(userId) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}/certificates`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch user certificates');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching user certificates:', error);
+    throw error;
+  }
+} 
+

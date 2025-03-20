@@ -12,7 +12,7 @@ export class UserLevel extends Document {
   @Prop({ default: 0 })
   xp: number;
 
-  @Prop({ required: true })
+  @Prop({ default: 600 })
   nextLevelXp: number;
 }
 

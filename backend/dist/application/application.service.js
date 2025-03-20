@@ -137,8 +137,32 @@ let ApplicationsService = class ApplicationsService {
                 }
                 const isStudentEnrolled = project.students_enrolled.some(studentId => studentId.toString() === application.user_id._id.toString());
                 if (!isStudentEnrolled) {
-                    await this.projectModel.findByIdAndUpdate(project_id, { $addToSet: { students_enrolled: application.user_id._id } });
-                    await this.userModel.findByIdAndUpdate(application.user_id._id, { $addToSet: { projects: new mongoose_2.Types.ObjectId(project_id) } });
+                    try {
+                        await this.projectModel.findByIdAndUpdate(project_id, { $addToSet: { students_enrolled: application.user_id._id } });
+                        const user = await this.userModel.findById(application.user_id._id);
+                        if (!user) {
+                            throw new common_1.NotFoundException(`User with ID ${application.user_id._id} not found`);
+                        }
+                        console.log("User before update:", user.username, "Projects:", user.projects);
+                        const projectObjectId = new mongoose_2.Types.ObjectId(project_id);
+                        const updateResult = await this.userModel.updateOne({ _id: application.user_id._id }, { $addToSet: { projects: projectObjectId } });
+                        console.log("User update result:", updateResult);
+                        const updatedUser = await this.userModel.findById(application.user_id._id);
+                        if (!updatedUser) {
+                            throw new common_1.NotFoundException(`User with ID ${application.user_id._id} not found after update`);
+                        }
+                        console.log("User after update:", updatedUser.username, "Projects:", updatedUser.projects);
+                        if (updateResult.modifiedCount === 0) {
+                            console.warn("User project array not updated, attempting alternative method");
+                            user.projects.push(projectObjectId);
+                            await user.save();
+                            console.log("User saved directly, projects:", user.projects);
+                        }
+                    }
+                    catch (err) {
+                        console.error("Error updating user or project:", err);
+                        throw new Error(`Failed to update user or project: ${err.message}`);
+                    }
                 }
             }
             const updatedApplication = await this.applicationModel.findByIdAndUpdate(application_id, { $set: updateApplicationDto }, { new: true, runValidators: true })
