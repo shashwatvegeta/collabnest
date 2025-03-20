@@ -86,11 +86,13 @@ const Home = () => {
         </div>
       </div>
 
-      <div className="mt-20 flex justify-center">
-        <HowItWorks />
-      </div>
-      <div className="mt-20 ">
-        <CollabNestApp />
+      <div className="bg-white py-16">
+        <div className="mt-8 flex justify-center">
+          <HowItWorks />
+        </div>
+        <div className="mt-16">
+          <CollabNestApp />
+        </div>
       </div>
     </div>
   );

@@ -23,6 +23,12 @@ const SDashboard = () => {
 	const [ongoingProjects, setOngoingProjects] = useState([]);
 	const isAuthenticated = useIsAuthenticated();
 
+	const badges = [
+		{ id: 1, name: "First Project", image: "/badges/first-project.png" },
+		{ id: 2, name: "Fast Learner", image: "/badges/fast-learner.png" },
+		{ id: 3, name: "Team Player", image: "/badges/team-player.png" },
+	];
+
 	useEffect(() => {
 		if (!isAuthenticated) {
 			redirect("/");
@@ -34,11 +40,11 @@ const SDashboard = () => {
 			try {
 				setIsLoading(true);
 				setError(null);
-				
+
 				const rollNumber = getRollNumber();
 				const userName = getName();
 				const userEmail = getEmail();
-				
+
 				setName(userName);
 				setEmail(userEmail);
 
@@ -47,7 +53,34 @@ const SDashboard = () => {
 					console.error('Error fetching user data:', err);
 					return {}; // Default empty object if fetch fails
 				});
-				
+        
+				// Fetch projects and achievements in parallel
+				const [projects, achievements] = await Promise.all([
+					fetchUserProjects(userData?.projects || []).catch(err => {
+						console.error('Error fetching user projects:', err);
+						return []; // Return empty array if projects fetch fails
+					}),
+					fetchUserAchievements(userData?._id || '').catch(err => {
+						console.error('Error fetching user achievements:', err);
+						return []; // Return empty array if achievements fetch fails
+					})
+				]);
+
+				setUser({
+					...userData,
+					name: userName || 'User',
+					type: "Student",
+					email: userEmail || 'No email available',
+					tel: userData?.phone || "1010101",
+					pfp_src: userData?.profilePicture || "/user_placeholder.png",
+					level: userData?.level || 1,
+					level_progression: userData?.levelProgress || 0.5,
+					badges: (achievements || []).map(a => a?.title || 'Unnamed Badge'),
+				});
+
+				setOngoingProjects(projects || []);
+				setRecommendedProjects(projects || []);
+
 				if (userData && userData._id) {
 					console.log("User ID from API:", userData._id);
 					setUserId(userData._id);
@@ -194,7 +227,7 @@ const SDashboard = () => {
 						</Link>
 					</div>
 					<div className="grid gap-2 p-2">
-						 {(recommendedProjects || []).length > 0 ? (
+						{(recommendedProjects || []).length > 0 ? (
 							recommendedProjects.map((p, index) => (
 								<ProjectCard key={index} project={p || {}} />
 							))
@@ -245,11 +278,16 @@ const SDashboard = () => {
 							</Link>
 						</div>
 						<div className="grid grid-cols-5 gap-4">
-							 {(user.badges || []).length > 0 ? (
-								user.badges.map((b, index) => <Badge key={`badge-${index}`}>{b || 'Badge'}</Badge>)
+							{(user.badges || []).length > 0 ? (
+								user.badges.map((b, index) => <Badge className="scale-150 hover:scale-125 p-4" key={`badge-${index}`}>{b || 'Badge'}</Badge>)
 							) : (
 								<div className="text-center text-gray-400 col-span-5">No badges earned yet</div>
 							)}
+							{badges.map(badge => (
+								<Badge className="scale-150 hover:scale-125 p-4" key={badge.id}>
+									{badge.name}
+								</Badge>
+							))}
 						</div>
 					</div>
 					<div className="border-0 rounded-lg border-violet-300 text-white bg-[#2a2a38] row-span-2 my-4 p-4">
@@ -262,7 +300,7 @@ const SDashboard = () => {
 							</Link>
 						</div>
 						<div className="grid gap-2 p-2">
-							 {(ongoingProjects || []).length > 0 ? (
+							{(ongoingProjects || []).length > 0 ? (
 								ongoingProjects.map((p, index) => (
 									<ProjectCard key={index} project={p || {}} />
 								))
