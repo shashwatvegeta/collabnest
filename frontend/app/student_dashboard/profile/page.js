@@ -7,6 +7,7 @@ import { useIsAuthenticated } from "@azure/msal-react";
 import { redirect } from "next/navigation";
 import { fetchUserData, fetchUserCertificates } from "@/lib/api";
 import XpLevelDisplay from "@/components/XpLevelDisplay";
+import Link from "next/link";
 
 const Profile = () => {
     const [user, setUser] = useState({});
@@ -117,7 +118,22 @@ const Profile = () => {
             {/* Experience Level */}
             {user._id && (
                 <div className="mb-6">
-                    <h2 className="text-xl font-semibold text-white mb-4">Experience Level</h2>
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-xl font-semibold text-white">Experience Level</h2>
+                        <Link href="/student_dashboard/leaderboard">
+                            <button className="px-4 py-2 bg-violet-500 text-white rounded-md hover:bg-violet-600 transition-colors flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M8 6L21 6"></path>
+                                    <path d="M8 12L21 12"></path>
+                                    <path d="M8 18L21 18"></path>
+                                    <path d="M3 6L3.01 6"></path>
+                                    <path d="M3 12L3.01 12"></path>
+                                    <path d="M3 18L3.01 18"></path>
+                                </svg>
+                                View Leaderboard
+                            </button>
+                        </Link>
+                    </div>
                     <XpLevelDisplay userId={user._id} />
                 </div>
             )}
