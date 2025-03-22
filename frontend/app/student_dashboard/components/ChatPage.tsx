@@ -2,19 +2,23 @@
 'use client';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { getEmail, getName } from "@/lib/auth_utility";
+import { fetchUserData } from "@/lib/api";
+import { useRouter } from 'next/navigation';
 
-const ADMIN_INFO = {
-    name: 'Jyoti Shikha',
-    role: 'PROFESSOR',
-    email: 'jyotishikha2007@gmail.com',
-    id: '67cde2e83c0958c938ef6210'
+// Enable debug mode to show detailed error information
+const DEBUG_MODE = true;
+
+// Helper function to validate MongoDB ObjectIDs
+const isValidObjectId = (id) => {
+    return id && /^[0-9a-fA-F]{24}$/.test(id);
 };
 
 interface Project {
     _id: string;
     project_name: string;
     description: string;
-    is_approved: boolean;
+    is_approved: string;
     is_completed: boolean;
     project_owner: string;
     cap: number;
@@ -50,6 +54,7 @@ interface Discussion {
 }
 
 export default function ChatPage() {
+    const router = useRouter();
     const [newMessage, setNewMessage] = useState('');
     const [newThreadTitle, setNewThreadTitle] = useState('');
     const [isCreatingThread, setIsCreatingThread] = useState(false);
@@ -58,87 +63,277 @@ export default function ChatPage() {
     const [projects, setProjects] = useState<Project[]>([]);
     const [discussionThreads, setDiscussionThreads] = useState<DiscussionThread[]>([]);
     const [discussions, setDiscussions] = useState<Discussion[]>([]);
+    const [userData, setUserData] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
+    // Fetch user data on initial load
     useEffect(() => {
-        fetchProjects();
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                const email = getEmail();
+                const userName = getName();
+                
+                console.log("Fetching user data for email:", email);
+                const user = await fetchUserData(email);
+                
+                if (!user || !user._id) {
+                    console.error("Failed to get valid user data:", user);
+                    setError("Your user profile could not be found. Please ensure you're properly logged in.");
+                    setLoading(false);
+                    return;
+                }
+                
+                console.log("User data retrieved:", {
+                    id: user._id,
+                    name: userName,
+                    email: email
+                });
+                
+                setUserData({
+                    id: user._id,
+                    name: userName || 'Student',
+                    email: email
+                });
+                
+                await fetchProjects(user._id);
+            } catch (err) {
+                console.error("Error fetching user data:", err);
+                setError("Failed to load user data. Please try again later.");
+                setLoading(false);
+            }
+        };
+        
+        fetchData();
     }, []);
 
+    // When projects change, set the active project
     useEffect(() => {
         if (projects.length > 0 && !activeProjectId) {
             setActiveProjectId(projects[0]._id);
         }
     }, [projects, activeProjectId]);
 
+    // When active project changes, fetch its threads
     useEffect(() => {
-        if (activeProjectId) {
+        if (activeProjectId && isValidObjectId(activeProjectId)) {
             fetchDiscussionThreads(activeProjectId);
+        } else if (activeProjectId) {
+            console.error("Invalid project ID format:", activeProjectId);
+            setError("Invalid project ID format. Cannot load discussions.");
         }
     }, [activeProjectId]);
 
+    // When active thread changes, fetch its discussions
     useEffect(() => {
-        if (activeThreadId) {
+        if (activeThreadId && isValidObjectId(activeThreadId)) {
             fetchDiscussions(activeThreadId);
+        } else if (activeThreadId) {
+            console.error("Invalid thread ID format:", activeThreadId);
+            setError("Invalid thread ID format. Cannot load messages.");
         }
     }, [activeThreadId]);
 
-    const fetchProjects = async () => {
+    const fetchProjects = async (userId) => {
+        if (!userId || !isValidObjectId(userId)) {
+            console.error("Invalid user ID:", userId);
+            setError("Invalid user ID. Cannot load projects.");
+            setLoading(false);
+            return;
+        }
+
         try {
+            console.log('Fetching projects for user ID:', userId);
             const response = await axios.get('http://localhost:3001/project');
             console.log('All projects:', response.data);
-            setProjects(response.data);
+            
+            // Filter projects to those where the student is enrolled or is the owner
+            const filteredProjects = response.data.filter(project => {
+                // Check if students_enrolled field exists and is an array
+                const isEnrolled = project.students_enrolled && 
+                                  Array.isArray(project.students_enrolled) && 
+                                  project.students_enrolled.some(studentId => {
+                                      // Handle both string and object IDs
+                                      if (typeof studentId === 'string') {
+                                          return studentId === userId;
+                                      } else if (studentId && typeof studentId === 'object' && studentId._id) {
+                                          return studentId._id === userId;
+                                      }
+                                      return false;
+                                  });
+                
+                // Check if user is the project owner (handle both string and object IDs)
+                const isOwner = project.project_owner === userId || 
+                               (project.project_owner && typeof project.project_owner === 'object' && 
+                                project.project_owner._id === userId);
+                
+                // Debug logging for project enrollment
+                if (DEBUG_MODE) {
+                    console.log(`Project ${project._id} (${project.project_name}):`);
+                    console.log(`- students_enrolled: ${JSON.stringify(project.students_enrolled)}`);
+                    console.log(`- userId: ${userId}`);
+                    console.log(`- isEnrolled: ${isEnrolled}`);
+                    console.log(`- isOwner: ${isOwner}`);
+                    
+                    // Log each student ID for detailed debugging
+                    if (project.students_enrolled && Array.isArray(project.students_enrolled)) {
+                        project.students_enrolled.forEach((studentId, index) => {
+                            const idToCheck = typeof studentId === 'string' ? studentId : 
+                                             (studentId && typeof studentId === 'object' && studentId._id) ? 
+                                             studentId._id : 'invalid';
+                            console.log(`- student[${index}]: ${idToCheck} matches userId: ${idToCheck === userId}`);
+                        });
+                    }
+                }
+                
+                return isEnrolled || isOwner;
+            });
+            
+            console.log('Filtered projects for student:', filteredProjects);
+            setProjects(filteredProjects);
+            setLoading(false);
         } catch (error) {
             console.error('Error fetching projects:', error);
+            if (error.response) {
+                console.error('Error status:', error.response.status);
+                console.error('Error data:', error.response.data);
+                console.error('Error URL:', error.config.url);
+                console.error('Error method:', error.config.method);
+            }
+            
+            // If API is down, retry after a delay
+            if (!error.response || error.response.status >= 500) {
+                console.log('API might be down, retrying in 3 seconds...');
+                setTimeout(() => {
+                    fetchProjects(userId);
+                }, 3000);
+                return;
+            }
+            
+            setError("Failed to load your projects. Please try again later.");
+            setLoading(false);
         }
     };
 
-    // Filter projects where the owner ID matches ADMIN_INFO.id
-    const ongoingProjects = projects.filter((project) => {
-        return project.students_enrolled.includes(ADMIN_INFO.id);
-    });
-
     const fetchDiscussionThreads = async (projectId) => {
         try {
-            const response = await axios.get(`http://localhost:3001/projects/${projectId}/discussion`);
+            console.log(`Fetching discussion threads for project ID: ${projectId}`);
+            const endpoint = `http://localhost:3001/projects/${projectId}/discussion`;
+            console.log('Calling endpoint:', endpoint);
+            
+            const response = await axios.get(endpoint);
             console.log('Discussion threads:', response.data);
             setDiscussionThreads(response.data);
 
             // Set the first thread as active if available and no active thread
             if (response.data.length > 0 && !activeThreadId) {
                 setActiveThreadId(response.data[0]._id);
+            } else if (response.data.length === 0) {
+                // Clear active thread if no threads are available
+                setActiveThreadId('');
+                setDiscussions([]);
+                
+                // If project exists but has no threads, offer to create a default thread
+                if (activeProject && userData) {
+                    const createDefaultThread = window.confirm(
+                        `Project "${activeProject.project_name}" doesn't have any discussion threads yet. Would you like to create one?`
+                    );
+                    
+                    if (createDefaultThread) {
+                        try {
+                            console.log('Creating default discussion thread for project:', projectId);
+                            const defaultThreadResponse = await axios.post(`http://localhost:3001/projects/${projectId}/discussion`, {
+                                title: `${activeProject.project_name} Discussion`,
+                                project_id: projectId,
+                                created_by: userData.id,
+                                discussion_id: projectId
+                            });
+                            
+                            console.log('Default thread created:', defaultThreadResponse.data);
+                            
+                            // Refresh threads and set the new one as active
+                            const updatedThreadsResponse = await axios.get(endpoint);
+                            setDiscussionThreads(updatedThreadsResponse.data);
+                            
+                            if (updatedThreadsResponse.data.length > 0) {
+                                setActiveThreadId(updatedThreadsResponse.data[0]._id);
+                            }
+                        } catch (createError) {
+                            console.error('Error creating default thread:', createError);
+                            alert('Failed to create a default discussion thread. You can create one manually.');
+                        }
+                    }
+                }
             }
         }
         catch (error) {
             console.error('Error fetching discussion threads:', error);
+            if (error.response) {
+                console.error('Error status:', error.response.status);
+                console.error('Error data:', error.response.data);
+                console.error('Error URL:', error.config.url);
+                console.error('Error method:', error.config.method);
+            }
+            setError(`Failed to load discussion threads for project ${projectId}. Please try again later.`);
         }
     };
 
     const fetchDiscussions = async (threadId) => {
         try {
             if (!threadId) return;
-            console.log('Fetching discussions for thread:', threadId);
-
-            const response = await axios.get(`http://localhost:3001/discussions/${threadId}/discussion_post`);
+            console.log('Fetching discussions for thread ID:', threadId);
+            
+            // Fix: The correct endpoint should be using the project ID and thread ID
+            // Find the current thread to get its project ID
+            const thread = discussionThreads.find(t => t._id === threadId);
+            if (!thread) {
+                console.error('Thread not found:', threadId);
+                setError('Thread information not available. Cannot load messages.');
+                return;
+            }
+            
+            const projectId = thread.project_id;
+            // Use the correct endpoint structure that matches the backend controller
+            const endpoint = `http://localhost:3001/projects/${projectId}/discussion/${threadId}`;
+            console.log('Calling endpoint:', endpoint);
+            
+            const response = await axios.get(endpoint);
             console.log('Discussions:', response.data);
-            setDiscussions(response.data);
+            
+            // If the response has replies field, use that as our discussions
+            if (response.data && response.data.replies) {
+                setDiscussions(response.data.replies);
+            } else {
+                setDiscussions([]);
+            }
         }
         catch (error) {
             console.error('Error fetching discussions:', error);
+            if (error.response) {
+                console.error('Error status:', error.response.status);
+                console.error('Error data:', error.response.data);
+                console.error('Error URL:', error.config.url);
+                console.error('Error method:', error.config.method);
+            }
+            setError(`Failed to load messages for thread ${threadId}. Please try again later.`);
         }
     };
 
     const handleCreateThread = async (e) => {
         e.preventDefault();
-        if (!newThreadTitle.trim() || !activeProjectId) return;
+        if (!newThreadTitle.trim() || !activeProjectId || !userData) return;
 
         try {
             // Create a new discussion thread
             const response = await axios.post(`http://localhost:3001/projects/${activeProjectId}/discussion`, {
                 title: newThreadTitle,
                 project_id: activeProjectId,
-                created_by: ADMIN_INFO.id,
+                created_by: userData.id, 
                 discussion_id: activeProjectId // Initially set to project ID, will be updated by backend
             });
 
+            console.log('Thread created:', response.data);
             await fetchDiscussionThreads(activeProjectId);
             setNewThreadTitle('');
             setIsCreatingThread(false);
@@ -151,11 +346,13 @@ export default function ChatPage() {
 
     const handleSendMessage = async (e) => {
         e.preventDefault();
-        if (!newMessage.trim() || !activeThreadId || !activeThread) return;
+        if (!newMessage.trim() || !activeThreadId || !activeThread || !userData) return;
 
         try {
             console.log('Active Thread:', activeThread);
             console.log('Sending message to thread:', activeThreadId);
+            console.log('Message content:', newMessage);
+            console.log('User data:', userData);
 
             // Update the thread with the new reply
             const updatedThread = await axios.put(`http://localhost:3001/projects/${activeProjectId}/discussion/${activeThreadId}`, {
@@ -163,70 +360,88 @@ export default function ChatPage() {
                     ...(activeThread?.replies || []),
                     {
                         content: newMessage,
-                        created_by: ADMIN_INFO.id,
+                        created_by: userData.id,
                         created_at: new Date(),
-                        created_by_username: ADMIN_INFO.name
+                        created_by_username: userData.name
                     }
                 ]
             });
 
             console.log('Thread updated:', updatedThread.data);
 
-            // Refresh the data
-            await fetchDiscussionThreads(activeProjectId);
+            // Refresh the discussions
             await fetchDiscussions(activeThreadId);
             setNewMessage('');
-
         } catch (error) {
             console.error('Error sending message:', error);
             if (error.response) {
-                console.error('Error response:', error.response.data);
+                console.error('Error status:', error.response.status);
+                console.error('Error data:', error.response.data);
+                console.error('Error URL:', error.config.url);
+                console.error('Error method:', error.config.method);
             }
+            setError('Failed to send message. Please try again later.');
         }
     };
 
     const handleUpdateThread = async (threadId, updates) => {
+        if (!userData) return;
+        
         try {
             await axios.put(`http://localhost:3001/projects/${activeProjectId}/discussion/${threadId}`, updates);
             fetchDiscussionThreads(activeProjectId);
         } catch (error) {
             console.error('Error updating thread:', error);
+            alert('Failed to update thread. Please try again.');
         }
     };
 
     const handleDeleteThread = async (threadId) => {
         try {
-            // First delete all discussion posts
-            const discussions = await axios.get(`http://localhost:3001/discussions/${threadId}/discussion_post`);
-            for (const post of discussions.data) {
-                await axios.delete(`http://localhost:3001/discussions/${threadId}/discussion_post/${post._id}`);
-            }
-
-            // Then delete the thread
+            // Delete the thread directly - no need to delete individual posts
             await axios.delete(`http://localhost:3001/projects/${activeProjectId}/discussion/${threadId}`);
             fetchDiscussionThreads(activeProjectId);
             if (activeThreadId === threadId) {
                 setActiveThreadId('');
+                setDiscussions([]);
             }
         } catch (error) {
             console.error('Error deleting thread:', error);
+            if (error.response) {
+                console.error('Error status:', error.response.status);
+                console.error('Error data:', error.response.data);
+                console.error('Error URL:', error.config.url);
+                console.error('Error method:', error.config.method);
+            }
+            setError('Failed to delete thread. Please try again later.');
         }
     };
 
     const handleDeleteMessage = async (messageId) => {
+        if (!userData) return;
+        
         try {
-            // Delete from both the thread replies and discussion posts
+            // Delete message by updating the thread and removing the message from replies
             const thread = discussionThreads.find(t => t._id === activeThreadId);
             if (thread) {
                 await handleUpdateThread(activeThreadId, {
                     replies: thread.replies.filter(r => r._id !== messageId)
                 });
+                
+                // Refresh the discussions
+                await fetchDiscussions(activeThreadId);
+            } else {
+                setError('Thread not found. Cannot delete message.');
             }
-
-            await axios.delete(`http://localhost:3001/discussions/${activeThreadId}/discussion_post/${messageId}`);
-            fetchDiscussions(activeThreadId);
         } catch (error) {
             console.error('Error deleting message:', error);
+            if (error.response) {
+                console.error('Error status:', error.response.status);
+                console.error('Error data:', error.response.data);
+                console.error('Error URL:', error.config.url);
+                console.error('Error method:', error.config.method);
+            }
+            setError('Failed to delete message. Please try again later.');
         }
     };
 
@@ -242,33 +457,127 @@ export default function ChatPage() {
         };
     };
 
+    // Add a function to test the API connection
+    const testApiConnection = async () => {
+        try {
+            const projectsEndpoint = 'http://localhost:3001/project';
+            console.log('Testing API connection to:', projectsEndpoint);
+            const response = await axios.get(projectsEndpoint);
+            console.log('API connection successful:', response.status);
+            return true;
+        } catch (error) {
+            console.error('API connection test failed:', error);
+            if (error.response) {
+                console.error('Status:', error.response.status);
+            } else if (error.request) {
+                console.error('No response received. Backend might be down.');
+            } else {
+                console.error('Error setting up request:', error.message);
+            }
+            return false;
+        }
+    };
+
+    // When component loads, test API connection
+    useEffect(() => {
+        testApiConnection();
+    }, []);
+
+    // Navigation to project details page
+    const handleViewProjectDetails = (projectId, e) => {
+        e.stopPropagation(); // Prevent triggering the parent onClick
+        router.push(`/student_dashboard/projects/${projectId}`);
+    };
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-screen bg-gray-900">
+                <div className="text-white text-xl">Loading chats...</div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex justify-center items-center h-screen bg-gray-900">
+                <div className="text-red-500 text-xl p-8 bg-gray-800 rounded-lg shadow-lg max-w-2xl">
+                    <h2 className="text-xl font-bold mb-4">Error Loading Chat</h2>
+                    <p className="mb-4">{error}</p>
+                    
+                    {DEBUG_MODE && (
+                        <div className="mt-4 p-4 bg-gray-900 rounded text-xs overflow-auto max-h-60">
+                            <h3 className="text-white font-semibold mb-2">Debug Information</h3>
+                            <p className="text-gray-300 mb-2">If you're seeing a 404 error, check the following:</p>
+                            <ul className="list-disc pl-5 text-gray-300 space-y-1">
+                                <li>Verify that the <code className="bg-gray-800 px-1 rounded">discussion</code> and <code className="bg-gray-800 px-1 rounded">project</code> backend services are running</li>
+                                <li>Check that you're using the correct endpoint URLs (singular vs plural)</li>
+                                <li>Ensure your user ID is correct and you're enrolled in the projects you're trying to access</li>
+                                <li>Verify thread IDs and project IDs are valid MongoDB ObjectIds</li>
+                            </ul>
+                            <p className="text-gray-300 mt-4">Check browser console for detailed error logs</p>
+                        </div>
+                    )}
+                    
+                    <div className="flex space-x-4 mt-6">
+                        <button 
+                            onClick={() => window.location.reload()} 
+                            className="px-4 py-2 bg-indigo-600 rounded-md text-white hover:bg-indigo-700"
+                        >
+                            Try Again
+                        </button>
+                        <a 
+                            href="/student_dashboard"
+                            className="px-4 py-2 bg-gray-600 rounded-md text-white hover:bg-gray-700"
+                        >
+                            Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (projects.length === 0) {
+        return (
+            <div className="flex justify-center items-center h-screen bg-gray-900">
+                <div className="text-white text-center p-8 bg-gray-800 rounded-lg shadow-lg max-w-md">
+                    <h2 className="text-2xl mb-4">No Project Chats Available</h2>
+                    <p className="mb-6">You aren't enrolled in any projects yet. Join a project to start chatting with your team.</p>
+                    <div className="space-y-4">
+                        <a href="/student_dashboard/find_projects" className="block w-full px-4 py-2 bg-indigo-600 rounded-md text-white hover:bg-indigo-700 text-center">
+                            Browse Projects
+                        </a>
+                        <a href="/student_dashboard" className="block w-full px-4 py-2 bg-gray-700 rounded-md text-white hover:bg-gray-600 text-center">
+                            Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="flex h-screen bg-gray-900 text-gray-100">
             {/* Projects list section */}
             <div className="w-80 border-r border-gray-800 overflow-y-auto">
                 <div className="flex justify-between items-center p-5">
                     <h2 className="text-xl font-semibold">Projects</h2>
-                    <button className="p-2 rounded-full hover:bg-gray-800 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </button>
                 </div>
-
-                <div className="px-3">
-                    {ongoingProjects.map(project => (
-                        <div
+                <ul className="space-y-1 px-3 pb-5">
+                    {projects.map(project => (
+                        <li
                             key={project._id}
-                            className={`p-3 my-1 rounded-lg cursor-pointer transition-colors ${project._id === activeProjectId ? 'bg-indigo-900/40' : 'hover:bg-gray-800'}`}
+                            className={`p-3 rounded-md cursor-pointer transition-colors ${activeProjectId === project._id
+                                ? 'bg-indigo-900/40 text-white'
+                                : 'hover:bg-gray-800'
+                                }`}
                             onClick={() => setActiveProjectId(project._id)}
                         >
-                            <div className="flex justify-between items-center mb-1">
-                                <span className="font-semibold">{project.project_name}</span>
-                            </div>
-                            <p className="text-xs text-gray-400 truncate">{project.description}</p>
+                            <h3 className="font-medium truncate">{project.project_name}</h3>
+                            <p className="text-xs text-gray-400 truncate mt-1">{project.description}</p>
                             <div className="flex justify-between items-center mt-2">
                                 <div className="text-xs">
-                                    {project.is_approved ?
+                                    {project.is_approved === 'approved' ?
                                         <span className="text-green-400">Approved</span> :
                                         <span className="text-yellow-400">Pending</span>
                                     }
@@ -277,236 +586,158 @@ export default function ChatPage() {
                                     {new Date(project.start_date).toLocaleDateString()}
                                 </span>
                             </div>
-                        </div>
+                            <div className="mt-3 text-center">
+                                <button
+                                    className="w-full text-xs px-2 py-1 bg-indigo-600 hover:bg-indigo-700 rounded transition-colors"
+                                    onClick={(e) => handleViewProjectDetails(project._id, e)}
+                                >
+                                    View Project Details
+                                </button>
+                            </div>
+                        </li>
                     ))}
-                </div>
+                </ul>
             </div>
 
-            {/* Discussion content section */}
-            <div className="flex flex-col flex-1">
-                {/* Project header */}
-                {activeProject && (
-                    <div className="flex items-center justify-between p-4 border-b border-gray-800">
-                        <div>
-                            <h3 className="font-semibold text-lg">{activeProject.project_name}</h3>
-                            <p className="text-xs text-gray-400">
-                                {activeProject.is_completed ? 'Completed' : 'Ongoing'} •
-                                Cap: {activeProject.cap}
-                            </p>
-                        </div>
-                        <div className="flex space-x-2">
-                            <button className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                                </svg>
-                            </button>
-                            <button className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                )}
+            {/* Chat threads section */}
+            <div className="w-80 border-r border-gray-800 overflow-y-auto">
+                <div className="flex justify-between items-center p-5">
+                    <h2 className="text-xl font-semibold">Threads</h2>
+                    <button
+                        onClick={() => setIsCreatingThread(!isCreatingThread)}
+                        className="p-2 rounded-md bg-indigo-600 hover:bg-indigo-700 transition-colors"
+                        title="Create new thread"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                    </button>
+                </div>
 
-                {/* Discussion threads selection */}
-                {activeProject && (
-                    <div className="border-b border-gray-800 p-3">
-                        <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium">Discussion Threads</h4>
+                {isCreatingThread && (
+                    <form onSubmit={handleCreateThread} className="p-4 bg-gray-800 m-3 rounded-md">
+                        <input
+                            type="text"
+                            placeholder="Thread title"
+                            value={newThreadTitle}
+                            onChange={(e) => setNewThreadTitle(e.target.value)}
+                            className="w-full p-2 rounded-md bg-gray-700 text-white placeholder-gray-400 mb-2"
+                            required
+                        />
+                        <div className="flex justify-end space-x-2">
                             <button
-                                className="text-xs px-2 py-1 bg-indigo-600 hover:bg-indigo-700 rounded transition-colors"
-                                onClick={() => setIsCreatingThread(!isCreatingThread)}
+                                type="button"
+                                onClick={() => setIsCreatingThread(false)}
+                                className="px-3 py-1 rounded-md bg-gray-700 hover:bg-gray-600 transition-colors"
                             >
-                                {isCreatingThread ? 'Cancel' : 'New Thread'}
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                className="px-3 py-1 rounded-md bg-indigo-600 hover:bg-indigo-700 transition-colors"
+                            >
+                                Create
                             </button>
                         </div>
-
-                        {isCreatingThread && (
-                            <form onSubmit={handleCreateThread} className="mb-3">
-                                <div className="flex">
-                                    <input
-                                        type="text"
-                                        className="flex-1 bg-gray-800 text-white p-2 rounded-l-md focus:outline-none text-sm"
-                                        placeholder="Thread title..."
-                                        value={newThreadTitle}
-                                        onChange={(e) => setNewThreadTitle(e.target.value)}
-                                    />
-                                    <button
-                                        type="submit"
-                                        className="bg-indigo-600 hover:bg-indigo-700 p-2 rounded-r-md transition-colors"
-                                    >
-                                        Create
-                                    </button>
-                                </div>
-                            </form>
-                        )}
-
-                        <div className="flex space-x-2 overflow-x-auto pb-2">
-                            {threadsForActiveProject.map(thread => (
-                                <button
-                                    key={thread._id}
-                                    className={`px-3 py-1 text-sm rounded whitespace-nowrap ${thread._id === activeThreadId ? 'bg-indigo-700' : 'bg-gray-800 hover:bg-gray-700'}`}
-                                    onClick={() => setActiveThreadId(thread._id)}
-                                >
-                                    {thread.title}
-                                </button>
-                            ))}
-                            {threadsForActiveProject.length === 0 && !isCreatingThread && (
-                                <div className="text-sm text-gray-400">No discussion threads yet. Create one to start the conversation.</div>
-                            )}
-                        </div>
-                    </div>
+                    </form>
                 )}
 
-                {/* Discussion messages */}
-                <div className="flex-1 p-4 overflow-y-auto">
-                    {activeThread ? (
-                        <div>
-                            <div className="mb-4">
-                                <div className="flex justify-between items-center">
-                                    <h3 className="font-semibold text-lg">{activeThread.title}</h3>
-                                    <div className="flex space-x-2">
-                                        <button
-                                            onClick={() => handleDeleteThread(activeThread._id)}
-                                            className="p-1 text-red-400 hover:text-red-300 transition-colors"
-                                            title="Delete thread"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                        </button>
+                <ul className="space-y-1 px-3 pb-5">
+                    {threadsForActiveProject.length > 0 ? (
+                        threadsForActiveProject.map((thread) => (
+                            <li
+                                key={thread._id}
+                                className={`p-3 rounded-md cursor-pointer transition-colors ${activeThreadId === thread._id
+                                    ? 'bg-indigo-900 text-white'
+                                    : 'hover:bg-gray-800'
+                                    }`}
+                                onClick={() => setActiveThreadId(thread._id)}
+                            >
+                                <h3 className="font-medium truncate">{thread.title}</h3>
+                                <p className="text-xs text-gray-400">{thread.replies?.length || 0} replies</p>
+                            </li>
+                        ))
+                    ) : (
+                        <li className="p-3 text-gray-400">
+                            No threads yet. Create one to start discussing!
+                        </li>
+                    )}
+                </ul>
+            </div>
+
+            {/* Messages section */}
+            <div className="flex-1 flex flex-col">
+                <div className="p-5 border-b border-gray-800">
+                    <h2 className="text-xl font-semibold">
+                        {activeThread ? activeThread.title : "Select a thread"}
+                    </h2>
+                    {activeProject && (
+                        <p className="text-sm text-gray-400">
+                            Project: {activeProject.project_name}
+                        </p>
+                    )}
+                </div>
+
+                {/* Messages area */}
+                <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                    {activeThread && activeThread.replies && activeThread.replies.length > 0 ? (
+                        activeThread.replies.map((reply, index) => {
+                            const isCurrentUser = reply.created_by === userData?.id;
+                            const formattedDate = formatDate(reply.created_at);
+
+                            return (
+                                <div
+                                    key={reply._id || index}
+                                    className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
+                                >
+                                    <div
+                                        className={`max-w-[70%] rounded-lg p-3 ${isCurrentUser
+                                            ? 'bg-indigo-600 text-white rounded-tr-none'
+                                            : 'bg-gray-800 text-white rounded-tl-none'
+                                            }`}
+                                    >
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="font-medium text-sm">{reply.created_by_username}</span>
+                                            <div className="text-xs opacity-70">
+                                                {formattedDate.time}
+                                            </div>
+                                        </div>
+                                        <p className="text-sm">{reply.content}</p>
+                                        <div className="text-xs opacity-70 text-right mt-1">
+                                            {formattedDate.date}
+                                        </div>
                                     </div>
                                 </div>
-                                {activeThread.description && (
-                                    <p className="text-sm text-gray-400 mt-1">{activeThread.description}</p>
-                                )}
-                            </div>
-
-                            {/* Thread replies (embedded in the thread document) */}
-                            {activeThread.replies && activeThread.replies.length > 0 && (
-                                <div className="space-y-4 mb-6">
-                                    {activeThread.replies.map((reply, index) => {
-                                        const formattedDate = formatDate(reply.created_at);
-                                        return (
-                                            <div key={`thread-reply-${index}`} className="flex items-start space-x-3">
-                                                <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-700 flex items-center justify-center">
-                                                    {reply.created_by_username ? reply.created_by_username.charAt(0) : 'U'}
-                                                </div>
-                                                <div className="flex-1">
-                                                    <div className="flex items-center justify-between mb-1">
-                                                        <div className="flex items-center">
-                                                            <span className="font-semibold mr-2">
-                                                                {reply.created_by_username || 'User'}
-                                                            </span>
-                                                            <span className="text-xs text-gray-400">
-                                                                {formattedDate.time} • {formattedDate.date}
-                                                            </span>
-                                                        </div>
-                                                        {reply.created_by === ADMIN_INFO.id && (
-                                                            <div className="flex space-x-1">
-                                                                <button
-                                                                    onClick={() => handleDeleteMessage(reply._id)}
-                                                                    className="p-1 text-red-400 hover:text-red-300 transition-colors"
-                                                                    title="Delete message"
-                                                                >
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                                    </svg>
-                                                                </button>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <div className="p-3 bg-gray-800 rounded-lg">
-                                                        {reply.content}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-
-                            {/* Separate discussion messages */}
-                            {discussions.length > 0 ? (
-                                <div className="space-y-4">
-                                    {discussions.map(message => {
-                                        const formattedDate = formatDate(message.posted_at);
-                                        return (
-                                            <div key={message._id} className="flex items-start space-x-3">
-                                                <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center ${message.posted_by === ADMIN_INFO.id ? 'bg-indigo-600' : 'bg-gray-700'}`}>
-                                                    {message.posted_by === ADMIN_INFO.id ? ADMIN_INFO.name.charAt(0) : 'U'}
-                                                </div>
-                                                <div className="flex-1">
-                                                    <div className="flex items-center justify-between mb-1">
-                                                        <div className="flex items-center">
-                                                            <span className="font-semibold mr-2">
-                                                                {message.posted_by === ADMIN_INFO.id ? ADMIN_INFO.name : 'User'}
-                                                            </span>
-                                                            <span className="text-xs text-gray-400">
-                                                                {formattedDate.time} • {formattedDate.date}
-                                                            </span>
-                                                        </div>
-                                                        {message.posted_by === ADMIN_INFO.id && (
-                                                            <div className="flex space-x-1">
-                                                                <button
-                                                                    onClick={() => handleDeleteMessage(message._id)}
-                                                                    className="p-1 text-red-400 hover:text-red-300 transition-colors"
-                                                                    title="Delete message"
-                                                                >
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                                    </svg>
-                                                                </button>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <div className="p-3 bg-gray-800 rounded-lg">
-                                                        {message.reply_message}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            ) : (
-                                <div className="text-center text-gray-400 my-8">
-                                    No messages in this discussion yet. Start the conversation!
-                                </div>
-                            )}
-                        </div>
+                            );
+                        })
                     ) : (
-                        <div className="flex flex-col items-center justify-center h-full text-center p-8">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                            </svg>
-                            <h3 className="text-lg font-medium text-gray-300 mb-2">No discussion selected</h3>
-                            <p className="text-sm text-gray-400">
-                                {threadsForActiveProject.length > 0
-                                    ? "Select a discussion thread to view messages"
-                                    : "Create a new discussion thread to start a conversation"}
-                            </p>
+                        <div className="flex items-center justify-center h-full text-gray-400">
+                            {activeThread
+                                ? "No messages yet. Be the first to reply!"
+                                : "Select a thread to view messages."}
                         </div>
                     )}
                 </div>
 
-                {/* New message input */}
+                {/* Message input */}
                 {activeThread && (
-                    <form onSubmit={handleSendMessage} className="flex p-4 border-t border-gray-800">
+                    <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-800 flex gap-2">
                         <input
                             type="text"
-                            className="flex-1 bg-gray-800 text-white p-3 rounded-l-md focus:outline-none"
-                            placeholder="Add to the discussion..."
+                            placeholder="Type your message..."
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
+                            className="flex-1 p-3 rounded-md bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                            disabled={!activeThreadId}
                         />
                         <button
                             type="submit"
-                            className="bg-indigo-600 hover:bg-indigo-700 p-3 rounded-r-md transition-colors"
+                            className="p-3 rounded-md bg-indigo-600 hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={!activeThreadId || !newMessage.trim()}
+                            title="Send message"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
                             </svg>
                         </button>
                     </form>

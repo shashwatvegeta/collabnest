@@ -13,29 +13,14 @@ export default function ProjectApplication() {
 	const mentor = searchParams.get("mentor") || "Unknown";
 	const tagsParam = searchParams.get("tags");
 	const tags = tagsParam ? JSON.parse(decodeURIComponent(tagsParam)) : [];
-	const [project, setProject] = useState({});
-
-	useEffect(() => {
-		// Set project from URL parameters
-		setProject({
-			id,
-			name,
-			desc,
-			level,
-			mentor,
-			tags
-		});
-
-		// Optional: Fetch additional project details if needed
-		// async function fetchProjectDetails() {
-		//   const response = await fetch(`http://localhost:3001/project/${id}`);
-		//   if (response.ok) {
-		//     const projectData = await response.json();
-		//     setProject(projectData);
-		//   }
-		// }
-		// fetchProjectDetails();
-	}, [id, name, desc, level, mentor, tags]);
+	const [project, setProject] = useState({
+		id,
+		name,
+		desc,
+		level,
+		mentor,
+		tags
+	});
 
 	function isValidURL(str) {
 		try {
@@ -46,29 +31,44 @@ export default function ProjectApplication() {
 		}
 	}
 
-	async function applyHandle(id) {
-		// console.log("Applying for project", id);
-		// Fetch user ID from session or context
-		const email = getEmail();
-		const userData = await fetchUserData(email);
-		if (isValidURL(document.getElementById("resumeLink").value)) {
-			const response = await fetch(`http://localhost:3001/projects/${id}/apply`, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json"
-				},
-				body: JSON.stringify({
-					user_id: userData._id || "67cecb790e6ac619876a8116",
-					resume_link: document.getElementById("resumeLink").value
-				})
-			});
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
-			if (response.ok)
-				alert("You have successfully applied for this project!");
-			else
-				alert("your project application failed. Please try again later.");
-		} else {
-			alert("Please enter a valid URL");
+	async function applyHandle(id) {
+		// Prevent duplicate submissions
+		if (isSubmitting) return;
+		
+		try {
+			setIsSubmitting(true);
+			// console.log("Applying for project", id);
+			// Fetch user ID from session or context
+			const email = getEmail();
+			const userData = await fetchUserData(email);
+			const resumeLink = document.getElementById("resumeLink").value;
+			
+			if (isValidURL(resumeLink)) {
+				const response = await fetch(`http://localhost:3001/projects/${id}/apply`, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json"
+					},
+					body: JSON.stringify({
+						user_id: userData._id || "67cecb790e6ac619876a8116",
+						resume_link: resumeLink
+					})
+				});
+
+				if (response.ok)
+					alert("You have successfully applied for this project!");
+				else
+					alert("Your project application failed. Please try again later.");
+			} else {
+				alert("Please enter a valid URL");
+			}
+		} catch (error) {
+			console.error("Error applying for project:", error);
+			alert("An error occurred while submitting your application. Please try again.");
+		} finally {
+			setIsSubmitting(false);
 		}
 	}
 
@@ -104,8 +104,12 @@ export default function ProjectApplication() {
 					placeholder="Resume Link"></textarea>
 			</div>
 			<div className="py-8 px-4">
-				<button className="text-white font-semibold p-4 rounded-md shadow-lg bg-violet-500" onClick={() => applyHandle(project.id)}>
-					Apply For this Project
+				<button 
+					className={`text-white font-semibold p-4 rounded-md shadow-lg ${isSubmitting ? 'bg-violet-700 cursor-not-allowed' : 'bg-violet-500 hover:bg-violet-600'}`} 
+					onClick={() => applyHandle(project.id)}
+					disabled={isSubmitting}
+				>
+					{isSubmitting ? 'Submitting...' : 'Apply For this Project'}
 				</button>
 			</div>
 		</div>

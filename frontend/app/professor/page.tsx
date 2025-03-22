@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import ProfessorLayout from './components/ProfessorLayout';
 import Link from 'next/link';
 import axios from 'axios';
+import Image from 'next/image';
 
 const ADMIN_INFO = {
     name: 'Shashwat Kumar Singh',
@@ -36,11 +37,77 @@ interface Notification {
         readAt: string;
         _id: string;
     }>;
+    title?: string;
+    isImportant?: boolean;
 }
+
+interface Application {
+    _id: string;
+    project_id: any;
+    user_id: any;
+    status: string;
+    projectName?: string;
+}
+
+const RequestItem = ({ name, projectName, projectType, applicationId, onApprove, onReject }) => {
+    return (
+        <div className="bg-slate-700 p-4 rounded-lg mb-2 hover:bg-slate-600 transition-all duration-300 cursor-pointer transform hover:-translate-y-1">
+            <div className="flex">
+                <div className="flex-1">
+                    <div className="font-semibold text-white flex">
+                        {name} <span className="text-pink-400 ml-1 animate-pulse">•</span>
+                    </div>
+                    <div className="text-sm text-gray-300">
+                        Project Name: {projectName}
+                    </div>
+                    <div className="text-xs text-gray-400 mt-1">
+                        Type: {projectType}
+                    </div>
+                </div>
+            </div>
+            <div className="flex mt-3 space-x-2">
+                <button 
+                    onClick={() => onApprove(applicationId)}
+                    className="bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded text-xs flex-1"
+                >
+                    Approve
+                </button>
+                <button 
+                    onClick={() => onReject(applicationId)}
+                    className="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded text-xs flex-1"
+                >
+                    Reject
+                </button>
+            </div>
+        </div>
+    );
+};
+
+const NotificationItem = ({ title, message, isImportant }) => {
+    return (
+        <div className="bg-slate-700 p-4 rounded-lg mb-2 hover:bg-slate-600 transition-all duration-300 cursor-pointer transform hover:-translate-y-1">
+            <div className="flex">
+                <div className="flex-1">
+                    <div className="font-semibold text-white flex">
+                        {title}{" "}
+                        {isImportant && (
+                            <span className="text-pink-400 ml-1 animate-pulse">•</span>
+                        )}
+                    </div>
+                    <div className="text-sm text-gray-300">{message}</div>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 export default function ProfessorDashboard() {
     const [projects, setProjects] = useState<Project[]>([]);
     const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [requests, setRequests] = useState<any[]>([]);
+    const [applications, setApplications] = useState<Application[]>([]);
+    const [isLoaded, setIsLoaded] = useState(false);
+    const [processedAppIds, setProcessedAppIds] = useState<Set<string>>(new Set());
     const [stats, setStats] = useState({
         satisfactionRate: 95,
         activeUsers: 2600,
@@ -50,22 +117,146 @@ export default function ProfessorDashboard() {
     useEffect(() => {
         fetchProjects();
         fetchNotifications();
+        
+        // Add a small delay to simulate loading and then trigger animations
+        setTimeout(() => {
+            setIsLoaded(true);
+        }, 300);
     }, []);
 
     const fetchProjects = async () => {
         try {
             const response = await axios.get('http://localhost:3001/project');
             setProjects(response.data);
-
+            
+            // After fetching projects, fetch applications
+            fetchApplications(response.data);
         } catch (error) {
             console.error('Error fetching projects:', error);
         }
     }
 
+    const fetchApplications = async (projectsData) => {
+        try {
+            // Create a map of project IDs to project names for quick lookup
+            const projectMap = {};
+            projectsData.forEach(project => {
+                projectMap[project._id] = project;
+            });
+            
+            // Filter projects where the current professor is the project_owner
+            const professorProjects = projectsData.filter(project => 
+                project.project_owner === ADMIN_INFO.id
+            );
+            
+            // Fetch applications for each project
+            const applicationPromises = professorProjects.map(async (project) => {
+                const appResponse = await axios.get(
+                    `http://localhost:3001/projects/${project._id}/applications`,
+                );
+                if (appResponse.status !== 200) {
+                    throw new Error(
+                        `Failed to fetch applications for project ${project._id}`,
+                    );
+                }
+                const applications = appResponse.data;
+                
+                // Add project name to each application for reference
+                return applications.map(app => ({
+                    ...app,
+                    projectName: project.project_name,
+                    projectType: project.tags ? project.tags.join(', ') : "General"
+                }));
+            });
+
+            const applicationsArray = await Promise.all(applicationPromises);
+            const allApplications = applicationsArray.flat();
+            
+            console.log("Fetched applications:", allApplications);
+            setApplications(allApplications);
+
+            // Filter pending applications
+            const pendingApplications = allApplications.filter(app => app.status === 'pending');
+
+            // Create a new Set of processed IDs to update
+            const newProcessedIds = new Set(processedAppIds);
+            
+            // Create notifications from pending applications (only for ones we haven't processed yet)
+            const applicationNotifications = pendingApplications
+                .filter(app => !processedAppIds.has(app._id))
+                .map((app, index) => {
+                    // Mark this app as processed
+                    newProcessedIds.add(app._id);
+                    
+                    const userName = app.user_id?.username || "A student";
+                    const projectName = app.projectName || "a project";
+                    
+                    return {
+                        _id: `app-${app._id}-${Date.now()}-${index}`, // Even more unique with timestamp
+                        message: `${userName} has applied to join ${projectName}`,
+                        created_at: app.submission_date || new Date().toISOString(), // Use application submission date
+                        sender_id: app.user_id?._id || "",
+                        receiver_ids: [ADMIN_INFO.id],
+                        readBy: [],
+                        title: "New Application",
+                        isImportant: true
+                    } as Notification;
+                });
+            
+            // Update processed IDs
+            setProcessedAppIds(newProcessedIds);
+
+            // Create requests from pending applications
+            const applicationRequests = pendingApplications.map(app => {
+                const userName = app.user_id?.username || "A student";
+                const projectName = app.projectName || "a project";
+                
+                return {
+                    name: userName,
+                    projectName: projectName,
+                    projectType: app.projectType || "General",
+                    applicationId: app._id
+                };
+            });
+
+            // Set requests (limit to 2)
+            const limitedRequests = applicationRequests.length > 0 
+                ? applicationRequests.slice(0, 2) 
+                : [
+                    {
+                        name: "No pending requests",
+                        projectName: "No projects",
+                        projectType: "N/A",
+                        applicationId: null
+                    }
+                ];
+
+            setRequests(limitedRequests);
+            
+            // Add application notifications to the notifications list - only if we have new ones
+            if (applicationNotifications.length > 0) {
+                setNotifications(prevNotifications => {
+                    // Filter out any synthetic notifications that might already exist
+                    const filteredPrevNotifications = prevNotifications.filter(
+                        n => !n._id.startsWith('app-')
+                    );
+                    
+                    // Return new array with application notifications first
+                    return [
+                        ...applicationNotifications,
+                        ...filteredPrevNotifications
+                    ].slice(0, 3);
+                });
+            }
+        } catch (error) {
+            console.error("Error fetching applications:", error);
+        }
+    };
+
     const fetchNotifications = async () => {
         try {
             const response = await axios.get(`http://localhost:3001/notifications/received/${ADMIN_INFO.id}`);
-            setNotifications(response.data.notifications);
+            setNotifications(response.data.notifications.slice(0, 3));
             console.log(response.data.notifications);
 
         } catch (error) {
@@ -80,6 +271,114 @@ export default function ProfessorDashboard() {
             }]);
         }
     }
+
+    const handleApproveApplication = async (applicationId) => {
+        try {
+            // Find the application to get its project_id
+            const application = applications.find(app => app._id === applicationId);
+            if (!application) {
+                alert("Application not found.");
+                return;
+            }
+
+            // Use the correct endpoint structure from the controller
+            const response = await axios.put(
+                `http://localhost:3001/projects/${application.project_id}/applications/${applicationId}`, 
+                {
+                    approval_notes: "Approved by professor",
+                    // The controller will set status to "approved" when approval_notes is provided
+                }
+            );
+            
+            if (response.status === 200) {
+                // Update the local state
+                const updatedApplications = applications.map(app => 
+                    app._id === applicationId ? {...app, status: 'approved'} : app
+                );
+                setApplications(updatedApplications);
+                
+                // Update requests list
+                setRequests(prevRequests => 
+                    prevRequests.filter(request => request.applicationId !== applicationId)
+                );
+                
+                // Show success message
+                alert("Application approved successfully!");
+                
+                // Remove any notifications for this application
+                setNotifications(prevNotifications => 
+                    prevNotifications.filter(n => !n._id.includes(applicationId))
+                );
+                
+                // Refresh projects without immediately re-fetching
+                setTimeout(() => {
+                    fetchProjects();
+                }, 500);
+            }
+        } catch (error) {
+            console.error('Error approving application:', error);
+            // Log more details about the error to debug
+            if (error.response) {
+                console.error('Error response:', error.response.data);
+                console.error('Status code:', error.response.status);
+            }
+            alert("Failed to approve application. Please try again.");
+        }
+    };
+
+    const handleRejectApplication = async (applicationId) => {
+        try {
+            // Find the application to get its project_id
+            const application = applications.find(app => app._id === applicationId);
+            if (!application) {
+                alert("Application not found.");
+                return;
+            }
+
+            // Use the correct endpoint structure from the controller
+            const response = await axios.put(
+                `http://localhost:3001/projects/${application.project_id}/applications/${applicationId}`, 
+                {
+                    rejection_reason: "Rejected by professor",
+                    // The controller will set status to "rejected" when rejection_reason is provided
+                }
+            );
+            
+            if (response.status === 200) {
+                // Update the local state
+                const updatedApplications = applications.map(app => 
+                    app._id === applicationId ? {...app, status: 'rejected'} : app
+                );
+                setApplications(updatedApplications);
+                
+                // Update requests list
+                setRequests(prevRequests => 
+                    prevRequests.filter(request => request.applicationId !== applicationId)
+                );
+                
+                // Show success message
+                alert("Application rejected successfully!");
+                
+                // Remove any notifications for this application
+                setNotifications(prevNotifications => 
+                    prevNotifications.filter(n => !n._id.includes(applicationId))
+                );
+                
+                // Refresh projects without immediately re-fetching
+                setTimeout(() => {
+                    fetchProjects();
+                }, 500);
+            }
+        } catch (error) {
+            console.error('Error rejecting application:', error);
+            // Log more details about the error to debug
+            if (error.response) {
+                console.error('Error response:', error.response.data);
+                console.error('Status code:', error.response.status);
+            }
+            alert("Failed to reject application. Please try again.");
+        }
+    };
 
     const ongoingProjects = projects.filter((project) => project.project_owner === ADMIN_INFO.id);
 
@@ -149,7 +448,9 @@ export default function ProfessorDashboard() {
     return (
         <ProfessorLayout>
             <div className="p-6 bg-slate-900 min-h-screen">
-                <div className="mb-6">
+                <div 
+                    className={`mb-6 transform ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"} transition-all duration-500`}
+                >
                     <h1 className="text-white text-3xl font-bold mb-2">Welcome Back, {ADMIN_INFO.name.split(' ')[0]}!</h1>
                     <div className="flex items-center">
                         <div className="bg-indigo-200 rounded-full h-10 w-10 flex items-center justify-center mr-3">
@@ -164,7 +465,9 @@ export default function ProfessorDashboard() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Ongoing Projects */}
-                    <div className="bg-indigo-500 bg-opacity-20 p-6 rounded-lg">
+                    <div 
+                        className={`bg-indigo-500 bg-opacity-20 p-6 rounded-lg md:row-span-2 shadow-md hover:shadow-lg hover:shadow-indigo-500/20 transition-all duration-500 transform ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"} delay-300`}
+                    >
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-white text-xl font-semibold">Ongoing Projects</h2>
                             <Link href="/professor/projects">
@@ -176,8 +479,12 @@ export default function ProfessorDashboard() {
 
                         {ongoingProjects.length > 0 ? (
                             <div className="space-y-4">
-                                {ongoingProjects.slice(0, 4).map((project) => (
-                                    <div key={project._id} className="bg-slate-800 p-4 rounded-lg">
+                                {ongoingProjects.slice(0, 4).map((project, index) => (
+                                    <div 
+                                        key={project._id} 
+                                        className={`bg-slate-800 p-4 rounded-lg transform transition-all duration-500 ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
+                                        style={{ transitionDelay: `${400 + index * 100}ms` }}
+                                    >
                                         <div className="flex justify-between items-center mb-2">
                                             <div className="flex items-center">
                                                 <div className="bg-slate-700 p-2 rounded-lg mr-3">
@@ -226,100 +533,135 @@ export default function ProfessorDashboard() {
                     </div>
 
                     {/* Notifications Section */}
-                    <div>
-                        <div className="bg-slate-800 p-6 rounded-lg mb-6">
-                            <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-white text-xl font-semibold">Notifications</h2>
-                                <div className="flex gap-2">
-                                    <button
-                                        className="text-indigo-400 hover:text-indigo-300 text-sm"
-                                        onClick={markAllAsRead}
-                                    >
-                                        Mark all as read
-                                    </button>
-                                    <button
-                                        className="text-indigo-400 hover:text-indigo-300 text-sm"
-                                        onClick={fetchNotifications}
-                                    >
-                                        Refresh
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="space-y-4">
-                                {getUnreadNotifications().length > 0 ? (
-                                    getUnreadNotifications().slice(0, 3).map((notification) => (
-                                        <div
-                                            key={notification._id}
-                                            className="p-4 rounded-lg border-l-4 border-indigo-500 bg-slate-700"
-                                        >
-                                            <div className="flex justify-between">
-                                                <p className="text-white font-medium">
-                                                    {notification.message}
-                                                </p>
-                                                <button
-                                                    onClick={() => markAsRead(notification._id)}
-                                                    className="text-xs text-indigo-400 hover:text-indigo-300"
-                                                >
-                                                    Mark as read
-                                                </button>
-                                            </div>
-                                            <p className="text-xs text-gray-400 mt-1">
-                                                {new Date(notification.created_at).toLocaleString()}
-                                            </p>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="p-4 rounded-lg bg-slate-700 text-center">
-                                        <p className="text-gray-300">No new notifications</p>
-                                    </div>
-                                )}
+                    <div
+                        className={`bg-slate-800 p-6 rounded-lg mb-6 shadow-md hover:shadow-lg hover:shadow-indigo-500/20 transition-all duration-500 transform ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"} delay-400`}
+                    >
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-white text-xl font-semibold">Notifications</h2>
+                            <div className="flex gap-2">
+                                <button
+                                    className="text-indigo-400 hover:text-indigo-300 text-sm"
+                                    onClick={markAllAsRead}
+                                >
+                                    Mark all as read
+                                </button>
                             </div>
                         </div>
 
-                        {/* Project Statistics */}
-                        <div className="bg-slate-800 p-6 rounded-lg">
-                            <h2 className="text-white text-xl font-semibold mb-4">Project Statistics</h2>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="col-span-1">
-                                    <h3 className="text-sm text-gray-400 mb-1">Satisfaction Rate</h3>
-                                    <div className="flex items-center justify-center h-32 relative">
-                                        <div className="absolute text-center">
-                                            <span className="text-indigo-400 text-3xl font-bold">{stats.satisfactionRate}%</span>
-                                        </div>
-                                        <svg width="120" height="120" viewBox="0 0 120 120">
-                                            <circle cx="60" cy="60" r="54" fill="none" stroke="#374151" strokeWidth="12" />
-                                            <circle cx="60" cy="60" r="54" fill="none" stroke="#6366f1" strokeWidth="12"
-                                                strokeDasharray="339.5" strokeDashoffset={339.5 - (339.5 * stats.satisfactionRate / 100)}
-                                                transform="rotate(-90 60 60)" />
-                                        </svg>
+                        <div className="space-y-4">
+                            {getUnreadNotifications().length > 0 ? (
+                                getUnreadNotifications().slice(0, 3).map((notification, index) => (
+                                    <div
+                                        key={notification._id}
+                                        className={`transform transition-all duration-500 ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
+                                        style={{ transitionDelay: `${500 + index * 100}ms` }}
+                                    >
+                                        {notification.title ? (
+                                            <NotificationItem 
+                                                title={notification.title}
+                                                message={notification.message}
+                                                isImportant={true}
+                                            />
+                                        ) : (
+                                            <div
+                                                className="p-4 rounded-lg border-l-4 border-indigo-500 bg-slate-700 hover:bg-slate-600 transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
+                                                onClick={() => markAsRead(notification._id)}
+                                            >
+                                                <div className="flex justify-between">
+                                                    <p className="text-white font-medium">
+                                                        {notification.message}
+                                                    </p>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            markAsRead(notification._id);
+                                                        }}
+                                                        className="text-xs text-indigo-400 hover:text-indigo-300"
+                                                    >
+                                                        Mark as read
+                                                    </button>
+                                                </div>
+                                                <p className="text-xs text-gray-400 mt-1">
+                                                    {notification._id.startsWith('app-')
+                                                        ? new Date(notification.created_at).toLocaleString('en-US', {
+                                                            year: 'numeric',
+                                                            month: 'short',
+                                                            day: 'numeric',
+                                                            hour: '2-digit',
+                                                            minute: '2-digit'
+                                                          })
+                                                        : new Date(notification.created_at).toLocaleString()
+                                                    }
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
+                                ))
+                            ) : (
+                                <div className="p-4 rounded-lg bg-slate-700 text-center">
+                                    <p className="text-gray-300">No new notifications</p>
                                 </div>
+                            )}
+                        </div>
+                        
+                        <div
+                            className={`text-center mt-4 transform transition-all duration-500 ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
+                            style={{ transitionDelay: "700ms" }}
+                        >
+                            <Link href="/professor/notifications">
+                                <button className="w-full px-3 py-1.5 bg-indigo-600 text-xs sm:text-sm rounded-lg hover:bg-indigo-500 transition-colors duration-300 transform hover:scale-105">
+                                    View All
+                                </button>
+                            </Link>
+                        </div>
+                    </div>
 
-                                <div className="col-span-1">
-                                    <h3 className="text-sm text-gray-400 mb-2">Active Users</h3>
-                                    <div className="flex items-center justify-center h-32">
-                                        <div className="w-full">
-                                            <div className="flex justify-between text-sm mb-1">
-                                                <span className="text-indigo-400 font-medium">Users</span>
-                                                <span className="text-gray-400">Others</span>
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <div className="text-2xl font-bold text-white">{(stats.activeUsers / 1000).toFixed(1)}K</div>
-                                                <div className="text-lg text-gray-400">{(stats.otherUsers / 1000).toFixed(1)}K</div>
-                                            </div>
-                                            <div className="bg-gray-700 rounded-full h-2 mt-2">
-                                                <div className="bg-indigo-500 h-2 rounded-full" style={{ width: `${(stats.activeUsers / (stats.activeUsers + stats.otherUsers)) * 100}%` }}></div>
-                                            </div>
-                                            <p className="text-xs text-green-400 mt-2">+2% than last week</p>
-                                        </div>
+                    {/* Requests Section */}
+                    <div
+                        className={`bg-slate-800 p-6 rounded-lg shadow-md hover:shadow-lg hover:shadow-indigo-500/20 transition-all duration-500 transform ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"} delay-500`}
+                    >
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-white text-xl font-semibold">Requests</h2>
+                        </div>
+
+                        <div className="space-y-4">
+                            {requests.length > 0 && requests[0].applicationId ? (
+                                requests.map((request, index) => (
+                                    <div
+                                        key={index}
+                                        className={`transform transition-all duration-500 ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
+                                        style={{ transitionDelay: `${800 + index * 100}ms` }}
+                                    >
+                                        <RequestItem 
+                                            name={request.name}
+                                            projectName={request.projectName}
+                                            projectType={request.projectType}
+                                            applicationId={request.applicationId}
+                                            onApprove={handleApproveApplication}
+                                            onReject={handleRejectApplication}
+                                        />
                                     </div>
+                                ))
+                            ) : (
+                                <div className="p-4 rounded-lg bg-slate-700 text-center">
+                                    <p className="text-gray-300">No pending requests</p>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     </div>
                 </div>
+
+                {/* Add global CSS for custom animations */}
+                <style jsx global>{`
+                    @keyframes fadeIn {
+                        from { opacity: 0; }
+                        to { opacity: 1; }
+                    }
+                    
+                    .animate-fadeIn {
+                        animation: fadeIn 0.5s ease-in-out;
+                    }
+                `}</style>
             </div>
         </ProfessorLayout>
     );

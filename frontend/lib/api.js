@@ -228,5 +228,63 @@ export async function fetchUserCertificates(userId) {
     console.error('Error fetching user certificates:', error);
     throw error;
   }
+}
+
+export async function createInitialDiscussionThread(projectId, projectName, creatorId, creatorName) {
+  try {
+    console.log(`Creating initial discussion thread for project: ${projectId}`);
+    
+    // Create the thread
+    const threadResponse = await fetch(`${API_BASE_URL}/projects/${projectId}/discussion`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: `${projectName} Discussion`,
+        project_id: projectId,
+        created_by: creatorId,
+        discussion_id: projectId,
+        description: "Welcome to the project discussion! Use this thread to communicate with your team."
+      }),
+    });
+
+    if (!threadResponse.ok) {
+      console.error('Failed to create discussion thread:', await threadResponse.text());
+      return null;
+    }
+
+    const threadData = await threadResponse.json();
+    console.log('Discussion thread created:', threadData);
+
+    // Add initial welcome message
+    const welcomeResponse = await fetch(`${API_BASE_URL}/projects/${projectId}/discussion/${threadData._id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        replies: [
+          {
+            content: `Welcome to the ${projectName} discussion! I've created this thread for our team to communicate throughout this project.`,
+            created_by: creatorId,
+            created_at: new Date(),
+            created_by_username: creatorName
+          }
+        ]
+      }),
+    });
+
+    if (!welcomeResponse.ok) {
+      console.error('Failed to add welcome message:', await welcomeResponse.text());
+      return threadData;
+    }
+
+    console.log('Welcome message added to thread');
+    return threadData;
+  } catch (error) {
+    console.error('Error creating discussion thread:', error);
+    return null;
+  }
 } 
 

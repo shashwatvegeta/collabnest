@@ -9,6 +9,7 @@ import {
 	LayoutDashboard,
 	LogOut,
 	Medal,
+	MessageCircle,
 	Search,
 	SquareChartGantt,
 	User,
@@ -53,11 +54,10 @@ const Sidebar = () => {
 						</div>
 					</Link>
 
-					{/* Notifications */}
-					<Link href="/student_dashboard/notifications" className="w-full">
-						<div className={`p-3 rounded-xl transition-all duration-300 flex items-center justify-center hover:shadow-lg hover:shadow-violet-500/20 transform hover:-translate-y-1 relative ${pathname === "/student_dashboard/notifications" ? "bg-[#18172E]" : "hover:bg-[#25243A]"}`}>
-							<Bell size={24} className={pathname === "/student_dashboard/notifications" ? "text-teal-400" : "text-gray-400"} />
-							<span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-lg">3</span>
+					{/* Chats */}
+					<Link href="/student_dashboard/chats" className="w-full">
+						<div className={`p-3 rounded-xl transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg hover:shadow-violet-500/20 transform hover:-translate-y-1 ${pathname === "/student_dashboard/chats" ? "bg-[#18172E]" : "hover:bg-[#25243A]"}`}>
+							<MessageCircle size={24} className={pathname === "/student_dashboard/chats" ? "text-teal-400" : "text-gray-400"} />
 						</div>
 					</Link>
 

@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import ProfessorLayout from '../components/ProfessorLayout';
 import Image from 'next/image';
 import CreateProjectModal from '../components/CreateProjectModal';
-import axios from 'axios';
 
 const ADMIN_INFO = {
     name: 'Shashwat Kumar Singh',
@@ -37,9 +36,20 @@ export default function ProjectsPage() {
 
     const fetchProjects = async () => {
         try {
-            const response = await axios.get('http://localhost:3001/project');
-            console.log('All projects:', response.data);
-            setProjects(response.data);
+            const response = await fetch('http://localhost:3001/project', {
+                cache: 'no-store',
+                headers: {
+                    'Cache-Control': 'no-cache'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Failed to fetch projects: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            console.log('All projects:', data);
+            setProjects(data);
         } catch (error) {
             console.error('Error fetching projects:', error);
         }
@@ -100,7 +110,7 @@ export default function ProjectsPage() {
                             <circle cx="11" cy="11" r="8" />
                             <line x1="21" y1="21" x2="16.65" y2="16.65" />
                         </svg>
-                        <button className="absolute right-3 top-2">
+                        <button className="absolute right-3 top-2" title="Filter options" aria-label="Filter options">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400">
                                 <path d="M3 6h18M3 12h18M3 18h18" />
                             </svg>

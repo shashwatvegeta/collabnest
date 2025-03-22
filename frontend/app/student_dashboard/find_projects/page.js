@@ -80,12 +80,19 @@ const find_projects = () => {
 					/>
 				</div>
 				{filteredProjects.map((p) => (
-					<Link
-						href={`/student_dashboard/project_application?id=${p.id}&name=${encodeURIComponent(p.name)}&desc=${encodeURIComponent(p.desc)}&level=${encodeURIComponent(p.level)}&mentor=${encodeURIComponent(p.mentor)}&tags=${encodeURIComponent(JSON.stringify(p.tags))}`}
-						key={p.id}
-					>
-						<ProjectDisplayCard {...p} />
-					</Link>
+					<div key={p.id} className="group relative">
+						<Link href={`/student_dashboard/projects/${p.id}`}>
+							<ProjectDisplayCard {...p} />
+						</Link>
+						<div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+							<Link
+								href={`/student_dashboard/project_application?id=${p.id}&name=${encodeURIComponent(p.name)}&desc=${encodeURIComponent(p.desc)}&level=${encodeURIComponent(p.level)}&mentor=${encodeURIComponent(p.mentor)}&tags=${encodeURIComponent(JSON.stringify(p.tags))}`}
+								className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-lg transition-colors"
+							>
+								Apply
+							</Link>
+						</div>
+					</div>
 				))}
 			</div>
 		</div>

@@ -291,7 +291,44 @@ const SDashboard = () => {
 					<div className="grid gap-2 p-2">
 						{(recommendedProjects || []).length > 0 ? (
 							recommendedProjects.map((p, index) => (
-								<ProjectCard key={index} project={p || {}} />
+								<Link
+									key={index}
+									href={`/student_dashboard/projects/${p.id}`}
+									className="block cursor-pointer"
+								>
+									<div className="bg-[#222131] p-3 rounded-lg hover:bg-[#2d2c40] transition-all duration-300 transform hover:-translate-y-1">
+										<div className="flex justify-between items-start">
+											<div>
+												<h3 className="font-semibold text-violet-300">{p.name}</h3>
+												<p className="text-sm text-gray-300 mt-1 line-clamp-2">{p.desc}</p>
+												
+												{/* Tags Section */}
+												<div className="flex flex-wrap gap-1 mt-2">
+													{(p.tags || []).map((tag, tagIndex) => (
+														<span 
+															key={tagIndex} 
+															className="inline-block bg-violet-900/60 text-violet-200 px-2 py-0.5 rounded-full text-xs"
+														>
+															{tag}
+														</span>
+													))}
+												</div>
+											</div>
+											<div className="ml-2 flex flex-col items-end">
+												<span className="text-xs bg-indigo-600 text-white px-2 py-1 rounded">{p.level}</span>
+												{p.similarity > 0 && (
+													<div className="mt-1 text-xs text-green-400 flex items-center">
+														<span className="mr-1">+{p.similarity}</span>
+														<svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+															<path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
+														</svg>
+													</div>
+												)}
+												<div className="text-xs text-violet-300 mt-2">View Details →</div>
+											</div>
+										</div>
+									</div>
+								</Link>
 							))
 						) : (
 							<div className="text-center text-gray-400 py-4">No recommended projects available</div>

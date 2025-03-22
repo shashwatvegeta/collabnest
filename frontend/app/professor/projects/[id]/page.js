@@ -296,7 +296,7 @@ export default function ProjectDetails({ params }) {
     }, [id]);
 
     const handleBack = () => {
-        router.push("/mentor/projects");
+        router.push("/professor/projects");
     };
 
     const getStatusBadge = (status) => {

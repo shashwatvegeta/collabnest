@@ -2,6 +2,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useRouter } from 'next/navigation';
 
 const ADMIN_INFO = {
     name: 'Shashwat Kumar Singh',
@@ -41,14 +42,19 @@ interface DiscussionThread {
 
 interface Discussion {
     _id: string;
-    Post_Id: string;
+    Post_Id?: string;
     discussion_id: string;
-    posted_by: string;
-    reply_message: string;
-    posted_at: Date;
+    posted_by?: string;
+    reply_message?: string;
+    posted_at?: Date;
+    content?: string;
+    created_by?: string;
+    created_at?: Date;
+    created_by_username?: string;
 }
 
 export default function ChatPage() {
+    const router = useRouter();
     const [newMessage, setNewMessage] = useState('');
     const [newThreadTitle, setNewThreadTitle] = useState('');
     const [isCreatingThread, setIsCreatingThread] = useState(false);
@@ -116,12 +122,28 @@ export default function ChatPage() {
             if (!threadId) return;
             console.log('Fetching discussions for thread:', threadId);
 
-            const response = await axios.get(`http://localhost:3001/discussions/${threadId}/discussion_post`);
-            console.log('Discussions:', response.data);
-            setDiscussions(response.data);
+            // Find the current thread to get its project ID
+            const thread = discussionThreads.find(t => t._id === threadId);
+            if (!thread) {
+                console.error('Thread not found:', threadId);
+                return;
+            }
+            
+            const projectId = thread.project_id;
+            // Use the correct endpoint structure that matches the backend controller
+            const response = await axios.get(`http://localhost:3001/projects/${projectId}/discussion/${threadId}`);
+            console.log('Thread data:', response.data);
+            
+            // If the response has replies field, use that as our discussions
+            if (response.data && response.data.replies) {
+                setDiscussions(response.data.replies);
+            } else {
+                setDiscussions([]);
+            }
         }
         catch (error) {
             console.error('Error fetching discussions:', error);
+            // Continue without failing - the UI will show empty discussions
         }
     };
 
@@ -148,6 +170,26 @@ export default function ChatPage() {
         }
     };
 
+    const formatDate = (dateString) => {
+        try {
+            // Handle various date formats (string, Date object, ISO string)
+            const date = typeof dateString === 'object' ? dateString : new Date(dateString);
+            
+            // Check if date is valid
+            if (isNaN(date.getTime())) {
+                return { time: 'Unknown', date: 'Unknown' };
+            }
+            
+            return {
+                time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                date: date.toLocaleDateString()
+            };
+        } catch (error) {
+            console.error('Error formatting date:', dateString, error);
+            return { time: 'Unknown', date: 'Unknown' };
+        }
+    };
+
     const handleSendMessage = async (e) => {
         e.preventDefault();
         if (!newMessage.trim() || !activeThreadId || !activeThread) return;
@@ -156,26 +198,38 @@ export default function ChatPage() {
             console.log('Active Thread:', activeThread);
             console.log('Sending message to thread:', activeThreadId);
 
+            // Create the new reply
+            const newReply = {
+                content: newMessage,
+                created_by: ADMIN_INFO.id,
+                created_at: new Date(),
+                created_by_username: ADMIN_INFO.name
+            };
+
             // Update the thread with the new reply
             const updatedThread = await axios.put(`http://localhost:3001/projects/${activeProjectId}/discussion/${activeThreadId}`, {
                 replies: [
                     ...(activeThread?.replies || []),
-                    {
-                        content: newMessage,
-                        created_by: ADMIN_INFO.id,
-                        created_at: new Date(),
-                        created_by_username: ADMIN_INFO.name
-                    }
+                    newReply
                 ]
             });
 
             console.log('Thread updated:', updatedThread.data);
 
-            // Refresh the data
-            await fetchDiscussionThreads(activeProjectId);
-            await fetchDiscussions(activeThreadId);
+            // Update discussions locally - avoiding double refresh/render
+            if (updatedThread.data && updatedThread.data.replies) {
+                setDiscussions(updatedThread.data.replies);
+            }
+            
+            // Clear message input
             setNewMessage('');
-
+            
+            // No need to fetch everything again - just update the thread in the discussionThreads array
+            setDiscussionThreads(prevThreads => 
+                prevThreads.map(thread => 
+                    thread._id === activeThreadId ? updatedThread.data : thread
+                )
+            );
 
         } catch (error) {
             console.error('Error sending message:', error);
@@ -196,37 +250,36 @@ export default function ChatPage() {
 
     const handleDeleteThread = async (threadId) => {
         try {
-            // First delete all discussion posts
-            const discussions = await axios.get(`http://localhost:3001/discussions/${threadId}/discussion_post`);
-            for (const post of discussions.data) {
-                await axios.delete(`http://localhost:3001/discussions/${threadId}/discussion_post/${post._id}`);
-            }
-
-            // Then delete the thread
+            // Delete the thread directly - no need to delete individual posts
             await axios.delete(`http://localhost:3001/projects/${activeProjectId}/discussion/${threadId}`);
             fetchDiscussionThreads(activeProjectId);
             if (activeThreadId === threadId) {
                 setActiveThreadId('');
+                setDiscussions([]);
             }
         } catch (error) {
             console.error('Error deleting thread:', error);
+            alert('Failed to delete thread. Please try again.');
         }
     };
 
     const handleDeleteMessage = async (messageId) => {
         try {
-            // Delete from both the thread replies and discussion posts
+            // Delete message by updating the thread and removing the message from replies
             const thread = discussionThreads.find(t => t._id === activeThreadId);
             if (thread) {
                 await handleUpdateThread(activeThreadId, {
                     replies: thread.replies.filter(r => r._id !== messageId)
                 });
+                
+                // Refresh the discussions
+                await fetchDiscussions(activeThreadId);
+            } else {
+                alert('Thread not found. Cannot delete message.');
             }
-
-            await axios.delete(`http://localhost:3001/discussions/${activeThreadId}/discussion_post/${messageId}`);
-            fetchDiscussions(activeThreadId);
         } catch (error) {
             console.error('Error deleting message:', error);
+            alert('Failed to delete message. Please try again.');
         }
     };
 
@@ -234,12 +287,10 @@ export default function ChatPage() {
     const activeThread = discussionThreads.find(thread => thread._id === activeThreadId);
     const threadsForActiveProject = discussionThreads.filter(thread => thread.project_id === activeProjectId);
 
-    const formatDate = (dateString) => {
-        const date = new Date(dateString);
-        return {
-            time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            date: date.toLocaleDateString()
-        };
+    // Navigation to project details page
+    const handleViewProjectDetails = (projectId, e) => {
+        e.stopPropagation(); // Prevent triggering the parent onClick
+        router.push(`/professor/projects/${projectId}`);
     };
 
     return (
@@ -248,7 +299,11 @@ export default function ChatPage() {
             <div className="w-80 border-r border-gray-800 overflow-y-auto">
                 <div className="flex justify-between items-center p-5">
                     <h2 className="text-xl font-semibold">Projects</h2>
-                    <button className="p-2 rounded-full hover:bg-gray-800 transition-colors">
+                    <button 
+                        className="p-2 rounded-full hover:bg-gray-800 transition-colors"
+                        title="Search projects"
+                        aria-label="Search projects"
+                    >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
@@ -277,6 +332,14 @@ export default function ChatPage() {
                                     {new Date(project.start_date).toLocaleDateString()}
                                 </span>
                             </div>
+                            <div className="mt-3 text-center">
+                                <button
+                                    className="w-full text-xs px-2 py-1 bg-indigo-600 hover:bg-indigo-700 rounded transition-colors"
+                                    onClick={(e) => handleViewProjectDetails(project._id, e)}
+                                >
+                                    View Project Details
+                                </button>
+                            </div>
                         </div>
                     ))}
                 </div>
@@ -295,12 +358,20 @@ export default function ChatPage() {
                             </p>
                         </div>
                         <div className="flex space-x-2">
-                            <button className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors">
+                            <button 
+                                className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
+                                title="Notifications"
+                                aria-label="Notifications"
+                            >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                                 </svg>
                             </button>
-                            <button className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors">
+                            <button 
+                                className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
+                                title="Settings"
+                                aria-label="Settings"
+                            >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -387,10 +458,10 @@ export default function ChatPage() {
                             {/* Thread replies (embedded in the thread document) */}
                             {activeThread.replies && activeThread.replies.length > 0 && (
                                 <div className="space-y-4 mb-6">
-                                    {activeThread.replies.map((reply, index) => {
+                                    {activeThread.replies.map((reply) => {
                                         const formattedDate = formatDate(reply.created_at);
                                         return (
-                                            <div key={`thread-reply-${index}`} className="flex items-start space-x-3">
+                                            <div key={reply._id} className="flex items-start space-x-3">
                                                 <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-700 flex items-center justify-center">
                                                     {reply.created_by_username ? reply.created_by_username.charAt(0) : 'U'}
                                                 </div>
@@ -432,23 +503,27 @@ export default function ChatPage() {
                             {discussions.length > 0 ? (
                                 <div className="space-y-4">
                                     {discussions.map(message => {
-                                        const formattedDate = formatDate(message.posted_at);
+                                        // Ensure we have a valid key for each item
+                                        const messageKey = message._id || `msg-${message.content}-${message.created_at}`;
+                                        const formattedDate = formatDate(message.posted_at || message.created_at);
                                         return (
-                                            <div key={message._id} className="flex items-start space-x-3">
-                                                <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center ${message.posted_by === ADMIN_INFO.id ? 'bg-indigo-600' : 'bg-gray-700'}`}>
-                                                    {message.posted_by === ADMIN_INFO.id ? ADMIN_INFO.name.charAt(0) : 'U'}
+                                            <div key={messageKey} className="flex items-start space-x-3">
+                                                <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center ${(message.posted_by || message.created_by) === ADMIN_INFO.id ? 'bg-indigo-600' : 'bg-gray-700'}`}>
+                                                    {(message.posted_by || message.created_by) === ADMIN_INFO.id ? ADMIN_INFO.name.charAt(0) : 'U'}
                                                 </div>
                                                 <div className="flex-1">
                                                     <div className="flex items-center justify-between mb-1">
                                                         <div className="flex items-center">
                                                             <span className="font-semibold mr-2">
-                                                                {message.posted_by === ADMIN_INFO.id ? ADMIN_INFO.name : 'User'}
+                                                                {(message.posted_by || message.created_by) === ADMIN_INFO.id ? 
+                                                                    ADMIN_INFO.name : 
+                                                                    (message.created_by_username || 'User')}
                                                             </span>
                                                             <span className="text-xs text-gray-400">
                                                                 {formattedDate.time} • {formattedDate.date}
                                                             </span>
                                                         </div>
-                                                        {message.posted_by === ADMIN_INFO.id && (
+                                                        {(message.posted_by || message.created_by) === ADMIN_INFO.id && (
                                                             <div className="flex space-x-1">
                                                                 <button
                                                                     onClick={() => handleDeleteMessage(message._id)}
@@ -463,7 +538,7 @@ export default function ChatPage() {
                                                         )}
                                                     </div>
                                                     <div className="p-3 bg-gray-800 rounded-lg">
-                                                        {message.reply_message}
+                                                        {message.reply_message || message.content}
                                                     </div>
                                                 </div>
                                             </div>
@@ -504,6 +579,8 @@ export default function ChatPage() {
                         <button
                             type="submit"
                             className="bg-indigo-600 hover:bg-indigo-700 p-3 rounded-r-md transition-colors"
+                            title="Send message"
+                            aria-label="Send message"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />

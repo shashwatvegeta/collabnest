@@ -5,6 +5,7 @@ import { getEmail } from "@/lib/auth_utility";
 import { useIsAuthenticated } from "@azure/msal-react";
 import { useRouter } from "next/navigation";
 import tagsData from "@/components/tags.json";
+import { createInitialDiscussionThread } from "@/lib/api";
 
 export default function MentorProjects() {
   const [projects, setProjects] = useState([]);
@@ -158,6 +159,28 @@ export default function MentorProjects() {
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.message || "Failed to create project");
+      }
+
+      // Get the newly created project data
+      const createdProject = await response.json();
+      console.log("Project created successfully:", createdProject);
+      
+      // Create initial discussion thread for the project
+      try {
+        const projectId = createdProject._id;
+        // Get mentor display name (or use email as fallback)
+        const mentorName = email.split('@')[0] || "Mentor";
+        
+        // Use the utility function to create the discussion thread
+        await createInitialDiscussionThread(
+          projectId, 
+          formData.project_name, 
+          email, 
+          mentorName
+        );
+      } catch (threadError) {
+        console.error("Error creating initial thread:", threadError);
+        // Continue with success - don't fail project creation if thread creation fails
       }
 
       // Success

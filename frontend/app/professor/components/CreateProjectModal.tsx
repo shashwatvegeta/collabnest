@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import axios from 'axios';
+import { createInitialDiscussionThread } from '@/lib/api';
 
 export default function CreateProjectModal({ isOpen, onClose }) {
     const [projectTitle, setProjectTitle] = useState('');
@@ -20,7 +20,8 @@ export default function CreateProjectModal({ isOpen, onClose }) {
         setError('');
 
         const ADMIN_INFO = {
-            id: '67d43bbaa0d1c77b0fb4aed6'
+            id: '67d43bbaa0d1c77b0fb4aed6',
+            name: 'Professor'
         };
 
         try {
@@ -39,10 +40,37 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 students_enrolled: []
             };
 
-            // Send POST request to the API
-            const response = await axios.post('http://localhost:3001/project', projectData);
+            // Send POST request to the API using fetch instead of axios
+            const response = await fetch('http://localhost:3001/project', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(projectData)
+            });
 
-            console.log('Project created successfully:', response.data);
+            if (!response.ok) {
+                throw new Error(`Failed to create project: ${response.statusText}`);
+            }
+
+            const createdProject = await response.json();
+            console.log('Project created successfully:', createdProject);
+
+            // Create initial discussion thread for the project
+            try {
+                const projectId = createdProject._id;
+                
+                // Use the utility function to create the discussion thread
+                await createInitialDiscussionThread(
+                    projectId,
+                    projectTitle,
+                    ADMIN_INFO.id,
+                    ADMIN_INFO.name
+                );
+            } catch (threadError) {
+                console.error("Error creating initial discussion thread:", threadError);
+                // Continue even if thread creation fails
+            }
 
             // Clear form and close modal on success
             clearForm();
