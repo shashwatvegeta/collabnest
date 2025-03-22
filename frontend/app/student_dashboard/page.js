@@ -428,7 +428,55 @@ const SDashboard = () => {
 						<div className="grid gap-2 p-2">
 							{(ongoingProjects || []).length > 0 ? (
 								ongoingProjects.slice(0, 2).map((p, index) => (
-									<ProjectCard key={index} project={p || {}} />
+									<Link 
+										key={index} 
+										href={`/student_dashboard/projects/${p._id}`}
+										className="block cursor-pointer"
+									>
+										<div className="rounded-lg overflow-hidden flex bg-[#222131] mb-2 h-full shadow-md hover:bg-[#2a2a38] transition-all duration-300 transform hover:-translate-y-1">
+											<div className="bg-violet-400 w-12 flex items-center justify-center">
+												<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+													<rect width="24" height="24" rx="4" fill="white" fillOpacity="0.2" />
+													<path d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5z" stroke="white" strokeWidth="2" />
+													<path d="M4 13a1 1 0 011-1h14a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6z" stroke="white" strokeWidth="2" />
+												</svg>
+											</div>
+											<div className="p-2 flex flex-col justify-between flex-1">
+												<div>
+													<div className="font-medium text-white text-sm mb-1">{p.project_name}</div>
+													<div className="text-xs text-gray-300 line-clamp-2">{p.description}</div>
+													
+													{/* Tags Section */}
+													<div className="flex flex-wrap gap-1 mt-2">
+														{(p.tags || []).slice(0, 3).map((tag, tagIndex) => (
+															<span 
+																key={tagIndex} 
+																className="inline-block bg-violet-900/60 text-violet-200 px-2 py-0.5 rounded-full text-xs"
+															>
+																{tag}
+															</span>
+														))}
+														{(p.tags || []).length > 3 && (
+															<span className="inline-block bg-violet-900/60 text-violet-200 px-2 py-0.5 rounded-full text-xs">
+																+{p.tags.length - 3} more
+															</span>
+														)}
+													</div>
+												</div>
+												<div className="flex justify-between items-center mt-2">
+													<button className="text-xs py-0.5 px-3 rounded-md bg-blue-600 text-white">
+														{p.is_approved === 'approved' 
+															? 'Approved' 
+															: p.is_approved === 'rejected' 
+															? 'Rejected' 
+															: 'Pending'
+														}
+													</button>
+													<span className="text-xs text-violet-300 mr-2">View Details →</span>
+												</div>
+											</div>
+										</div>
+									</Link>
 								))
 							) : (
 								<div className="text-center text-gray-400 py-4">No ongoing projects</div>

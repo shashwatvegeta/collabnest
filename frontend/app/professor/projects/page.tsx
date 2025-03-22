@@ -16,7 +16,7 @@ interface Project {
     _id: string;
     project_name: string;
     description: string;
-    is_approved: boolean;
+    is_approved: string;
     is_completed: boolean;
     project_owner: any;
     cap: number;
@@ -57,12 +57,25 @@ export default function ProjectsPage() {
 
     // Filter projects where the owner ID matches ADMIN_INFO.id
     const ongoingProjects = projects.filter((project) => {
-        console.log(`Comparing: ${project.project_owner} with ${ADMIN_INFO.id}`);
+        if (typeof project.project_owner === 'object' && project.project_owner !== null) {
+            // If project_owner is an object with _id property
+            if (project.project_owner._id) {
+                return project.project_owner._id === ADMIN_INFO.id;
+            }
+            // If project_owner is an object with id property
+            if (project.project_owner.id) {
+                return project.project_owner.id === ADMIN_INFO.id;
+            }
+            // Check by email if id is not available
+            if (project.project_owner.email) {
+                return project.project_owner.email === ADMIN_INFO.email;
+            }
+        }
+        // If project_owner is just an ID string
         return project.project_owner === ADMIN_INFO.id;
     });
 
-    console.log('Filtered projects:', ongoingProjects);
-
+    console.log('Filtered projects by professor:', ongoingProjects);
 
     const openModal = () => {
         setIsModalOpen(true);
@@ -149,25 +162,33 @@ export default function ProjectsPage() {
                                         className="opacity-50"
                                     />
                                     <div className="absolute top-0 right-0 bg-[#151929] bg-opacity-50 px-2 py-1 m-2 rounded">
-                                        <span className="text-white text-xs font-bold">AI</span>
+                                        <span className="text-white text-xs font-bold">
+                                            {project.tags && project.tags.length > 0 ? project.tags[0].toUpperCase() : "AI"}
+                                        </span>
                                     </div>
                                     <div className="absolute bottom-0 left-0 w-full p-4">
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <h3 className="text-white text-lg font-bold">{project.project_name}</h3>
-                                                <p className="text-white text-sm">Assistant</p>
+                                                <p className="text-white text-sm">
+                                                    {project.is_approved === "approved" ? "Approved" : 
+                                                    project.is_approved === "rejected" ? "Rejected" : "Pending Approval"}
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="p-4">
-                                    <p className="text-gray-400 text-sm mb-3">{project.description}</p>
+                                    <p className="text-gray-400 text-sm mb-3 line-clamp-2">{project.description}</p>
                                     <div className="w-full bg-[#151929] rounded-full h-1.5 mb-4">
-                                        <div className="bg-[#7c68ee] h-1.5 rounded-full" style={{ width: `75%` }}></div>
+                                        <div className="bg-[#7c68ee] h-1.5 rounded-full" style={{ width: `${project.is_completed ? "100" : "75"}%` }}></div>
                                     </div>
-                                    <button className="w-full bg-[#7c68ee33] text-[#7c68ee] rounded-md py-2 hover:bg-[#7c68ee] hover:text-white transition-colors">
+                                    <a 
+                                        href={`/professor/projects/${project._id}`}
+                                        className="block w-full text-center bg-[#7c68ee33] text-[#7c68ee] rounded-md py-2 hover:bg-[#7c68ee] hover:text-white transition-colors"
+                                    >
                                         View Details
-                                    </button>
+                                    </a>
                                 </div>
                             </div>
                         ))}
@@ -175,7 +196,10 @@ export default function ProjectsPage() {
                 )}
 
                 {/* Create Project Modal */}
-                <CreateProjectModal isOpen={isModalOpen} onClose={closeModal} />
+                <CreateProjectModal 
+                    isOpen={isModalOpen} 
+                    onClose={closeModal} 
+                />
             </div>
         </ProfessorLayout>
     );

@@ -19,9 +19,12 @@ export default function CreateProjectModal({ isOpen, onClose }) {
         setIsLoading(true);
         setError('');
 
+        // Get the ADMIN_INFO from parent page
         const ADMIN_INFO = {
-            id: '67d43bbaa0d1c77b0fb4aed6',
-            name: 'Professor'
+            name: 'Shashwat Kumar Singh',
+            role: 'PROFESSOR',
+            email: 'jyotishikha2007@gmail.com',
+            id: '67d43bbaa0d1c77b0fb4aed6'
         };
 
         try {
@@ -29,9 +32,14 @@ export default function CreateProjectModal({ isOpen, onClose }) {
             const projectData = {
                 project_name: projectTitle,
                 description: description,
-                is_approved: "approved", // Setting default approval status
+                is_approved: "approved", // Setting approval status to approved by default for professors
                 is_completed: false,
-                project_owner: ADMIN_INFO.id,
+                project_owner: {
+                    _id: ADMIN_INFO.id,
+                    name: ADMIN_INFO.name,
+                    email: ADMIN_INFO.email,
+                    role: ADMIN_INFO.role
+                },
                 cap: 8, // Default cap value
                 start_date: startDate + "T00:00:00.000+00:00",
                 end_date: endDate + "T00:00:00.000+00:00",

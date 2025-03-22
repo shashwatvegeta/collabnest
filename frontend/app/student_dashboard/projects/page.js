@@ -153,7 +153,7 @@ export default function Projects() {
             <div className={styles.grid}>
               {filteredProjects.length > 0 ? (
                 filteredProjects.map((project) => (
-                  <div key={project._id} className={styles.card}>
+                  <div key={project._id} className={styles.card} style={{ height: "380px", display: "flex", flexDirection: "column" }}>
                     <div className={styles.imageContainer}>
                       <Image 
                         src="/project-placeholder.png" 
@@ -165,19 +165,104 @@ export default function Projects() {
                       />
                       <div className={styles.label}>
                         <span className={styles.projectName}>{project.project_name}</span>
-                        <span className={styles.rating}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                          </svg>
-                          4.5
+                        <span className={styles.level}>
+                          {project.level || "Beginner"}
                         </span>
                       </div>
                     </div>
-                    <div className={styles.cardBody}>
+                    <div className={styles.cardBody} style={{ display: "flex", flexDirection: "column", flex: 1 }}>
                       <h3 className={styles.cardTitle}>{project.project_name}</h3>
-                      <p className={styles.owner}>Posted by {project.project_owner ? (typeof project.project_owner === 'object' && project.project_owner.name ? project.project_owner.name : 'Unknown') : 'Unknown'}</p>
-                      <p className={styles.capacity}>Capacity: {project.cap} students</p>
-                      <button className={styles.applyButton}>Apply Now</button>
+                      <p className={styles.owner}>
+                        Owner: {project.project_owner ? 
+                          (typeof project.project_owner === 'object' && project.project_owner.name ? 
+                            project.project_owner.name : project.project_owner || 'Unknown') : 'Unknown'}
+                        {project.project_owner && typeof project.project_owner === 'object' && project.project_owner.email && (
+                          <span className="block text-xs text-indigo-300 mt-1">
+                            {project.project_owner.email}
+                          </span>
+                        )}
+                      </p>
+                      
+                      <p className={styles.description} style={{ flex: 1, overflow: "hidden", marginBottom: "10px", fontSize: "0.9rem", color: "#BD93F9", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+                        {project.description || "No description available"}
+                      </p>
+                      
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", marginBottom: "10px" }}>
+                        {(project.tags || []).slice(0, 3).map((tag, tagIndex) => (
+                          <span 
+                            key={tagIndex} 
+                            style={{ 
+                              display: "inline-block", 
+                              backgroundColor: "rgba(189, 147, 249, 0.2)", 
+                              color: "#BD93F9", 
+                              padding: "2px 8px", 
+                              borderRadius: "10px", 
+                              fontSize: "0.7rem"
+                            }}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                        {(project.tags || []).length > 3 && (
+                          <span style={{ 
+                            display: "inline-block", 
+                            backgroundColor: "rgba(189, 147, 249, 0.2)", 
+                            color: "#BD93F9", 
+                            padding: "2px 8px", 
+                            borderRadius: "10px", 
+                            fontSize: "0.7rem"
+                          }}>
+                            +{project.tags.length - 3} more
+                          </span>
+                        )}
+                      </div>
+                      
+                      <div style={{ display: "flex", gap: "10px" }}>
+                        <Link 
+                          href={`/student_dashboard/project_application?id=${project._id}&name=${encodeURIComponent(project.project_name)}&desc=${encodeURIComponent(project.description || '')}&level=${encodeURIComponent(project.level || 'Beginner')}&mentor=${encodeURIComponent(typeof project.project_owner === 'object' ? project.project_owner.name || 'Unknown' : project.project_owner || 'Unknown')}&tags=${encodeURIComponent(JSON.stringify(project.tags || []))}`}
+                          style={{ 
+                            flex: 2,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "5px",
+                            backgroundColor: "#BD93F9", 
+                            color: "white", 
+                            padding: "8px", 
+                            borderRadius: "5px",
+                            textDecoration: "none",
+                            fontWeight: "bold",
+                            transition: "all 0.2s"
+                          }}
+                          className="hover:bg-[#A162FF] hover:scale-105 transform"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 5v14M5 12h14"/>
+                          </svg>
+                          Apply Now
+                        </Link>
+                        
+                        <Link 
+                          href={`/student_dashboard/projects/${project._id}`}
+                          style={{ 
+                            flex: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: "#282A36", 
+                            color: "#BD93F9", 
+                            padding: "8px", 
+                            borderRadius: "5px",
+                            textDecoration: "none",
+                            border: "1px solid #BD93F9",
+                            fontSize: "0.9rem",
+                            transition: "all 0.2s"
+                          }}
+                          className="hover:bg-[#313242]"
+                        >
+                          Details
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 ))

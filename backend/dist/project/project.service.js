@@ -32,9 +32,16 @@ let ProjectService = class ProjectService {
         if (startDate < today) {
             throw new common_1.BadRequestException('Start date must be today or in the future');
         }
+        let approvalStatus = 'pending';
+        if (typeof createProjectDto.project_owner === 'object' &&
+            createProjectDto.project_owner !== null) {
+            if (createProjectDto.project_owner.role === 'PROFESSOR') {
+                approvalStatus = 'approved';
+            }
+        }
         const createdProject = new this.projectModel({
             ...createProjectDto,
-            is_approved: 'pending',
+            is_approved: approvalStatus,
             is_completed: false,
         });
         return createdProject.save();

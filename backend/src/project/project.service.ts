@@ -20,9 +20,20 @@ export class ProjectService {
     if (startDate < today) {
       throw new BadRequestException('Start date must be today or in the future');
     }
+
+    // Check if creator is a professor - if so, auto-approve the project
+    let approvalStatus = 'pending';
+    if (typeof createProjectDto.project_owner === 'object' && 
+        createProjectDto.project_owner !== null) {
+      // If the creator has a role field and is a PROFESSOR, set to approved
+      if (createProjectDto.project_owner.role === 'PROFESSOR') {
+        approvalStatus = 'approved';
+      }
+    }
+
     const createdProject = new this.projectModel({
       ...createProjectDto,
-      is_approved: 'pending',
+      is_approved: approvalStatus,
       is_completed: false,
     });
     return createdProject.save();

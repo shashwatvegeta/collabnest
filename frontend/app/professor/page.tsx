@@ -137,25 +137,6 @@ export default function ProfessorDashboard() {
         }
     }
 
-    // Improve the notification deduplication check function
-    const hasExistingNotification = (appId, notificationsList) => {
-        return notificationsList.some(notification => {
-            // Check if appId is in notification ID
-            if (notification._id.includes(appId)) return true;
-            
-            // Check metadata
-            if (notification.metadata && notification.metadata.applicationId === appId) return true;
-            
-            // Check if message contains same application info 
-            // (for notifications that came from the server)
-            if (notification.message && notification.message.includes(`applied to join`)) {
-                return true;
-            }
-            
-            return false;
-        });
-    };
-
     const fetchApplications = async (projectsData) => {
         try {
             // Create a map of project IDs to project names for quick lookup
@@ -165,28 +146,50 @@ export default function ProfessorDashboard() {
             });
             
             // Filter projects where the current professor is the project_owner
-            const professorProjects = projectsData.filter(project => 
-                project.project_owner === ADMIN_INFO.id
-            );
+            const professorProjects = projectsData.filter(project => {
+                if (typeof project.project_owner === 'object' && project.project_owner !== null) {
+                    // If project_owner is an object with _id property
+                    if (project.project_owner._id) {
+                        return project.project_owner._id === ADMIN_INFO.id;
+                    }
+                    // If project_owner is an object with id property
+                    if (project.project_owner.id) {
+                        return project.project_owner.id === ADMIN_INFO.id;
+                    }
+                    // Check by email if id is not available
+                    if (project.project_owner.email) {
+                        return project.project_owner.email === ADMIN_INFO.email;
+                    }
+                }
+                // If project_owner is just an ID string
+                return project.project_owner === ADMIN_INFO.id;
+            });
+            
+            console.log("Professor projects:", professorProjects);
             
             // Fetch applications for each project
             const applicationPromises = professorProjects.map(async (project) => {
-                const appResponse = await axios.get(
-                    `http://localhost:3001/projects/${project._id}/applications`,
-                );
-                if (appResponse.status !== 200) {
-                    throw new Error(
-                        `Failed to fetch applications for project ${project._id}`,
+                try {
+                    const appResponse = await axios.get(
+                        `http://localhost:3001/projects/${project._id}/applications`,
                     );
+                    if (appResponse.status !== 200) {
+                        throw new Error(
+                            `Failed to fetch applications for project ${project._id}`,
+                        );
+                    }
+                    const applications = appResponse.data;
+                    
+                    // Add project name to each application for reference
+                    return applications.map(app => ({
+                        ...app,
+                        projectName: project.project_name,
+                        projectType: project.tags ? project.tags.join(', ') : "General"
+                    }));
+                } catch (error) {
+                    console.error(`Error fetching applications for project ${project._id}:`, error);
+                    return []; // Return empty array on error to avoid breaking Promise.all
                 }
-                const applications = appResponse.data;
-                
-                // Add project name to each application for reference
-                return applications.map(app => ({
-                    ...app,
-                    projectName: project.project_name,
-                    projectType: project.tags ? project.tags.join(', ') : "General"
-                }));
             });
 
             const applicationsArray = await Promise.all(applicationPromises);
@@ -197,13 +200,11 @@ export default function ProfessorDashboard() {
 
             // Filter pending applications
             const pendingApplications = allApplications.filter(app => app.status === 'pending');
+            console.log("Pending applications:", pendingApplications);
 
             // Create a new Set of processed IDs to update
             const newProcessedIds = new Set(processedAppIds);
             
-            // Get current notifications first - clone for safety
-            const currentNotifications = [...notifications];
-
             // Create requests from pending applications
             const applicationRequests = pendingApplications.map(app => {
                 const userName = app.user_id?.username || "A student";
@@ -231,10 +232,17 @@ export default function ProfessorDashboard() {
 
             setRequests(limitedRequests);
             
-            // Only generate new application notifications if we don't have existing ones
-            // Only create notifications from pending applications (only for ones we haven't processed yet)
-            const applicationNotifications = pendingApplications
-                .filter(app => !processedAppIds.has(app._id) && !hasExistingNotification(app._id, currentNotifications))
+            // Generate notifications from pending applications
+            // that we haven't processed yet and don't already have notifications for
+            const newNotifications = pendingApplications
+                .filter(app => !processedAppIds.has(app._id) && 
+                    !notifications.some(n => 
+                        (n.metadata && n.metadata.applicationId === app._id) ||
+                        n._id.includes(app._id) ||
+                        (n.message && n.message.includes(`applied to join`) && 
+                         n.message.includes(app.projectName))
+                    )
+                )
                 .map((app, index) => {
                     // Mark this app as processed
                     newProcessedIds.add(app._id);
@@ -256,8 +264,10 @@ export default function ProfessorDashboard() {
                         }
                     }
                     
+                    console.log(`Creating notification for application ${app._id}, project ${projectName}`);
+                    
                     return {
-                        _id: `app-${app._id}-${Date.now()}-${index}`, // Even more unique with timestamp
+                        _id: `app-${app._id}-${Date.now()}-${index}`,
                         message: `${userName} has applied to join ${projectName}`,
                         created_at: createdAt,
                         sender_id: app.user_id?._id || "",
@@ -273,38 +283,27 @@ export default function ProfessorDashboard() {
             setProcessedAppIds(newProcessedIds);
             
             // Only update notifications if we have new ones to add
-            if (applicationNotifications.length > 0) {
+            if (newNotifications.length > 0) {
+                console.log("Adding new notifications:", newNotifications);
                 setNotifications(prevNotifications => {
-                    // Start with our new notifications
-                    const result = [...applicationNotifications];
+                    // Combine with existing notifications, avoiding duplicates
+                    const combinedNotifications = [...newNotifications];
                     
-                    // Add existing notifications that aren't duplicates
-                    for (const notification of prevNotifications) {
-                        // Skip app notifications that are already processed
-                        if (notification._id.startsWith('app-')) {
-                            const appIdInNotification = notification._id.split('-')[1];
-                            // Skip if this app ID already has a notification in our new batch
-                            if (applicationNotifications.some(newNotif => 
-                                newNotif.metadata?.applicationId === appIdInNotification || 
-                                newNotif._id.includes(appIdInNotification)
-                            )) {
-                                continue;
-                            }
-                        }
+                    prevNotifications.forEach(existing => {
+                        // Skip if this notification is a duplicate of one in newNotifications
+                        const isDuplicate = newNotifications.some(newNotif => 
+                            existing._id.includes(newNotif.metadata?.applicationId) ||
+                            (existing.message && newNotif.message && 
+                             existing.message === newNotif.message)
+                        );
                         
-                        // Skip duplicates by checking message content - strict deduplication
-                        if (applicationNotifications.some(newNotif => 
-                            newNotif.message === notification.message
-                        )) {
-                            continue;
+                        if (!isDuplicate) {
+                            combinedNotifications.push(existing);
                         }
-                        
-                        // Add this notification if it passed all filters
-                        result.push(notification);
-                    }
+                    });
                     
-                    // Limit to 3 notifications
-                    return result.slice(0, 3);
+                    // Return combined notifications (limit to reasonable number)
+                    return combinedNotifications.slice(0, 5);
                 });
             }
         } catch (error) {
@@ -316,8 +315,9 @@ export default function ProfessorDashboard() {
         try {
             const response = await axios.get(`http://localhost:3001/notifications/received/${ADMIN_INFO.id}`);
             const serverNotifications = response.data.notifications.slice(0, 3);
+            console.log("Server notifications:", serverNotifications);
             
-            // Don't immediately set notifications - instead merge with current application notifications
+            // Process and merge with application notifications
             setNotifications(currentNotifications => {
                 // Get application notifications we've generated
                 const appNotifications = currentNotifications.filter(n => n._id.startsWith('app-'));
@@ -335,10 +335,8 @@ export default function ProfessorDashboard() {
                 });
                 
                 // Combine and limit
-                return [...appNotifications, ...filteredServerNotifications].slice(0, 3);
+                return [...appNotifications, ...filteredServerNotifications].slice(0, 5);
             });
-            
-            console.log(response.data.notifications);
         } catch (error) {
             console.error('Error fetching notifications:', error);
             setNotifications([{
