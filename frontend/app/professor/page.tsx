@@ -39,6 +39,7 @@ interface Notification {
     }>;
     title?: string;
     isImportant?: boolean;
+    metadata?: { applicationId: string };
 }
 
 interface Application {
@@ -136,6 +137,25 @@ export default function ProfessorDashboard() {
         }
     }
 
+    // Improve the notification deduplication check function
+    const hasExistingNotification = (appId, notificationsList) => {
+        return notificationsList.some(notification => {
+            // Check if appId is in notification ID
+            if (notification._id.includes(appId)) return true;
+            
+            // Check metadata
+            if (notification.metadata && notification.metadata.applicationId === appId) return true;
+            
+            // Check if message contains same application info 
+            // (for notifications that came from the server)
+            if (notification.message && notification.message.includes(`applied to join`)) {
+                return true;
+            }
+            
+            return false;
+        });
+    };
+
     const fetchApplications = async (projectsData) => {
         try {
             // Create a map of project IDs to project names for quick lookup
@@ -181,30 +201,8 @@ export default function ProfessorDashboard() {
             // Create a new Set of processed IDs to update
             const newProcessedIds = new Set(processedAppIds);
             
-            // Create notifications from pending applications (only for ones we haven't processed yet)
-            const applicationNotifications = pendingApplications
-                .filter(app => !processedAppIds.has(app._id))
-                .map((app, index) => {
-                    // Mark this app as processed
-                    newProcessedIds.add(app._id);
-                    
-                    const userName = app.user_id?.username || "A student";
-                    const projectName = app.projectName || "a project";
-                    
-                    return {
-                        _id: `app-${app._id}-${Date.now()}-${index}`, // Even more unique with timestamp
-                        message: `${userName} has applied to join ${projectName}`,
-                        created_at: app.submission_date || new Date().toISOString(), // Use application submission date
-                        sender_id: app.user_id?._id || "",
-                        receiver_ids: [ADMIN_INFO.id],
-                        readBy: [],
-                        title: "New Application",
-                        isImportant: true
-                    } as Notification;
-                });
-            
-            // Update processed IDs
-            setProcessedAppIds(newProcessedIds);
+            // Get current notifications first - clone for safety
+            const currentNotifications = [...notifications];
 
             // Create requests from pending applications
             const applicationRequests = pendingApplications.map(app => {
@@ -233,19 +231,80 @@ export default function ProfessorDashboard() {
 
             setRequests(limitedRequests);
             
-            // Add application notifications to the notifications list - only if we have new ones
+            // Only generate new application notifications if we don't have existing ones
+            // Only create notifications from pending applications (only for ones we haven't processed yet)
+            const applicationNotifications = pendingApplications
+                .filter(app => !processedAppIds.has(app._id) && !hasExistingNotification(app._id, currentNotifications))
+                .map((app, index) => {
+                    // Mark this app as processed
+                    newProcessedIds.add(app._id);
+                    
+                    const userName = app.user_id?.username || "A student";
+                    const projectName = app.projectName || "a project";
+                    
+                    // Make sure submission_date is a valid date string
+                    let createdAt = new Date().toISOString();
+                    if (app.submission_date) {
+                        try {
+                            // Ensure submission_date is a valid date
+                            const submissionDate = new Date(app.submission_date);
+                            if (!isNaN(submissionDate.getTime())) {
+                                createdAt = submissionDate.toISOString();
+                            }
+                        } catch (e) {
+                            console.error("Invalid submission date:", app.submission_date);
+                        }
+                    }
+                    
+                    return {
+                        _id: `app-${app._id}-${Date.now()}-${index}`, // Even more unique with timestamp
+                        message: `${userName} has applied to join ${projectName}`,
+                        created_at: createdAt,
+                        sender_id: app.user_id?._id || "",
+                        receiver_ids: [ADMIN_INFO.id],
+                        readBy: [],
+                        title: "New Application",
+                        isImportant: true,
+                        metadata: { applicationId: app._id }
+                    } as Notification;
+                });
+            
+            // Update processed IDs
+            setProcessedAppIds(newProcessedIds);
+            
+            // Only update notifications if we have new ones to add
             if (applicationNotifications.length > 0) {
                 setNotifications(prevNotifications => {
-                    // Filter out any synthetic notifications that might already exist
-                    const filteredPrevNotifications = prevNotifications.filter(
-                        n => !n._id.startsWith('app-')
-                    );
+                    // Start with our new notifications
+                    const result = [...applicationNotifications];
                     
-                    // Return new array with application notifications first
-                    return [
-                        ...applicationNotifications,
-                        ...filteredPrevNotifications
-                    ].slice(0, 3);
+                    // Add existing notifications that aren't duplicates
+                    for (const notification of prevNotifications) {
+                        // Skip app notifications that are already processed
+                        if (notification._id.startsWith('app-')) {
+                            const appIdInNotification = notification._id.split('-')[1];
+                            // Skip if this app ID already has a notification in our new batch
+                            if (applicationNotifications.some(newNotif => 
+                                newNotif.metadata?.applicationId === appIdInNotification || 
+                                newNotif._id.includes(appIdInNotification)
+                            )) {
+                                continue;
+                            }
+                        }
+                        
+                        // Skip duplicates by checking message content - strict deduplication
+                        if (applicationNotifications.some(newNotif => 
+                            newNotif.message === notification.message
+                        )) {
+                            continue;
+                        }
+                        
+                        // Add this notification if it passed all filters
+                        result.push(notification);
+                    }
+                    
+                    // Limit to 3 notifications
+                    return result.slice(0, 3);
                 });
             }
         } catch (error) {
@@ -256,9 +315,30 @@ export default function ProfessorDashboard() {
     const fetchNotifications = async () => {
         try {
             const response = await axios.get(`http://localhost:3001/notifications/received/${ADMIN_INFO.id}`);
-            setNotifications(response.data.notifications.slice(0, 3));
+            const serverNotifications = response.data.notifications.slice(0, 3);
+            
+            // Don't immediately set notifications - instead merge with current application notifications
+            setNotifications(currentNotifications => {
+                // Get application notifications we've generated
+                const appNotifications = currentNotifications.filter(n => n._id.startsWith('app-'));
+                
+                // Filter out server notifications that duplicate our application notifications
+                const filteredServerNotifications = serverNotifications.filter(serverNotification => {
+                    // Skip if this server notification duplicates one of our app notifications
+                    return !appNotifications.some(appNotif => 
+                        // Check if messages are similar
+                        serverNotification.message === appNotif.message ||
+                        // Check if this is about the same application
+                        (serverNotification.message.includes('applied to join') && 
+                         appNotif.message.includes('applied to join'))
+                    );
+                });
+                
+                // Combine and limit
+                return [...appNotifications, ...filteredServerNotifications].slice(0, 3);
+            });
+            
             console.log(response.data.notifications);
-
         } catch (error) {
             console.error('Error fetching notifications:', error);
             setNotifications([{
@@ -583,14 +663,34 @@ export default function ProfessorDashboard() {
                                                 </div>
                                                 <p className="text-xs text-gray-400 mt-1">
                                                     {notification._id.startsWith('app-')
-                                                        ? new Date(notification.created_at).toLocaleString('en-US', {
-                                                            year: 'numeric',
-                                                            month: 'short',
-                                                            day: 'numeric',
-                                                            hour: '2-digit',
-                                                            minute: '2-digit'
-                                                          })
-                                                        : new Date(notification.created_at).toLocaleString()
+                                                        ? (() => {
+                                                            try {
+                                                                const date = new Date(notification.created_at);
+                                                                if (isNaN(date.getTime())) {
+                                                                    return 'Just now';
+                                                                }
+                                                                return date.toLocaleString('en-US', {
+                                                                    year: 'numeric',
+                                                                    month: 'short',
+                                                                    day: 'numeric',
+                                                                    hour: '2-digit',
+                                                                    minute: '2-digit'
+                                                                });
+                                                            } catch (e) {
+                                                                return 'Just now';
+                                                            }
+                                                        })()
+                                                        : (() => {
+                                                            try {
+                                                                const date = new Date(notification.created_at);
+                                                                if (isNaN(date.getTime())) {
+                                                                    return 'Just now';
+                                                                }
+                                                                return date.toLocaleString();
+                                                            } catch (e) {
+                                                                return 'Just now';
+                                                            }
+                                                        })()
                                                     }
                                                 </p>
                                             </div>

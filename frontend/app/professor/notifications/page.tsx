@@ -16,6 +16,48 @@ const NotificationItem = ({ notification, onMarkAsRead }) => {
     const isUnread = !notification.readBy || notification.readBy.length === 0 || 
                     !notification.readBy.some(reader => reader.readerId === ADMIN_INFO.id);
     
+    // Format date with better error handling and logging
+    const formatDate = (dateString) => {
+        // Debug log to see what date values we're getting
+        console.log("Date value received:", dateString, typeof dateString);
+        
+        if (!dateString) {
+            return 'Just now';
+        }
+
+        try {
+            // Try to parse using multiple approaches
+            let date;
+            
+            // If it's already a Date object
+            if (dateString instanceof Date) {
+                date = dateString;
+            } 
+            // Try direct parsing
+            else {
+                date = new Date(dateString);
+            }
+
+            // Validate the date
+            if (isNaN(date.getTime())) {
+                console.warn("Invalid date parsed:", dateString);
+                return 'Just now'; // Fallback for invalid dates
+            }
+            
+            // Format the date
+            return date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (e) {
+            console.error("Error formatting date:", e, dateString);
+            return 'Just now';
+        }
+    };
+    
     return (
         <div 
             className={`bg-slate-700 p-3 rounded-lg mb-2 hover:bg-slate-600 transition-all duration-300 cursor-pointer transform hover:-translate-y-1 ${isUnread ? 'border-l-4 border-indigo-500' : ''}`}
@@ -30,7 +72,7 @@ const NotificationItem = ({ notification, onMarkAsRead }) => {
                         )}
                     </div>
                     <div className="text-xs text-gray-400 mt-1">
-                        {new Date(notification.created_at).toLocaleString()}
+                        {formatDate(notification.created_at)}
                     </div>
                 </div>
             </div>
@@ -57,9 +99,77 @@ export default function Notifications() {
             if (response.status !== 200) {
                 throw new Error('Failed to fetch notifications');
             }
-            setNotifications(response.data.notifications);
+            
+            console.log("Fetched notifications:", response.data.notifications);
+            
+            // Process notifications to add appropriate dates
+            const processedNotifications = await Promise.all(response.data.notifications.map(async notification => {
+                // Check if this notification is related to an application
+                const isApplicationNotification = notification.message && 
+                    (notification.message.includes('applied to join') || 
+                     notification.message.includes('application'));
+                
+                if (isApplicationNotification) {
+                    console.log("Found application notification:", notification.message);
+                    
+                    // Try to extract project ID and/or application ID from the notification content
+                    // This is a fallback approach in case direct reference is not available
+                    let applicationData = null;
+                    
+                    try {
+                        // First, fetch all projects where the current user is the owner
+                        const projectsResponse = await axios.get('http://localhost:3001/project');
+                        const professorProjects = projectsResponse.data.filter(
+                            project => project.project_owner === ADMIN_INFO.id
+                        );
+                        
+                        // For each project, try to find pending applications
+                        for (const project of professorProjects) {
+                            try {
+                                const applicationsResponse = await axios.get(
+                                    `http://localhost:3001/projects/${project._id}/applications`
+                                );
+                                
+                                // Find applications that might match this notification
+                                const matchingApp = applicationsResponse.data.find(app => 
+                                    app.user_id && 
+                                    notification.message.includes(app.user_id.username || '')
+                                );
+                                
+                                if (matchingApp) {
+                                    applicationData = matchingApp;
+                                    console.log("Found matching application:", applicationData);
+                                    break;
+                                }
+                            } catch (e) {
+                                console.error("Error fetching applications for project:", project._id, e);
+                            }
+                        }
+                    } catch (e) {
+                        console.error("Error fetching projects:", e);
+                    }
+                    
+                    // If we found a matching application with a submission date, use it
+                    if (applicationData && applicationData.submission_date) {
+                        console.log("Using application submission date:", applicationData.submission_date);
+                        notification.created_at = applicationData.submission_date;
+                    } else if (!notification.created_at) {
+                        // No application found or no submission_date, but still no created_at
+                        notification.created_at = new Date().toISOString();
+                    }
+                }
+                
+                // For non-application notifications or if application matching failed
+                if (!notification.created_at) {
+                    notification.created_at = new Date().toISOString();
+                }
+                
+                return notification;
+            }));
+            
+            setNotifications(processedNotifications);
             // Initially display only 5 notifications
-            setDisplayedNotifications(response.data.notifications.slice(0, 5));
+            setDisplayedNotifications(processedNotifications.slice(0, 5));
         } catch (err) {
             setError(err.message);
             console.error('Error fetching notifications:', err);
