@@ -557,9 +557,9 @@ export default function ChatPage() {
     }
 
     return (
-        <div className="flex h-screen w-[calc(100vw-64px)] bg-gray-900 text-gray-100 fixed inset-0 overflow-hidden ml-16 mr-4">
-            {/* Projects list section */}
-            <div className="w-[240px] border-r border-gray-800 overflow-y-auto">
+        <div className="flex h-screen w-[calc(100vw-64px)] bg-gray-900 text-gray-100 fixed inset-y-0 left-16 right-4 overflow-hidden">
+            {/* Projects list section - fixed width with hidden scrollbar */}
+            <div className="w-[240px] flex-shrink-0 border-r border-gray-800 overflow-y-auto scrollbar-hide">
                 <div className="flex justify-between items-center p-5">
                     <h2 className="text-xl font-semibold">Projects</h2>
                 </div>
@@ -599,8 +599,8 @@ export default function ChatPage() {
                 </ul>
             </div>
 
-            {/* Chat threads section */}
-            <div className="w-[240px] border-r border-gray-800 overflow-y-auto">
+            {/* Chat threads section - fixed width with hidden scrollbar */}
+            <div className="w-[240px] flex-shrink-0 border-r border-gray-800 overflow-y-auto scrollbar-hide">
                 <div className="flex justify-between items-center p-5">
                     <h2 className="text-xl font-semibold">Threads</h2>
                     <button
@@ -679,7 +679,7 @@ export default function ChatPage() {
                 </div>
 
                 {/* Messages area */}
-                <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                <div className="flex-1 overflow-y-auto scrollbar-hide p-5 space-y-4">
                     {activeThread && activeThread.replies && activeThread.replies.length > 0 ? (
                         activeThread.replies.map((reply, index) => {
                             const isCurrentUser = reply.created_by === userData?.id;
