@@ -2,6 +2,7 @@
 
 import React, { ReactNode } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface ProfessorLayoutProps {
     children: ReactNode;
@@ -13,9 +14,12 @@ export default function ProfessorLayout({ children }: ProfessorLayoutProps) {
             {/* Sidebar */}
             <div className="w-16 border-r border-gray-700 flex flex-col items-center py-8">
                 <div className="w-10 h-10 bg-[#7c68ee33] rounded-lg flex items-center justify-center mb-12">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="12" cy="12" r="6" fill="#7c68ee" />
-                    </svg>
+                    <Image 
+                        src="/logo.png" 
+                        alt="Logo" 
+                        width={24} 
+                        height={24}
+                    />
                 </div>
 
                 <div className="flex flex-col items-center space-y-8">
@@ -65,4 +69,4 @@ export default function ProfessorLayout({ children }: ProfessorLayoutProps) {
             </div>
         </div>
     );
-} 
+}

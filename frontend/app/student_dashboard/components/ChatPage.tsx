@@ -557,9 +557,9 @@ export default function ChatPage() {
     }
 
     return (
-        <div className="flex h-screen bg-gray-900 text-gray-100">
+        <div className="flex h-screen w-[calc(100vw-64px)] bg-gray-900 text-gray-100 fixed inset-0 overflow-hidden ml-16 mr-4">
             {/* Projects list section */}
-            <div className="w-80 border-r border-gray-800 overflow-y-auto">
+            <div className="w-[240px] border-r border-gray-800 overflow-y-auto">
                 <div className="flex justify-between items-center p-5">
                     <h2 className="text-xl font-semibold">Projects</h2>
                 </div>
@@ -600,7 +600,7 @@ export default function ChatPage() {
             </div>
 
             {/* Chat threads section */}
-            <div className="w-80 border-r border-gray-800 overflow-y-auto">
+            <div className="w-[240px] border-r border-gray-800 overflow-y-auto">
                 <div className="flex justify-between items-center p-5">
                     <h2 className="text-xl font-semibold">Threads</h2>
                     <button
@@ -666,8 +666,8 @@ export default function ChatPage() {
             </div>
 
             {/* Messages section */}
-            <div className="flex-1 flex flex-col">
-                <div className="p-5 border-b border-gray-800">
+            <div className="flex-1 flex flex-col h-full overflow-hidden">
+                <div className="p-5 border-b border-gray-800 bg-gray-800 sticky top-0 z-10">
                     <h2 className="text-xl font-semibold">
                         {activeThread ? activeThread.title : "Select a thread"}
                     </h2>
@@ -721,7 +721,7 @@ export default function ChatPage() {
 
                 {/* Message input */}
                 {activeThread && (
-                    <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-800 flex gap-2">
+                    <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-800 flex gap-2 sticky bottom-0 bg-gray-900">
                         <input
                             type="text"
                             placeholder="Type your message..."
