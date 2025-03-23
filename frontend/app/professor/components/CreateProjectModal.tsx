@@ -1,18 +1,43 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createInitialDiscussionThread } from '@/lib/api';
+import tagsData from '@/components/tags.json';
 
 export default function CreateProjectModal({ isOpen, onClose }) {
     const [projectTitle, setProjectTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [domain, setDomain] = useState('');
+    const [selectedTags, setSelectedTags] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isTagsDropdownOpen, setIsTagsDropdownOpen] = useState(false);
     const [mentorName, setMentorName] = useState('');
     const [imageUrl, setImageUrl] = useState('');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const [availableTags, setAvailableTags] = useState([]);
+    const tagsDropdownRef = useRef(null);
+
+    useEffect(() => {
+        // Set available tags from the imported JSON
+        setAvailableTags(tagsData.tags);
+    }, []);
+
+    useEffect(() => {
+        // Handle click outside to close tags dropdown
+        const handleClickOutside = (event) => {
+            if (tagsDropdownRef.current && !tagsDropdownRef.current.contains(event.target)) {
+                setIsTagsDropdownOpen(false);
+                setSearchTerm("");
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [tagsDropdownRef]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -38,12 +63,12 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                     _id: ADMIN_INFO.id,
                     name: ADMIN_INFO.name,
                     email: ADMIN_INFO.email,
-                    role: ADMIN_INFO.role
+                    user_type: 'professor' // Changed from role to user_type to match backend
                 },
                 cap: 8, // Default cap value
                 start_date: startDate + "T00:00:00.000+00:00",
                 end_date: endDate + "T00:00:00.000+00:00",
-                tags: [domain], // Using domain as a tag
+                tags: selectedTags, // Using selected tags array
                 discussion_threads: [],
                 students_enrolled: []
             };
@@ -94,12 +119,28 @@ export default function CreateProjectModal({ isOpen, onClose }) {
     const clearForm = () => {
         setProjectTitle('');
         setDescription('');
-        setDomain('');
+        setSelectedTags([]);
         setMentorName('');
         setImageUrl('');
         setStartDate('');
         setEndDate('');
     };
+
+    const handleTagSelect = (tag) => {
+        if (!selectedTags.includes(tag)) {
+            setSelectedTags(prev => [...prev, tag]);
+        }
+        setSearchTerm("");
+        setIsTagsDropdownOpen(false);
+    };
+
+    const handleRemoveTag = (tag) => {
+        setSelectedTags(prev => prev.filter(t => t !== tag));
+    };
+
+    const filteredTags = availableTags
+        .filter(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+        .filter(tag => !selectedTags.includes(tag));
 
     if (!isOpen) return null;
 
@@ -156,33 +197,63 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                         />
                     </div>
 
-                    <div className="flex gap-4 mb-4">
-                        <div className="flex-1">
-                            <label htmlFor="domain" className="block text-gray-700 text-sm font-medium mb-2">
-                                Domain
-                            </label>
-                            <div className="relative">
-                                <select
-                                    id="domain"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    value={domain}
-                                    onChange={(e) => setDomain(e.target.value)}
-                                    required
-                                    disabled={isLoading}
-                                >
-                                    <option value="" disabled>Select Domain</option>
-                                    <option value="ai">AI</option>
-                                    <option value="web">Web Development</option>
-                                    <option value="mobile">Mobile Development</option>
-                                    <option value="data">Data Science</option>
-                                </select>
-                                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M6 9l6 6 6-6" />
-                                    </svg>
+                    <div className="mb-4">
+                        <label htmlFor="tags" className="block text-gray-700 text-sm font-medium mb-2">
+                            Domain/Tags
+                        </label>
+                        <div className="relative" ref={tagsDropdownRef}>
+                            <input
+                                id="tags"
+                                type="text"
+                                value={searchTerm}
+                                onChange={(e) => {
+                                    setSearchTerm(e.target.value);
+                                    setIsTagsDropdownOpen(true);
+                                }}
+                                onFocus={() => setIsTagsDropdownOpen(true)}
+                                placeholder="Search for technologies..."
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                disabled={isLoading}
+                            />
+                            
+                            {isTagsDropdownOpen && (
+                                <div className="absolute z-10 mt-1 w-full max-h-60 overflow-auto bg-white border border-gray-300 rounded-md shadow-lg">
+                                    {filteredTags.length > 0 ? (
+                                        filteredTags.slice(0, 10).map((tag, index) => (
+                                            <div 
+                                                key={index} 
+                                                className="p-2 hover:bg-gray-100 cursor-pointer text-gray-700"
+                                                onClick={() => handleTagSelect(tag)}
+                                            >
+                                                {tag}
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="p-3 text-sm text-gray-500">
+                                            {searchTerm ? "No matching technologies found" : "Start typing to search technologies"}
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
+                            )}
                         </div>
+                        
+                        {selectedTags.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-2">
+                                {selectedTags.map((tag, index) => (
+                                    <div key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-sm flex items-center">
+                                        {tag}
+                                        <button 
+                                            type="button"
+                                            onClick={() => handleRemoveTag(tag)} 
+                                            className="ml-2 text-blue-600 hover:text-blue-800"
+                                            disabled={isLoading}
+                                        >
+                                            &times;
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex gap-4 mb-4">

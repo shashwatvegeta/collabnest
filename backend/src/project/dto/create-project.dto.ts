@@ -9,7 +9,10 @@ export class CreateProjectDto {
   end_date: Date;
   //discussion_threads: Object[];
   //tags: Object[];
-  project_owner: Object;
+  project_owner: {
+    user_type: string;
+    [key: string]: any;
+  };
   //students_enrolled: Object[];
   //tasks: Object[];
   //project_application: Object[];

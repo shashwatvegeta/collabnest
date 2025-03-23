@@ -12,10 +12,10 @@ export default function OngoingProjects() {
     async function fetchApprovedProjects() {
       try {
         const response = await axios.get('http://localhost:3001/project/approved');
-        setProjects(response.data);
+        // Limit to only 5 projects
+        setProjects(response.data.slice(0, 5));
         setLoading(false);
       } catch (error) {
-
         console.error('Error fetching approved projects:', error);
         setLoading(false);
       }
