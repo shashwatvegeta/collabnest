@@ -15,7 +15,8 @@ export default function ProjectApprovals() {
   async function fetchPendingProjects() {
     try {
       const response = await axios.get('http://localhost:3001/project/pending');
-      setPendingProjects(response.data);
+      // Limit to only 3 projects
+      setPendingProjects(response.data.slice(0, 3));
       setLoading(false);
     } catch (error) {
       console.error('Error fetching pending projects:', error);
@@ -47,8 +48,8 @@ export default function ProjectApprovals() {
     <div className="bg-white bg-opacity-5 rounded-lg p-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Project Approvals</h2>
-        <Link 
-          href="/admin/projects?filter=pending" 
+        <Link
+          href="/admin/projects?filter=pending"
           className="bg-[#1F1D38] hover:bg-[#272b3f] text-white px-3 py-1 rounded-md text-xs"
         >
           View all &gt;
@@ -88,7 +89,7 @@ export default function ProjectApprovals() {
         </div>
       )}
 
-      <Link 
+      <Link
         href="/admin/projects?filter=pending"
         className="bg-[#6B56E3] text-white w-full py-2 rounded-md mt-4 block text-center"
       >

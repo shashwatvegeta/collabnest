@@ -6,5 +6,8 @@ export declare class CreateProjectDto {
     cap: number;
     start_date: Date;
     end_date: Date;
-    project_owner: Object;
+    project_owner: {
+        user_type: string;
+        [key: string]: any;
+    };
 }

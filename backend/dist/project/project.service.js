@@ -35,7 +35,7 @@ let ProjectService = class ProjectService {
         let approvalStatus = 'pending';
         if (typeof createProjectDto.project_owner === 'object' &&
             createProjectDto.project_owner !== null) {
-            if (createProjectDto.project_owner.role === 'PROFESSOR') {
+            if (createProjectDto.project_owner.user_type === 'professor') {
                 approvalStatus = 'approved';
             }
         }
