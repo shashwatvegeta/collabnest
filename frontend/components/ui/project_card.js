@@ -13,8 +13,8 @@ export function ProjectCard({ project, id }) {
   // Handle different property names (project_name or name)
   const projectName = project.project_name || project.name || "Unnamed Project";
   
-  // Determine project level based on status or other attributes
-  const level = project.status?.approved ? "Approved" : "Pending";
+  // Get project tags (ensure it's an array)
+  const tags = Array.isArray(project.tags) ? project.tags : [];
   
   // Determine the correct link based on the available ID and user role
   const projectId = id || project._id;
@@ -38,6 +38,9 @@ export function ProjectCard({ project, id }) {
   
   const linkPath = projectId ? getLinkPath() : '#';
   
+  // Get the approval status for display if needed
+  const approvalStatus = project.is_approved || project.status?.approved ? "Approved" : "Pending";
+  
   return (
     <Link href={linkPath}>
       <div className="rounded-lg overflow-hidden flex bg-[#222131] mb-2 h-[90px] shadow-md hover:bg-[#2a2a38] transition-all duration-300 cursor-pointer">
@@ -50,9 +53,27 @@ export function ProjectCard({ project, id }) {
             <div className="text-xs text-gray-300 line-clamp-2">{description}</div>
           </div>
           <div className="flex justify-between items-center">
-            <button className="text-xs py-0.5 px-3 rounded-md bg-blue-600 text-white mt-1">
-              {level}
-            </button>
+            <div className="flex flex-wrap gap-1 mt-1">
+              {tags.length > 0 ? (
+                tags.slice(0, 2).map((tag, index) => (
+                  <span 
+                    key={index} 
+                    className="inline-block bg-indigo-900/60 text-violet-200 px-2 py-0.5 rounded-full text-xs"
+                  >
+                    {tag}
+                  </span>
+                ))
+              ) : (
+                <span className="inline-block bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full text-xs">
+                  No tags
+                </span>
+              )}
+              {tags.length > 2 && (
+                <span className="inline-block bg-indigo-900/60 text-violet-200 px-2 py-0.5 rounded-full text-xs">
+                  +{tags.length - 2}
+                </span>
+              )}
+            </div>
             <span className="text-xs text-violet-300 mr-2">View Details →</span>
           </div>
         </div>
